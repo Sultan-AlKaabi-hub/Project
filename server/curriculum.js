@@ -3,6 +3,7 @@ import beginner from "../data/curriculum/beginner.js";
 import intermediate from "../data/curriculum/intermediate.js";
 import expert from "../data/curriculum/expert.js";
 import { load, save } from "./db.js";
+import crypto from "node:crypto";
 
 export const LEVELS = ["beginner", "intermediate", "expert"];
 export const COURSE = { beginner, intermediate, expert };
@@ -29,7 +30,8 @@ export function moduleSummary(u, m, lang) {
     id: m.id, level: m.level, icon: m.icon, title: m.title[lang], desc: m.desc[lang], skills: m.skills[lang],
     lessons: m.lessons.length, read, passed: st.passed, attempts: st.attempts, locked,
     quizReady: !locked && read === m.lessons.length && !st.needsReread, needsReread: st.needsReread,
-    status: st.passed ? "passed" : locked ? "locked" : read === m.lessons.length ? "quiz" : read > 0 ? "in_progress" : "new"
+    status: st.passed ? "passed" : locked ? "locked" : st.needsReread ? "failed" : read === m.lessons.length ? "quiz" : read > 0 ? "in_progress" : "new",
+    certId: st.certId || null, lastScore: st.lastScore ?? null, firstLesson: m.lessons[0].id
   };
 }
 
@@ -44,7 +46,8 @@ export function courseSummary(u, lang) {
   const current = levels.find((l) => l.id === (u.level || "beginner"));
   const next = current.modules.find((m) => !m.passed) || null;
   const lessonsRead = Object.values(progress(u).modules).reduce((n, s) => n + s.read.length, 0);
-  return { level: u.level || "beginner", levels, next, lessonsRead, modulesPassed: levels.reduce((n, l) => n + l.passed, 0), expertDone: Boolean(u.expertDone) };
+  const certs = (u.certs || []).map((ct) => { const m = moduleById(ct.moduleId); return { ...ct, title: m ? m.title[lang] : ct.moduleId, icon: m?.icon }; }).reverse();
+  return { level: u.level || "beginner", levels, next, lessonsRead, certs, modulesPassed: levels.reduce((n, l) => n + l.passed, 0), expertDone: Boolean(u.expertDone) };
 }
 
 export function markRead(u, lessonId) {
@@ -72,10 +75,12 @@ export function gradeQuiz(u, answers, lang) {
   const m = moduleById(a.moduleId);
   const review = a.idx.map((qi, n) => { const q = m.quiz[qi]; const chosen = answers[n]; return { q: q.q[lang], choices: q.choices[lang], chosen, answer: q.answer, correct: chosen === q.answer }; });
   const score = review.filter((r) => r.correct).length, passed = score >= PASS_MARK;
-  const st = modState(u, m.id); st.attempts++;
-  let levelUp = null, expertDone = false;
+  const st = modState(u, m.id); st.attempts++; st.lastScore = score;
+  let levelUp = null, expertDone = false, certId = null;
   if (passed) {
     st.passed = true; st.needsReread = false;
+    if (!st.certId) { st.certId = crypto.randomBytes(6).toString("hex"); u.certs = u.certs || []; u.certs.push({ id: st.certId, moduleId: m.id, level: m.level, score, total: review.length, date: new Date().toISOString() }); }
+    certId = st.certId;
     const lv = levelSummary(u, m.level, lang);
     if (lv.complete && m.level === (u.level || "beginner")) {
       u.badges = u.badges || []; if (!u.badges.includes(m.level)) u.badges.push(m.level);
@@ -83,7 +88,7 @@ export function gradeQuiz(u, answers, lang) {
     }
   } else { st.needsReread = true; st.rereadSince = []; }
   delete u.activeQuiz; save();
-  return { moduleId: m.id, moduleTitle: m.title[lang], score, total: review.length, passed, review, levelUp, expertDone, level: u.level || "beginner", lessonIds: m.lessons.map((l) => l.id) };
+  return { moduleId: m.id, moduleTitle: m.title[lang], score, total: review.length, passed, review, levelUp, expertDone, certId, level: u.level || "beginner", lessonIds: m.lessons.map((l) => l.id) };
 }
 
 // Placement: two questions per level, drawn across modules.

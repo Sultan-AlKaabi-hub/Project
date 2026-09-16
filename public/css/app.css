@@ -288,3 +288,9 @@ html[dir="rtl"] .lang-pill { right: auto; left: 16px; }
 .en-twin { margin-top: 14px; color: var(--muted); }
 .en-twin summary { cursor: pointer; font-weight: 600; }
 .reader .body p { margin: 0 0 14px; }
+
+.module.failed { border-top-color: var(--warn); }
+.banner.fail { background: var(--warn-soft); color: var(--warn); }
+.result.fail .score { color: var(--warn); }
+.result.pass .score { color: var(--good); }
+.result .pill { margin-bottom: 8px; }

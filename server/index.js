@@ -29,7 +29,7 @@ app.use(cookieParser());
 // ---------- helpers ----------
 const db = load();
 const publicUser = (u) => ({
-  email: u.email, lang: u.lang || "ar", level: u.level || null, placed: Boolean(u.level),
+  email: u.email, name: u.name || u.email.split("@")[0], lang: u.lang || "ar", level: u.level || null, placed: Boolean(u.level),
   totpEnabled: Boolean(u.totp?.enabled), passkeys: (u.passkeys || []).length,
   badges: u.badges || [], expertDone: Boolean(u.expertDone), isAdmin: isAdmin(u)
 });
@@ -141,6 +141,7 @@ app.get("/api/me", (req, res) => {
 });
 app.post("/api/settings", requireUser, (req, res) => {
   if (req.body.lang === "ar" || req.body.lang === "en") req.user.lang = req.body.lang;
+  if (typeof req.body.name === "string") req.user.name = req.body.name.trim().slice(0, 60);
   save(); res.json({ user: publicUser(req.user) });
 });
 app.post("/api/reset", requireUser, (req, res) => {
@@ -187,6 +188,53 @@ app.post("/api/course/quiz", requireUser, (req, res) => {
   const r = course.gradeQuiz(req.user, req.body.answers || [], req.user.lang || "ar");
   if (!r) return res.status(400).json({ error: "no_quiz" });
   res.json({ ...r, user: publicUser(req.user), course: course.courseSummary(req.user, req.user.lang || "ar") });
+});
+
+// Certificate: a printable page for one passed module (print to PDF from the browser).
+app.get("/api/certificate/:id", requireUser, (req, res) => {
+  const u = req.user, lang = req.query.lang === "en" ? "en" : (u.lang || "ar");
+  const ct = (u.certs || []).find((x) => x.id === req.params.id);
+  if (!ct) return res.status(404).type("text/plain").send("Certificate not found");
+  const m = course.moduleById(ct.moduleId);
+  const name = u.name || u.email.split("@")[0];
+  const L = lang === "ar" ? { t: "شهادة إتمام", sub: "تشهد منصة راصد بأن", passed: "قد اجتاز وحدة", level: "المستوى", score: "النتيجة", date: "التاريخ", id: "رقم الشهادة", skills: "المهارات", print: "طباعة / حفظ PDF", lv: { beginner: "مبتدئ", intermediate: "متوسط", expert: "خبير" } }
+                          : { t: "Certificate of Completion", sub: "Rasid certifies that", passed: "has passed the module", level: "Level", score: "Score", date: "Date", id: "Certificate ID", skills: "Skills", print: "Print / Save as PDF", lv: { beginner: "Beginner", intermediate: "Intermediate", expert: "Expert" } };
+  const date = new Date(ct.date).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB", { year: "numeric", month: "long", day: "numeric" });
+  const esc = (x) => String(x).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+  res.type("html").send(`<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${L.t} · ${esc(m.title[lang])}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=DM+Sans:wght@400;600;700&display=swap">
+  <style>
+    body{margin:0;background:#ECE9E4;font-family:${lang === "ar" ? '"IBM Plex Sans Arabic"' : '"DM Sans"'},"Segoe UI",sans-serif;color:#26232A;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}
+    .cert{width:min(860px,100%);background:#F5F2EE;border-radius:28px;padding:48px 56px;box-shadow:12px 12px 30px rgba(70,58,84,.18),-12px -12px 30px rgba(255,255,255,.95);position:relative;border:10px double #E8E1FB}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:14px;color:#5B3FCB}
+    .brand svg{width:22px;height:22px}
+    h1{font-size:40px;margin:26px 0 6px;font-weight:700}
+    .sub{color:#6E6873;font-size:17px;margin:0}
+    .name{font-size:34px;font-weight:700;margin:22px 0 6px;color:#5B3FCB}
+    .mod{font-size:26px;font-weight:600;margin:6px 0 18px}
+    .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:22px}
+    .meta div{background:#E4E0DA;border-radius:14px;padding:12px 14px;box-shadow:inset 3px 3px 6px rgba(70,58,84,.16),inset -3px -3px 6px rgba(255,255,255,.9)}
+    .meta b{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6E6873;margin-bottom:4px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chip{background:#E8E1FB;color:#5B3FCB;border-radius:999px;padding:4px 12px;font-weight:600;font-size:14px}
+    .seal{position:absolute;top:36px;inset-inline-end:44px;width:92px;height:92px;border-radius:50%;background:#7C5CE6;color:#fff;display:grid;place-items:center;text-align:center;font-weight:700;font-size:13px;line-height:1.2;box-shadow:6px 6px 14px rgba(70,58,84,.25)}
+    .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px;gap:12px;flex-wrap:wrap;color:#6E6873;font-size:13px}
+    .sig{border-top:1px solid #6E6873;padding-top:6px;min-width:180px;text-align:center}
+    .print{margin-top:22px;border:0;background:#7C5CE6;color:#fff;padding:12px 22px;border-radius:14px;font:inherit;font-weight:600;cursor:pointer}
+    @media print{body{background:#fff;padding:0}.cert{box-shadow:none}.print{display:none}}
+  </style></head><body>
+  <div class="cert">
+    <div class="brand"><svg viewBox="0 0 22 22"><g fill="#7C5CE6"><circle cx="11" cy="4" r="2.4"/><circle cx="4" cy="11" r="2.4"/><circle cx="18" cy="11" r="2.4"/><circle cx="11" cy="18" r="2.4"/><circle cx="11" cy="11" r="2.4" opacity=".5"/></g></svg>${lang === "ar" ? "راصد" : "Rasid"}</div>
+    <div class="seal">${ct.score}/${ct.total}<br>${L.lv[ct.level]}</div>
+    <h1>${L.t}</h1><p class="sub">${L.sub}</p>
+    <div class="name">${esc(name)}</div>
+    <p class="sub">${L.passed}</p>
+    <div class="mod">${m.icon} ${esc(m.title[lang])}</div>
+    <p class="sub">${esc(m.desc[lang])}</p>
+    <div class="chips">${m.skills[lang].map((x) => `<span class="chip">${esc(x)}</span>`).join("")}</div>
+    <div class="meta"><div><b>${L.level}</b>${L.lv[ct.level]}</div><div><b>${L.score}</b>${ct.score} / ${ct.total}</div><div><b>${L.date}</b>${date}</div><div><b>${L.id}</b>${ct.id.toUpperCase()}</div></div>
+    <div class="foot"><span>${esc(u.email)}</span><span class="sig">${lang === "ar" ? "فارس، مرشد راصد" : "Faris, Rasid guide"}</span></div>
+    <button class="print" onclick="window.print()">${L.print}</button>
+  </div></body></html>`);
 });
 
 // ---------- placement ----------
