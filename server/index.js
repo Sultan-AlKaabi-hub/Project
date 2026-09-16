@@ -1,6 +1,8 @@
 import {initializeCampus, seedCampusDemo, installCampus, notifyCoverage} from "./campus.js";
 import {subjectOf,hasAI} from "./subjects.js";
 import {installOwnerRecovery,ownerRecoveryAvailable} from "./owner-recovery.js";
+import {enrichDemo,ensureOwnerExamples} from './experience.js';
+import {installLab} from './lab.js';
 // Rasid server: static PWA + JSON API + daily content update.
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -41,6 +43,7 @@ setInterval(() => {
 const db = load();
 migrateRoles(db); initializeCampus(db);
 if(process.env.RASID_SEED_DEMO === "1" || (process.env.NODE_ENV === "production" && process.env.RASID_SEED_DEMO !== "0"))seedCampusDemo(db);
+enrichDemo(db);
 save();
 const publicUser = (u) => ({
   email: u.email, name: u.name || u.email.split("@")[0], lang: u.lang || "ar", level: u.level || null, placed: Boolean(u.level),
@@ -55,6 +58,7 @@ function requireUser(req, res, next) {
   const u = auth.getSession(req.cookies.rasid);
   if (!u) return res.status(401).json({ error: "not signed in" });
   if (!u.lastSeen || Date.now()-u.lastSeen>60000) { u.lastSeen=Date.now(); save(); }
+  if(ensureOwnerExamples(db,u))save();
   req.user = u; next();
 }
 
@@ -87,6 +91,7 @@ installPortal(app,{db,save,requireUser});
 installOperations(app,{db,save:()=>{notifyCoverage(db);save();},requireUser});
 installCampus(app,{db,save,requireUser});
 installOwnerRecovery(app,{db,saveNow,requireUser,publicUser});
+installLab(app,{db,save,requireUser});
 app.get('/api/install', async (req,res) => {
   const url=process.env.PUBLIC_ORIGIN || req.protocol+'://'+req.get('host');
   res.json({url,qr:await QRCode.toDataURL(url,{width:240,margin:2}),apk:fs.existsSync(path.join(DATA_DIR,'rasid.apk'))});

@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import {localize, enrichDemo} from './experience.js';
 import { hashPin } from "./auth.js";
 import { COURSE, LEVELS } from "./curriculum.js";
 import { canView, roleOf, userSummary } from "./portal.js";
@@ -283,6 +284,7 @@ export function notifyCoverage(db, now = Date.now()) {
       email: u.email,
       kind: "message",
       from: "Rasid · راصد",
+      translations:Object.fromEntries(['en','ar'].map(lang=>[lang,{message:(lang==='ar'?'تنبيه تغطية المعلمين (قد يشمل بيانات تجريبية): ':'Teacher coverage alert (may include sample data): ')+rows.map(r=>`${db.subjects.find(s=>s.id===r.subject)[lang]} (${r.day}): ${r.count}/${r.minimum}`).join(' • ')}])),
       message: `Coverage alert (includes test rosters) / تنبيه التغطية (يشمل المناوبات التجريبية): ${rows
         .map((r) => {
           const s = db.subjects.find((s) => s.id === r.subject);
@@ -330,14 +332,14 @@ export function campusData(db, viewer, mode = "all", day = uaeDay()) {
         ((c.subject || "ai") === subjectOf(viewer) &&
           (c.host === viewer.email || c.members.some((e) => emails.has(e)))),
     )
-    .map((c) => ({ ...c, members: c.members.filter((e) => emails.has(e)) }));
+    .map((c) => ({ ...localize(c,viewer.lang), members: c.members.filter((e) => emails.has(e)) }));
   const attendance = (db.attendance || [])
     .filter((a) => emails.has(a.email))
     .map((a) => ({
       ...a,
       start: db.classes.find((c) => c.id === a.classId)?.start || a.at,
     }));
-  const absences = (db.absences || []).filter((a) => emails.has(a.email));
+  const absences = (db.absences || []).filter((a) => emails.has(a.email)).map(a=>localize(a,viewer.lang));
   const teachers = Object.values(db.users)
     .filter(
       (u) =>
@@ -353,6 +355,7 @@ export function campusData(db, viewer, mode = "all", day = uaeDay()) {
     }));
   return {
     people,
+    bookings:(db.bookings||[]).filter(b=>b.host===viewer.email||b.requester===viewer.email).map(b=>localize(b,viewer.lang)),
     teachers,
     classes,
     attendance,
@@ -461,6 +464,9 @@ export function installCampus(app, { db, save, requireUser }) {
     const users = [
       "khalid.ai@demo.rasid.test",
       "student01@demo.rasid.test",
+      "student08@demo.rasid.test",
+      "student15@demo.rasid.test",
+      "hamdan.math@demo.rasid.test",
     ].map((e) => db.users[e]);
     if (users.some((u) => !u?.isDemo))
       return res.status(409).json({ error: "demo_unavailable" });
@@ -477,6 +483,7 @@ export function installCampus(app, { db, save, requireUser }) {
   });
   app.post("/api/admin/seed-demo", requireUser, admin, (req, res) => {
     const added = seedCampusDemo(db);
+    enrichDemo(db);
     notifyCoverage(db);
     save();
     res.json({ ok: true, added });

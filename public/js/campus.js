@@ -14,6 +14,7 @@
     messages: ["Messages & alerts", "الرسائل والتنبيهات"],
     classes: ["Classes & calendar", "الحصص والتقويم"],
     course: ["AI learning path", "مسار الذكاء الاصطناعي"],
+    lab: ["AI discovery lab", "مختبر اكتشاف الذكاء الاصطناعي"],
     news: ["Live news", "الأخبار المباشرة"],
     exams: ["Exams & results", "الاختبارات والنتائج"],
     appointments: ["Private tuition & meetings", "الدروس الخاصة والاجتماعات"],
@@ -431,8 +432,10 @@
       appointments: "◫",
       privacy: "◇",
       insights: "↗",
+      lab: "⌘",
     };
     const descriptions = {
+      lab: ["Animate search algorithms, test a model and practice your reasoning.","حرّك خوارزميات البحث واختبر نموذجاً وتدرّب على الاستدلال."],
       admin: [
         "Campus numbers, progress and attendance.",
         "أرقام المنصة والتقدم والحضور.",
@@ -502,6 +505,7 @@
           ...(ai
             ? [
                 ["course", "course"],
+                ["lab", "lab"],
                 ["news", "news"],
                 ["exams", "exams"],
               ]
@@ -543,6 +547,7 @@
                 ]
               : []),
           ]) +
+          `<section class="campus-panel daily-brief"><div class="portal-row"><h2>${S.lang==='ar'?'القادم في مساحتك':'Next in your campus'}</h2><button class="btn small" data-campus-go="calendar">${L('appointments')}</button></div><div class="brief-items">${d.classes.filter(c=>c.status==='scheduled'&&c.end>Date.now()).sort((a,b)=>a.start-b.start).slice(0,3).map(c=>`<button class="brief-item" data-campus-go="classes"><span class="brief-date">${date(c.start,true)}</span><strong>${esc(c.title)}</strong><span>${esc(c.location)} ${Portal.sampleTag(c)}</span></button>`).join('')||`<p>${S.lang==='ar'?'لا توجد حصص قادمة. يمكنك طلب موعد للدعم.':'No upcoming classes. You can request a support appointment.'}</p>`}</div><p class="sub">${S.lang==='ar'?'طلبات المواعيد بانتظار الموافقة':'Appointment requests awaiting approval'}: ${(d.bookings||[]).filter(b=>b.status==='pending'&&b.end>Date.now()).length}</p></section>` +
           `<div class="campus-launchers">${cards.map(([k, v], i) => `<button class="campus-launch" data-campus-go="${v}" style="--tile:${["#3c557b", "#24645f", "#755589", "#a96f42", "#884758"][i % 5]}"><span class="launch-visual" aria-hidden="true"><span>${icons[k]}</span><i></i><i></i><i></i></span><span class="launch-copy"><span class="eyebrow">${L("open")}</span><strong>${k === "directory" && !admin ? L("myStudents") : L(k)}</strong><span>${descriptions[k][S.lang === "ar" ? 1 : 0]}</span><b>${L("open")} ←</b></span></button>`).join("")}</div>`,
         VIEWS.home,
       );
@@ -645,6 +650,7 @@
             p.role === "student"
               ? stats([
                   ["completion", pct(p) + "%"],
+                  ["lab", `${p.labPractice?.bestScore||0}/5 · ${p.labPractice?.attempts||0}`],
                   [
                     "attendance",
                     rate(
@@ -887,7 +893,7 @@
               (inboxFilter !== "important" || m.priority !== "normal"),
         )
         .sort((a, b) => b.at - a.at);
-      const html = `<div class="campus-message-grid"><section class="campus-panel"><div class="hub-tabs">${["inbox", "unread", "important", "sent"].map((k) => button(k, `data-inbox="${k}" aria-pressed="${inboxFilter === k}"`, "small")).join("")}</div>${list.map((m) => `<article class="campus-mail"><div class="campus-mail-heading"><h3>${esc(m.subject)}</h3>${pill(L(m.priority), m.priority === "urgent" ? "danger" : "")}</div><small>${esc(d.people.find((p) => p.email === m.sender)?.name || m.sender)} · ${date(m.at, true)}</small><p>${esc(m.body)}</p>${m.sender === current ? `<p class="sub">${L("readBy")} ${m.readBy.length} ${L("of")} ${m.recipients.length}</p>` : !m.readBy.includes(current) ? button("read", `data-mail-read="${m.id}"`, "small") : ""}</article>`).join("") || `<p>${L("empty")}</p>`}</section><section class="campus-panel"><h2>${L("send")}</h2><form id="campus-compose" class="campus-compose">${field(
+      const html = `<div class="campus-message-grid"><section class="campus-panel"><div class="hub-tabs">${["inbox", "unread", "important", "sent"].map((k) => button(k, `data-inbox="${k}" aria-pressed="${inboxFilter === k}"`, "small")).join("")}</div>${list.map((m) => `<article class="campus-mail"><div class="campus-mail-heading"><h3>${esc(m.subject)}${Portal.sampleTag(m)}</h3>${pill(L(m.priority), m.priority === "urgent" ? "danger" : "")}</div><small>${esc(d.people.find((p) => p.email === m.sender)?.name || m.sender)} · ${date(m.at, true)}</small><p>${esc(m.body)}</p>${m.sender === current ? `<p class="sub">${L("readBy")} ${m.readBy.length} ${L("of")} ${m.recipients.length}</p>` : !m.readBy.includes(current) ? button("read", `data-mail-read="${m.id}"`, "small") : ""}</article>`).join("") || `<p>${L("empty")}</p>`}</section><section class="campus-panel"><h2>${L("send")}</h2><form id="campus-compose" class="campus-compose">${field(
         "recipients",
         `<select name="audience">${options([
           ["one", L("one")],

@@ -116,6 +116,7 @@
     );
   function register({ S, VIEWS, api, topbar, $, toast, wireTopbar }) {
     let tab = "overview",
+      includePast=false,
       filter = "all",
       day = "",
       query = "",
@@ -168,6 +169,7 @@
         filter = "all";
         day = "";
         query = "";
+        includePast=false;
       }
       if(opts.tab)tab=opts.tab;
       const d = await api("/api/hub");
@@ -232,13 +234,14 @@
             .slice(0, 5)
             .map(
               (s) =>
-                `<article class="hub-row"><b>${esc(s.title)}</b><span>${date(s.start)}</span><span>${esc(s.location)}</span></article>`,
+                `<article class="hub-row"><b>${esc(s.title)}${Portal.sampleTag(s)}</b><span>${date(s.start)}</span><span>${esc(s.location)}</span></article>`,
             )
             .join("") || L("empty")
         }</section>`;
       }
       if (tab === "timetable") {
         body = `<div class="row hub-filter">${field("date", '<input id="hub-day" type="date" value="' + day + '">')}${button("clear", 'id="hub-clear"')}</div>`;
+        body+=`<label class="row"><input type="checkbox" id="include-past" ${includePast?'checked':''}>${S.lang==='ar'?'إظهار الحصص السابقة':'Include past classes'}</label>`;
         if (staff)
           body += form(
             "class-form",
@@ -251,9 +254,10 @@
           );
         body +=
           classes
+            .filter(s=>includePast||day||s.end>=Date.now())
             .map(
               (s) =>
-                `<article class="card portal-section"><div class="row"><h2>${esc(s.title)}</h2>${badge(s.status)}</div><p>${date(s.start)} — ${date(s.end)}</p><p>${esc(person(s.host))} · ${esc(s.location)}</p>${staff ? `<p>${s.members.map((e) => esc(person(e))).join("، ")}</p>` : ""}${s.status === "scheduled" && (admin || s.host === current) ? button("cancel", `data-class-cancel="${s.id}"`) : ""}</article>`,
+                `<article class="card portal-section"><div class="row"><h2>${esc(s.title)}${Portal.sampleTag(s)}</h2>${badge(s.status)}</div><p>${date(s.start)} — ${date(s.end)}</p><p>${esc(person(s.host))} · ${esc(s.location)}</p>${staff ? `<p>${s.members.map((e) => esc(person(e))).join("، ")}</p>` : ""}${s.status === "scheduled" && (admin || s.host === current) ? button("cancel", `data-class-cancel="${s.id}"`) : ""}</article>`,
             )
             .join("") || L("empty");
       }
@@ -369,7 +373,7 @@
             .reverse()
             .map(
               (m) =>
-                `<article class="card portal-section"><div class="row"><h2>${esc(m.subject)}</h2>${badge(m.priority)}</div><p class="sub">${esc(person(m.sender))} · ${date(m.at)}</p><p class="hub-message">${esc(m.body)}</p>${m.recipients.includes(current) && !m.readBy.includes(current) ? button("read", `data-read="${m.id}"`) : ""}</article>`,
+                `<article class="card portal-section"><div class="row"><h2>${esc(m.subject)}${Portal.sampleTag(m)}</h2>${badge(m.priority)}</div><p class="sub">${esc(person(m.sender))} · ${date(m.at)}</p><p class="hub-message">${esc(m.body)}</p>${m.recipients.includes(current) && !m.readBy.includes(current) ? button("read", `data-read="${m.id}"`) : ""}</article>`,
             )
             .join("") || L("empty");
       }
@@ -424,6 +428,7 @@
         topbar(L("hub"), L("intro")) +
         `<nav class="hub-tabs" aria-label="${L("hub")}">${tabs.map((k) => button(k, `data-hub-tab="${k}" aria-pressed="${tab === k}"`)).join("")}</nav><div class="hub-content">${body || L("empty")}</div>`;
       wireTopbar();
+      if($('#include-past'))$('#include-past').onchange=e=>{includePast=e.target.checked;VIEWS.hub().catch(e=>toast(Portal.error(e)));};
       document.querySelectorAll("[data-hub-tab]").forEach(
         (b) =>
           (b.onclick = () => {
