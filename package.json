@@ -7,9 +7,13 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "update": "node server/pipeline/run.js"
+    "update": "node server/pipeline/run.js",
+    "build-static": "node scripts/build-static.js",
+    "postinstall": "node scripts/build-static.js"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
     "@simplewebauthn/browser": "^13.1.0",

@@ -67,6 +67,16 @@ The **Live News** screen is separate: real headlines from named sources with an 
 - **iPhone:** Safari → Share → Add to Home Screen.
 - Passkeys (fingerprint / Face ID) require HTTPS in production; `localhost` works for development.
 
-## Deploy
+## Deploy the live app
 
-Any Node host works (Render, Railway, Fly, a VPS). Set the environment variables above, keep `data/` on persistent storage, and serve over HTTPS.
+GitHub Pages cannot host this app: it only serves static files, and Rasid has a Node server (accounts, database, live news reader, Faris). Deploy the server to a Node host instead. The fastest free option is Render:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Sultan-AlKaabi-hub/Project)
+
+1. Click the button (or in Render: **New → Blueprint** and pick this repository).  already describes the service.
+2. Add the environment variable  (recommended) and, optionally, .
+3. Deploy. The app comes up at  (Render adds a suffix if the name is taken). The GitHub Pages page at  redirects there.
+
+Free-tier notes: the service sleeps after 15 minutes without traffic (first load takes about a minute), and there is no persistent disk, so  (accounts and progress) resets on each deploy. For real users pick a paid plan with a disk (see the comment in ), or any host with a volume: the  works on Railway, Fly.io or a VPS with .
+
+Passkeys (fingerprint / Face ID) need HTTPS, which every host above provides.

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>شهادة إتمام · راصد</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=DM+Sans:wght@400;600;700&display=swap">
+  <style>
+    body{margin:0;background:#ECE9E4;font-family:"IBM Plex Sans Arabic","DM Sans","Segoe UI",sans-serif;color:#26232A;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}
+    html[lang="en"] body{font-family:"DM Sans","Segoe UI",sans-serif}
+    .cert{width:min(860px,100%);background:#F5F2EE;border-radius:28px;padding:48px 56px;box-shadow:12px 12px 30px rgba(70,58,84,.18),-12px -12px 30px rgba(255,255,255,.95);position:relative;border:10px double #E8E1FB}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:14px;color:#5B3FCB}
+    .brand svg{width:22px;height:22px}
+    h1{font-size:40px;margin:26px 0 6px;font-weight:700}
+    .sub{color:#6E6873;font-size:17px;margin:0}
+    .name{font-size:34px;font-weight:700;margin:22px 0 6px;color:#5B3FCB}
+    .mod{font-size:26px;font-weight:600;margin:6px 0 18px}
+    .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:22px}
+    .meta div{background:#E4E0DA;border-radius:14px;padding:12px 14px;box-shadow:inset 3px 3px 6px rgba(70,58,84,.16),inset -3px -3px 6px rgba(255,255,255,.9)}
+    .meta b{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6E6873;margin-bottom:4px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chip{background:#E8E1FB;color:#5B3FCB;border-radius:999px;padding:4px 12px;font-weight:600;font-size:14px}
+    .seal{position:absolute;top:36px;inset-inline-end:44px;width:92px;height:92px;border-radius:50%;background:#7C5CE6;color:#fff;display:grid;place-items:center;text-align:center;font-weight:700;font-size:13px;line-height:1.2;box-shadow:6px 6px 14px rgba(70,58,84,.25)}
+    .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px;gap:12px;flex-wrap:wrap;color:#6E6873;font-size:13px}
+    .sig{border-top:1px solid #6E6873;padding-top:6px;min-width:180px;text-align:center}
+    .print{margin-top:22px;border:0;background:#7C5CE6;color:#fff;padding:12px 22px;border-radius:14px;font:inherit;font-weight:600;cursor:pointer}
+    @media print{body{background:#fff;padding:0}.cert{box-shadow:none}.print{display:none}}
+  </style>
+</head>
+<body>
+  <div class="cert" id="cert"><p class="sub">…</p></div>
+  <script src="js/curriculum-data.js"></script>
+  <script>
+    (function () {
+      const id = new URLSearchParams(location.search).get("id");
+      let state = {}; try { state = JSON.parse(localStorage.getItem("rasid.local")) || {}; } catch {}
+      const u = state.user, ct = (u?.certs || []).find((x) => x.id === id);
+      const lang = (u?.lang || localStorage.getItem("rasid.lang") || "ar") === "en" ? "en" : "ar";
+      document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      const esc = (x) => String(x ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+      const box = document.getElementById("cert");
+      if (!ct) { box.innerHTML = `<p class="sub">${lang === "ar" ? "الشهادة غير موجودة على هذا الجهاز." : "Certificate not found on this device."}</p>`; return; }
+      const LV = ["beginner", "intermediate", "expert"];
+      const m = LV.flatMap((lv) => window.CURRICULUM[lv].modules).find((x) => x.id === ct.moduleId);
+      const L = lang === "ar" ? { t: "شهادة إتمام", sub: "تشهد منصة راصد بأن", passed: "قد اجتاز وحدة", level: "المستوى", score: "النتيجة", date: "التاريخ", id: "رقم الشهادة", print: "طباعة / حفظ PDF", lv: { beginner: "مبتدئ", intermediate: "متوسط", expert: "خبير" }, sig: "فارس، مرشد راصد", brand: "راصد" }
+                              : { t: "Certificate of Completion", sub: "Rasid certifies that", passed: "has passed the module", level: "Level", score: "Score", date: "Date", id: "Certificate ID", print: "Print / Save as PDF", lv: { beginner: "Beginner", intermediate: "Intermediate", expert: "Expert" }, sig: "Faris, Rasid guide", brand: "Rasid" };
+      document.title = `${L.t} · ${m.title[lang]}`;
+      const date = new Date(ct.date).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB", { year: "numeric", month: "long", day: "numeric" });
+      box.innerHTML = `
+        <div class="brand"><svg viewBox="0 0 22 22"><g fill="#7C5CE6"><circle cx="11" cy="4" r="2.4"/><circle cx="4" cy="11" r="2.4"/><circle cx="18" cy="11" r="2.4"/><circle cx="11" cy="18" r="2.4"/><circle cx="11" cy="11" r="2.4" opacity=".5"/></g></svg>${L.brand}</div>
+        <div class="seal">${ct.score}/${ct.total}<br>${L.lv[ct.level]}</div>
+        <h1>${L.t}</h1><p class="sub">${L.sub}</p>
+        <div class="name">${esc(u.name || u.email.split("@")[0])}</div>
+        <p class="sub">${L.passed}</p>
+        <div class="mod">${m.icon} ${esc(m.title[lang])}</div>
+        <p class="sub">${esc(m.desc[lang])}</p>
+        <div class="chips">${m.skills[lang].map((x) => `<span class="chip">${esc(x)}</span>`).join("")}</div>
+        <div class="meta"><div><b>${L.level}</b>${L.lv[ct.level]}</div><div><b>${L.score}</b>${ct.score} / ${ct.total}</div><div><b>${L.date}</b>${date}</div><div><b>${L.id}</b>${ct.id.toUpperCase()}</div></div>
+        <div class="foot"><span>${esc(u.email)}</span><span class="sig">${L.sig}</span></div>
+        <button class="print" onclick="window.print()">${L.print}</button>`;
+    })();
+  </script>
+</body>
+</html>

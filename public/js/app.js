@@ -9,7 +9,10 @@
   const T = window.T;
   const LEVEL_ICON = { beginner: "●", intermediate: "■", expert: "★" };
 
+  const DEMO = Boolean(window.LocalAPI && window.LocalAPI.enabled);
+  const certUrl = (id) => (DEMO ? window.LocalAPI.certificateUrl(id) : `/api/certificate/${id}`);
   async function api(path, body, method) {
+    if (DEMO) return window.LocalAPI.call(path, body, method);
     const r = await fetch(path, { method: method || (body ? "POST" : "GET"), headers: body ? { "content-type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw Object.assign(new Error(j.error || r.statusText), { code: j.error, data: j });
@@ -72,7 +75,7 @@
   function closeMenu() { $("#sidebar")?.classList.remove("open"); const s = $("#scrim"); if (s) s.hidden = true; }
   function topbar(title, sub, right = "") {
     return `<div class="topbar"><div class="row"><button class="btn small menu-btn" id="menu-btn" aria-label="menu">☰</button><div><h1>${title}</h1>${sub ? `<p class="sub">${sub}</p>` : ""}</div></div><div class="row">${right}</div></div>
-      ${S.online ? "" : `<div class="banner">⚠ ${T("offline")}</div>`}`;
+      ${S.online ? "" : `<div class="banner">⚠ ${T("offline")}</div>`}${DEMO && S.view === "news" ? `<div class="banner">ℹ ${T("demoNews")}</div>` : ""}`;
   }
   function wireTopbar() { const b = $("#menu-btn"); if (b) b.onclick = () => { $("#sidebar").classList.add("open"); $("#scrim").hidden = false; }; }
 
@@ -117,7 +120,7 @@
     }
     if (mode === "signup" || mode === "login") {
       const signup = mode === "signup";
-      form(`<h2>${signup ? T("createAccount") : T("signIn")}</h2>
+      form(`${DEMO ? `<div class="banner">ℹ ${T("demoAuth")}</div>` : ""}<h2>${signup ? T("createAccount") : T("signIn")}</h2>
         <form class="stack" id="f">
           <div class="field"><label>${T("email")}</label><input id="email" type="email" inputmode="email" autocomplete="email" required><span class="ok" id="email-ok"></span></div>
           <div class="field"><label>${T("pin")}</label><input id="pin" class="pin" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="${signup ? "new-password" : "current-password"}" required></div>
@@ -126,7 +129,7 @@
           <button class="btn primary big" type="submit">${signup ? T("continueBtn") : T("signIn")}</button>
         </form>
         <div class="stack">
-          ${signup ? "" : `<button class="btn" id="passkey">${T("usePasskey")}</button><button class="btn ghost" id="forgot">${T("forgotPin")}</button>`}
+          ${signup ? "" : `${DEMO ? "" : `<button class="btn" id="passkey">${T("usePasskey")}</button>`}<button class="btn ghost" id="forgot">${T("forgotPin")}</button>`}
           <button class="btn ghost" id="switch">${signup ? T("haveAccount") : T("noAccount")}</button>
         </div>`);
       const f = $("#f"), err = $("#err");
@@ -146,7 +149,7 @@
       };
       if (!signup) {
         $("#forgot").onclick = () => go("auth", { mode: "reset", email: $("#email").value.trim() });
-        $("#passkey").onclick = async () => {
+        const pkb = $("#passkey"); if (pkb) pkb.onclick = async () => {
           err.textContent = "";
           const email = $("#email").value.trim();
           if (!email) return (err.textContent = T("errBadEmail"));
@@ -185,7 +188,7 @@
   async function signedIn(user, isNew) {
     S.user = user; S.lang = user.lang || S.lang; applyLang();
     Faris.show();
-    if (isNew && window.PublicKeyCredential && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    if (!DEMO && isNew && window.PublicKeyCredential && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
       setTimeout(() => offerPasskey(), 800);
     }
     await refresh();
@@ -284,7 +287,7 @@
         ${it.snippet ? `<p class="snip">${esc(it.snippet.slice(0, 180))}…</p>` : ""}
         <div class="row" style="margin-top:8px"><button class="btn small primary" data-read="${esc(it.url)}">${T("readHere")}</button><a class="btn ghost small" href="${esc(it.url)}" target="_blank" rel="noopener">${T("readOriginal")}</a></div>
       </div></div>`).join("") + `<p class="sub">${T("fetchedAt")}: ${new Date(r.fetchedAt).toLocaleTimeString(S.lang === "ar" ? "ar" : "en")}</p>` : `<p class="sub">${T("noNews")}</p>`;
-    list.querySelectorAll("[data-read]").forEach((b) => (b.onclick = (e) => { e.preventDefault(); openArticle(b.dataset.read); }));
+    list.querySelectorAll("[data-read]").forEach((b) => (b.onclick = (e) => { e.preventDefault(); if (DEMO) window.open(b.dataset.read, "_blank", "noopener"); else openArticle(b.dataset.read); }));
   };
 
   const paras = (t) => esc(t).split(/\n\n+|(?<=[.!?\u061F])\s+(?=[A-Z\u0600-\u06FF])/).filter(Boolean).map((p) => `<p>${p}</p>`).join("");
@@ -320,7 +323,7 @@
             <p class="mod-desc">${esc(m.desc)}</p>
             <div class="mod-prog"><div class="bar"><i style="width:${Math.round((m.read / m.lessons) * 100)}%"></i></div><span>${m.read} / ${m.lessons} ${T("lessons")}</span></div>
             <div class="chips">${m.skills.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</div>
-            <div class="row">${m.locked ? "" : m.status === "failed" ? `<button class="btn primary" data-redo="${m.firstLesson}">${T("redoLessons")} →</button><button class="btn small" data-mod="${m.id}">${T("review")}</button>` : `<button class="btn ${m.passed ? "" : "primary"}" data-mod="${m.id}">${m.passed ? T("review") : m.status === "quiz" ? T("takeQuiz") : m.read ? T("continueModule") : T("startModule")} →</button>`}${m.certId ? `<a class="btn small" href="/api/certificate/${m.certId}" target="_blank" rel="noopener">🎓 ${T("viewCertificate")}</a>` : ""}</div>
+            <div class="row">${m.locked ? "" : m.status === "failed" ? `<button class="btn primary" data-redo="${m.firstLesson}">${T("redoLessons")} →</button><button class="btn small" data-mod="${m.id}">${T("review")}</button>` : `<button class="btn ${m.passed ? "" : "primary"}" data-mod="${m.id}">${m.passed ? T("review") : m.status === "quiz" ? T("takeQuiz") : m.read ? T("continueModule") : T("startModule")} →</button>`}${m.certId ? `<a class="btn small" href="${certUrl(m.certId)}" target="_blank" rel="noopener">🎓 ${T("viewCertificate")}</a>` : ""}</div>
           </div>`).join("")}</div>
       </section>`).join("");
     $("#main").querySelectorAll("[data-mod]").forEach((b) => (b.onclick = () => openModule(b.dataset.mod)));
@@ -337,7 +340,7 @@
       <div class="lesson-list" style="margin-top:16px">${m.lessonList.map((l, i) => `
         <button class="card lesson ${l.read ? "done" : ""}" data-id="${l.id}"><div><div class="meta"><span class="pill muted">${T("lesson")} ${i + 1}</span>${l.read ? `<span class="pill good">✓ ${T("read")}</span>` : ""}</div><p class="title">${esc(l.title)}</p></div><span class="check ${l.read ? "on" : ""}">✓</span></button>`).join("")}</div>
       <div class="card" style="margin-top:16px"><h3>${T("moduleQuiz")}</h3><p class="sub">${T("quizIntro")}</p>
-        ${m.passed ? `<span class="pill good">✓ ${T("passedPill")}</span> <a class="btn small" href="/api/certificate/${m.certId}" target="_blank" rel="noopener">🎓 ${T("viewCertificate")}</a> ` : m.status === "failed" ? `<div class="banner fail">✗ ${T("failedTitle")} · ${T("lastScore")}: ${m.lastScore}/5 · ${T("rereadHint")}</div>` : ""}
+        ${m.passed ? `<span class="pill good">✓ ${T("passedPill")}</span> <a class="btn small" href="${certUrl(m.certId)}" target="_blank" rel="noopener">🎓 ${T("viewCertificate")}</a> ` : m.status === "failed" ? `<div class="banner fail">✗ ${T("failedTitle")} · ${T("lastScore")}: ${m.lastScore}/5 · ${T("rereadHint")}</div>` : ""}
         <button class="btn primary" id="quiz" ${m.quizReady || m.passed ? "" : "disabled"}>${m.passed ? T("retakeQuiz") : m.needsReread ? T("quizBlocked") : m.quizReady ? T("takeQuiz") : T("quizLocked")}</button></div>`;
     $("#back").onclick = () => go("course");
     $("#main").querySelectorAll("[data-id]").forEach((b) => (b.onclick = () => openLesson(b.dataset.id)));
@@ -385,7 +388,7 @@
     const head = r.expertDone ? T("expertNow") : r.levelUp ? T("levelUp") : r.passed ? T("modulePassed") : T("failedTitle");
     $("#main").innerHTML = topbar(head, esc(r.moduleTitle)) + `
       <div class="card result ${r.passed ? "pass" : "fail"}"><span class="pill ${r.passed ? "good" : "warn"}" style="font-size:14px">${r.passed ? "✓ " + T("passedPill") : "✗ " + T("failedPill")}</span><div class="score">${r.score}/${r.total}</div>
-        ${r.passed && r.certId ? `<p>🎓 ${T("certEarned")}</p><p><a class="btn" href="/api/certificate/${r.certId}" target="_blank" rel="noopener">${T("viewCertificate")}</a></p>` : ""}
+        ${r.passed && r.certId ? `<p>🎓 ${T("certEarned")}</p><p><a class="btn" href="${certUrl(r.certId)}" target="_blank" rel="noopener">${T("viewCertificate")}</a></p>` : ""}
         ${r.levelUp ? `<div class="level-badge" style="justify-content:center;margin:10px 0"><span class="icon">${LEVEL_ICON[r.levelUp]}</span>${T(r.levelUp)}</div>` : ""}
         ${r.passed ? `<button class="btn primary big" id="cont">${T("continueBtn")}</button>` : `<p class="sub">${T("rereadHint")}</p><button class="btn primary big" id="reread">${T("rereadModule")}</button>`}
       </div>
@@ -407,7 +410,7 @@
         <p style="margin-top:8px"><span class="pill ${lv.complete ? "good" : lv.locked ? "muted" : ""}">${lv.complete ? "✓ " + T("levelComplete") : lv.locked ? "🔒 " + T("lockedLevel") : T("level")}</span></p>
         <div class="bar" style="margin:10px 0"><i style="width:${Math.round((lv.passed / lv.total) * 100)}%"></i></div>
         <ul class="skills">${lv.modules.map((m) => `<li class="${m.passed ? "ok" : ""}">${m.passed ? "✓" : "○"} ${esc(m.title)}</li>`).join("")}</ul></div>`).join("")}</div>
-      <div class="card" style="margin-top:16px"><h2>🎓 ${T("certificates")}</h2>${c.certs.length ? `<div class="stack">${c.certs.map((ct) => `<div class="row" style="justify-content:space-between"><span>${ct.icon} <b>${esc(ct.title)}</b> · ${T(ct.level)} · ${ct.score}/${ct.total} · ${new Date(ct.date).toLocaleDateString(S.lang === "ar" ? "ar-EG" : "en-GB")}</span><a class="btn small" href="/api/certificate/${ct.id}" target="_blank" rel="noopener">${T("viewCertificate")}</a></div>`).join("")}</div>` : `<p class="sub">${T("noCerts")}</p>`}</div>
+      <div class="card" style="margin-top:16px"><h2>🎓 ${T("certificates")}</h2>${c.certs.length ? `<div class="stack">${c.certs.map((ct) => `<div class="row" style="justify-content:space-between"><span>${ct.icon} <b>${esc(ct.title)}</b> · ${T(ct.level)} · ${ct.score}/${ct.total} · ${new Date(ct.date).toLocaleDateString(S.lang === "ar" ? "ar-EG" : "en-GB")}</span><a class="btn small" href="${certUrl(ct.id)}" target="_blank" rel="noopener">${T("viewCertificate")}</a></div>`).join("")}</div>` : `<p class="sub">${T("noCerts")}</p>`}</div>
       ${c.expertDone ? `<div class="card" style="margin-top:16px"><h3>${T("expertNow")}</h3></div>` : ""}`;
   };
 
@@ -416,10 +419,11 @@
     const u = S.user;
     let status = null; try { status = await api("/api/status"); } catch {}
     const installable = Boolean(window.deferredInstall);
-    $("#main").innerHTML = topbar(T("settings"), u.email) + `
+    const demoNote = DEMO ? `<div class="banner">ℹ ${T("demoSettings")}</div>` : "";
+    $("#main").innerHTML = topbar(T("settings"), u.email) + demoNote + `
       <div class="card"><div class="setting"><div><h3>${T("displayName")}</h3></div><form class="row" id="namef"><input id="name" value="${esc(u.name || "")}" maxlength="60" style="padding:10px 12px;border-radius:12px;border:0;background:var(--sunk);min-width:220px"><button class="btn small primary">${T("save")}</button></form></div>
       <div class="setting"><div><h3>${T("language")}</h3></div><div class="row"><button class="btn small ${S.lang === "ar" ? "primary" : ""}" data-lang="ar">العربية</button><button class="btn small ${S.lang === "en" ? "primary" : ""}" data-lang="en">English</button></div></div></div>
-      <div class="card" style="margin-top:16px"><h2>${T("security")}</h2>
+      <div class="card" style="margin-top:16px" ${DEMO ? "hidden" : ""}><h2>${T("security")}</h2>
         <div class="setting"><div><h3>${T("twoStep")}</h3><div class="d">${T("twoStepD")}</div></div><div class="row"><span class="pill ${u.totpEnabled ? "good" : "muted"}">${u.totpEnabled ? T("on") : T("off")}</span><button class="btn small" id="totp">${u.totpEnabled ? T("disable") : T("enable")}</button></div></div>
         <div id="totp-box"></div>
         <div class="setting"><div><h3>${T("passkey")}</h3><div class="d">${T("passkeyD")}</div></div><div class="row"><span class="pill ${u.passkeys ? "good" : "muted"}">${u.passkeys ? T("on") : T("off")}</span><button class="btn small" id="pk">${T("addPasskey")}</button></div></div>
@@ -435,13 +439,13 @@
         <div class="setting"><div><h3>${T("signOut")}</h3></div><button class="btn small" id="logout">${T("signOut")}</button></div>
       </div>`;
     $("#main").querySelectorAll("[data-lang]").forEach((b) => (b.onclick = async () => { S.lang = b.dataset.lang; applyLang(); await api("/api/settings", { lang: S.lang }); go("settings"); }));
-    $("#totp").onclick = async () => {
+    if (DEMO) { $("#totp").onclick = () => toast(T("demoOnly")); $("#pk").onclick = () => toast(T("demoOnly")); } else $("#totp").onclick = async () => {
       if (u.totpEnabled) { await api("/api/security/totp/disable", {}); u.totpEnabled = false; return go("settings"); }
       const r = await api("/api/security/totp/setup", {});
       $("#totp-box").innerHTML = `<div class="sunk" style="padding:16px;margin:10px 0"><p>${T("scanQr")}</p><img class="qr" src="${r.qr}" alt="QR"><p><code class="secret">${r.secret}</code></p><form class="row" id="tf"><input class="pin" id="tc" inputmode="numeric" maxlength="6" style="width:160px;padding:10px;border-radius:12px;border:0"><button class="btn primary small">${T("confirm")}</button><span class="err" id="terr"></span></form></div>`;
       $("#tf").onsubmit = async (e) => { e.preventDefault(); try { await api("/api/security/totp/confirm", { code: $("#tc").value }); u.totpEnabled = true; toast("✓ " + T("on")); go("settings"); } catch { $("#terr").textContent = T("errWrongCode"); } };
     };
-    $("#pk").onclick = registerPasskey;
+    if (!DEMO) $("#pk").onclick = registerPasskey;
     $("#namef").onsubmit = async (e) => { e.preventDefault(); const r = await api("/api/settings", { name: $("#name").value }); S.user = r.user; toast("✓ " + T("saved")); };
     api("/api/sources").then((r) => { const el = $("#sources"); if (el) el.innerHTML = r.sources.map((s) => `<div><b>${S.lang === "ar" ? s.ar : s.en}</b>${s.sources.map(esc).join("<br>")}</div>`).join(""); }).catch(() => {});
     const inst = $("#install"); if (inst) inst.onclick = async () => { window.deferredInstall.prompt(); await window.deferredInstall.userChoice; window.deferredInstall = null; go("settings"); };
@@ -455,7 +459,7 @@
   window.addEventListener("online", () => { S.online = true; go(S.view); });
   window.addEventListener("offline", () => { S.online = false; go(S.view); });
   window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); window.deferredInstall = e; });
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
   (async () => {
     applyLang();

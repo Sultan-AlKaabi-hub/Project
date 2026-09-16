@@ -1,0 +1,23 @@
+# One-click deploy of the full server version on Render (https://render.com).
+# In the Render dashboard: New → Blueprint → pick this repository. Then add ANTHROPIC_API_KEY under Environment.
+services:
+  - type: web
+    name: rasid
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/status
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+    # The free plan has no persistent disk: data/db.json (accounts and progress) resets on every deploy or restart.
+    # For real users, switch to a paid plan and mount a disk at /opt/render/project/src/data:
+    # disk:
+    #   name: rasid-data
+    #   mountPath: /opt/render/project/src/data
+    #   sizeGB: 1
