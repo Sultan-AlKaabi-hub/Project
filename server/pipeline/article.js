@@ -1,5 +1,6 @@
 // Read the real article behind a headline: resolve redirects, extract the main text and the lead image.
 // Also: free English -> Arabic translation (unofficial Google endpoint first, MyMemory as fallback).
+import { publicText } from './public-web.js';
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 const cache = new Map(); // url -> article
 
@@ -10,9 +11,7 @@ function decodeEntities(s = "") {
 const clean = (s) => decodeEntities(s.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 
 async function get(url) {
-  const r = await fetch(url, { headers: { "User-Agent": UA, accept: "text/html,*/*" }, redirect: "follow", signal: AbortSignal.timeout(15000) });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return { html: await r.text(), url: r.url };
+  return publicText(url, { "User-Agent": UA, accept: "text/html,*/*" });
 }
 
 // Google News RSS links are encoded. Decode them the way Google's own page does: read the signature and

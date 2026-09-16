@@ -1,0 +1,176 @@
+.hub-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-block: 16px 24px;
+}
+.hub-tabs [aria-pressed="true"] {
+  background: var(--accent, #7053ce);
+  color: white;
+}
+.hub-content {
+  display: grid;
+  gap: 18px;
+}
+.hub-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.hub-stats .card {
+  padding: 22px;
+  display: grid;
+  gap: 12px;
+}
+.hub-stats strong {
+  font-size: 2.5rem;
+}
+.hub-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.hub-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.hub-field input,
+.hub-field select,
+.hub-field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid #c6c0d0;
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  color: inherit;
+  font: inherit;
+  box-sizing: border-box;
+}
+.hub-choices {
+  grid-column: 1/-1;
+  border: 1px solid #c6c0d0;
+  border-radius: 12px;
+  max-height: 230px;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+.hub-choices label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  overflow-wrap: anywhere;
+}
+.hub-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-block: 15px;
+  border-bottom: 1px solid #ddd6e3;
+}
+.hub-row > span {
+  flex: 1;
+}
+.hub-badge {
+  font-size: 0.8rem;
+  border: 1px solid #c5c0ce;
+  background: #eeebf4;
+  border-radius: 20px;
+  padding: 4px 10px;
+  display: inline-block;
+  color: #393143;
+}
+.hub-urgent,
+.hub-absent,
+.hub-declined {
+  background: #fff0f0;
+  color: #8e2525;
+}
+.hub-approved,
+.hub-present {
+  background: #e7f4ed;
+  color: #195138;
+}
+.hub-pending,
+.hub-late {
+  background: #fff4dc;
+  color: #74500a;
+}
+.hub-bar {
+  display: grid;
+  grid-template-columns: 100px 1fr 40px;
+  gap: 15px;
+  align-items: center;
+  margin-block: 18px;
+}
+.hub-bar progress {
+  width: 100%;
+  height: 18px;
+  accent-color: #7053ce;
+}
+.hub-message {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.hub-content a {
+  overflow-wrap: anywhere;
+}
+.hub-filter {
+  flex-wrap: wrap;
+}
+.hub-content summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.hub-content .portal-section {
+  margin: 0;
+}
+.hub-content .row {
+  flex-wrap: wrap;
+}
+.hub-content .btn {
+  min-height: 44px;
+}
+.boot-screen {
+  font-family: system-ui;
+  text-align: center;
+  max-width: 500px;
+  margin: 20vh auto;
+  padding: 24px;
+}
+.boot-screen a {
+  color: #6743b6;
+}
+@media (max-width: 700px) {
+  .hub-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hub-form,
+  .hub-choices {
+    grid-template-columns: 1fr;
+  }
+  .hub-tabs {
+    gap: 6px;
+  }
+  .hub-tabs .btn {
+    font-size: 0.85rem;
+    padding: 9px 12px;
+  }
+  .hub-bar {
+    grid-template-columns: 80px 1fr 25px;
+    gap: 8px;
+  }
+  .hub-stats .card {
+    padding: 16px;
+  }
+  .hub-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

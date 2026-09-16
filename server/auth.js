@@ -15,11 +15,14 @@ export function hashPin(pin, salt = crypto.randomBytes(16).toString("hex")) {
   return `${salt}:${hash}`;
 }
 export function checkPin(pin, stored) {
+  if (typeof stored !== "string" || typeof pin !== "string") return false;
   const [salt, hash] = stored.split(":");
+  if (!salt || !/^[a-f0-9]{64}$/.test(hash || "")) return false;
   const test = crypto.scryptSync(pin, salt, 32).toString("hex");
   return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(test, "hex"));
 }
 export const validPin = (p) => typeof p === "string" && /^\d{6}$/.test(p);
+export const validCredential = p => validPin(p) || (typeof p === "string" && p.length >= 12 && p.length <= 128 && !/^\d+$/.test(p));
 export const validEmail = (e) => typeof e === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && e.length < 200;
 
 // ---------- Sessions ----------
@@ -100,6 +103,7 @@ export async function totpSetup(email) {
 
 // ---------- Passkeys (WebAuthn: fingerprint / Face ID) ----------
 function rp(req) {
+  if (process.env.PUBLIC_ORIGIN) { const origin = new URL(process.env.PUBLIC_ORIGIN); return {rpID:origin.hostname,origin:origin.origin}; }
   const host = (req.headers["x-forwarded-host"] || req.headers.host || "localhost").split(":")[0];
   const proto = req.headers["x-forwarded-proto"] || (req.secure ? "https" : "http");
   return { rpID: host, origin: `${proto}://${req.headers["x-forwarded-host"] || req.headers.host}` };
@@ -113,7 +117,7 @@ export async function passkeyRegisterOptions(req, user) {
     userDisplayName: user.email,
     attestationType: "none",
     excludeCredentials: (user.passkeys || []).map((p) => ({ id: p.id, transports: p.transports })),
-    authenticatorSelection: { residentKey: "preferred", userVerification: "preferred", authenticatorAttachment: "platform" }
+    authenticatorSelection: { residentKey: "preferred", userVerification: "required", authenticatorAttachment: "platform" }
   });
   const db = load();
   db.challenges[user.email] = { challenge: opts.challenge, exp: Date.now() + 5 * 60 * 1000 };
@@ -127,7 +131,7 @@ export async function passkeyRegisterVerify(req, user, body) {
   const ch = db.challenges[user.email];
   if (!ch || ch.exp < Date.now()) throw new Error("challenge expired");
   const v = await verifyRegistrationResponse({
-    response: body, expectedChallenge: ch.challenge, expectedOrigin: origin, expectedRPID: rpID
+    response: body, expectedChallenge: ch.challenge, expectedOrigin: origin, expectedRPID: rpID, requireUserVerification: true
   });
   if (!v.verified || !v.registrationInfo) throw new Error("not verified");
   const { credential } = v.registrationInfo;
@@ -150,7 +154,7 @@ export async function passkeyLoginOptions(req, email) {
   const user = db.users[email];
   const opts = await generateAuthenticationOptions({
     rpID,
-    userVerification: "preferred",
+    userVerification: "required",
     allowCredentials: (user?.passkeys || []).map((p) => ({ id: p.id, transports: p.transports }))
   });
   db.challenges[email || "_any"] = { challenge: opts.challenge, exp: Date.now() + 5 * 60 * 1000 };
@@ -168,7 +172,7 @@ export async function passkeyLoginVerify(req, email, body) {
   const pk = (user.passkeys || []).find((p) => p.id === body.id);
   if (!pk) throw new Error("unknown passkey");
   const v = await verifyAuthenticationResponse({
-    response: body, expectedChallenge: ch.challenge, expectedOrigin: origin, expectedRPID: rpID,
+    response: body, expectedChallenge: ch.challenge, expectedOrigin: origin, expectedRPID: rpID, requireUserVerification: true,
     credential: { id: pk.id, publicKey: Buffer.from(pk.publicKey, "base64url"), counter: pk.counter, transports: pk.transports }
   });
   if (!v.verified) throw new Error("not verified");

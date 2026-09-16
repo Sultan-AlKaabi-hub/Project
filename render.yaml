@@ -5,12 +5,16 @@ services:
     name: rasid
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: npm start
-    healthCheckPath: /api/status
+    healthCheckPath: /healthz
     envVars:
       - key: NODE_VERSION
-        value: "20"
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: PUBLIC_ORIGIN
+        sync: false
       - key: ADMIN_EMAIL
         sync: false
       - key: ANTHROPIC_API_KEY

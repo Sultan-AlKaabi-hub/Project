@@ -3,3 +3,5 @@ data/db.json
 data/db.json.tmp
 data/*.apk
 .env
+
+.test-data-*/

@@ -11,15 +11,29 @@ npm install
 npm start
 ```
 
-Open http://localhost:3000. The first account created becomes the admin (or set `ADMIN_EMAIL`).
+Open http://localhost:3000. New accounts are always students. On an existing database the legacy administrator is preserved once. On a fresh database, register the intended owner, stop the server, run `npm run admin -- owner@example.com`, then restart. See [deployment and operations](docs/OPERATIONS.md) before deploying to Render.
+
+## Platform upgrade (0.2)
+
+- Arabic/English sign-in in front of a coordinated pixel mountain valley, sun, and rider.
+- Six-digit PIN or password, device-verified passkeys, and a bilingual privacy notice.
+- Admin-managed roles and teacher assignments; role-filtered progress and scores in Faris.
+- Month calendar, host-approved tuition/admin appointments, collision checks, calendar downloads, and in-app alerts.
+- Optional voice dictation and read-aloud, plus QR installation instructions for iOS and Android.
+- Data export, privacy requests, account deletion, private API cache protection, and regression tests (`npm test`).
+
+The existing course, placement, quizzes, certificates, and live news remain. A signed Android APK must be supplied separately; home-screen installation is available without it.
 
 | Variable | Effect |
 |---|---|
 | `ANTHROPIC_API_KEY` | **Recommended.** Claude (`claude-opus-5`) reads each full article and writes the Arabic article, the three lesson levels, and real exam questions about the content. Without it the app runs in **fallback mode**: it still reads the full article, but summaries are extractive, questions are fill-in-the-blank and statement-match built from the text, and Arabic comes from free translation services that are rate limited (lessons show English with a "translation pending" note until the daily catch-up pass fills them in). |
 | `RASID_MODEL` | Override the Claude model id. |
-| `ADMIN_EMAIL` | Which account sees the "Update news now" button. |
+| `ADMIN_EMAIL` | Legacy administrator migration / explicit bootstrap default. Public registrations always remain students. |
 | `RASID_NO_UPDATE=1` | Skip the automatic update on start and the 06:00 daily job. |
-| `RASID_DEV_SHOW_CODES=1` | Return the PIN-reset code in the API response (development only; otherwise it is printed in the server log because no mail server is configured). |
+| `RASID_DATA_DIR` | Runtime database / APK directory. Use a persistent mount in production. |
+| `PUBLIC_ORIGIN` | Canonical HTTPS origin for passkeys, write protection, and installation QR. |
+| `PRIVACY_OPERATOR`, `PRIVACY_CONTACT`, `HOSTING_REGION` | Accurate details displayed in the privacy notice. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, `SMTP_USER`, `SMTP_PASSWORD` | Email recovery delivery. Codes are never logged or returned by the API. |
 | `PORT` | Default 3000. |
 
 Manual content update from the terminal:
