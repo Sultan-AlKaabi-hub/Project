@@ -1,0 +1,208 @@
+{
+  "note": "Example lessons used only until the first automatic update succeeds. Replaced by live news.",
+  "lessons": [
+    {
+      "id": "seed-civ-1", "category": "civilian",
+      "title_en": "Hospitals are using AI to read X-rays faster", "title_ar": "المستشفيات تستخدم الذكاء الاصطناعي لقراءة صور الأشعة بسرعة أكبر",
+      "source": "Example", "url": "https://example.org/ai-xray", "published": "2026-09-15T08:00:00Z",
+      "levels": {
+        "beginner": {
+          "ar": "الذكاء الاصطناعي هو برنامج حاسوبي يتعلم من أمثلة كثيرة. بعض المستشفيات تستخدمه الآن لمساعدة الأطباء في قراءة صور الأشعة. البرنامج يشير إلى الأماكن التي قد تحتاج إلى نظرة أقرب، والطبيب هو من يقرر في النهاية.",
+          "en": "Artificial intelligence is a computer program that learns from many examples. Some hospitals now use it to help doctors read X-ray images. The program points to spots that may need a closer look, and the doctor makes the final decision."
+        },
+        "intermediate": {
+          "ar": "تدرّب برامج الذكاء الاصطناعي على ملايين صور الأشعة حتى تتعلم شكل الكسور والالتهابات. في المستشفيات التي تستخدمها، يفرز البرنامج الصور ويضع الحالات العاجلة في المقدمة، فيصل تقرير الطبيب أسرع. الدراسات تشير إلى أن الطبيب مع البرنامج يخطئ أقل من الطبيب وحده أو البرنامج وحده. لكن البرنامج قد يخطئ مع صور من أجهزة لم يتدرب عليها، لذلك تبقى المراجعة البشرية شرطاً.",
+          "en": "AI programs are trained on millions of X-ray images until they learn what fractures and infections look like. In hospitals that use them, the program sorts images and puts urgent cases first, so the doctor's report arrives sooner. Studies suggest a doctor working with the program makes fewer mistakes than either alone. The program can still fail on images from machines it was not trained on, so human review remains a requirement."
+        },
+        "expert": {
+          "ar": "تعتمد أنظمة قراءة الأشعة على الشبكات العصبونية للرؤية الحاسوبية، وتُقيَّم عادة بمقاييس الحساسية والخصوصية على مجموعات اختبار مستقلة. الجهات التنظيمية في عدة دول صنّفت هذه الأنظمة كأجهزة طبية تحتاج إلى موافقة قبل الاستخدام السريري. التحدي الأكبر هو انزياح البيانات: أداء النموذج ينخفض عند تغير الجهاز أو الفئة السكانية. المستشفيات الرائدة تراقب الأداء بعد النشر وتعيد التدريب دورياً. الجدل الحالي يدور حول المسؤولية القانونية عند الخطأ، وحول توثيق قرارات النموذج بحيث يمكن للطبيب فهم سبب التنبيه.",
+          "en": "X-ray reading systems rely on convolutional neural networks for computer vision and are usually evaluated by sensitivity and specificity on independent test sets. Regulators in several countries classify them as medical devices that need approval before clinical use. The biggest challenge is data drift: model performance drops when the scanner or patient population changes. Leading hospitals monitor performance after deployment and retrain periodically. The current debate concerns legal liability when the model errs, and documenting model decisions so a doctor can understand why an alert was raised."
+        }
+      },
+      "questions": {
+        "beginner": [
+          { "q_ar": "من يتخذ القرار النهائي عن صورة الأشعة؟", "q_en": "Who makes the final decision about the X-ray?", "choices_ar": ["الطبيب", "البرنامج وحده", "المريض"], "choices_en": ["The doctor", "The program alone", "The patient"], "answer": 0 },
+          { "q_ar": "ماذا يفعل الذكاء الاصطناعي في هذا الدرس؟", "q_en": "What does the AI do in this lesson?", "choices_ar": ["يطبخ الطعام", "يساعد في قراءة صور الأشعة", "يقود السيارة"], "choices_en": ["Cooks food", "Helps read X-ray images", "Drives a car"], "answer": 1 },
+          { "q_ar": "كيف يتعلم برنامج الذكاء الاصطناعي؟", "q_en": "How does an AI program learn?", "choices_ar": ["من أمثلة كثيرة", "من النوم", "من التلفاز"], "choices_en": ["From many examples", "From sleeping", "From television"], "answer": 0 }
+        ],
+        "intermediate": [
+          { "q_ar": "لماذا تصل تقارير الأطباء أسرع مع البرنامج؟", "q_en": "Why do doctors' reports arrive sooner with the program?", "choices_ar": ["لأنه يضع الحالات العاجلة في المقدمة", "لأنه يكتب التقرير بنفسه", "لأنه يلغي الفحص"], "choices_en": ["It puts urgent cases first", "It writes the report itself", "It cancels the exam"], "answer": 0 },
+          { "q_ar": "متى قد يخطئ البرنامج؟", "q_en": "When might the program fail?", "choices_ar": ["مع صور من أجهزة لم يتدرب عليها", "في الصباح فقط", "عندما يكون الطبيب موجوداً"], "choices_en": ["On images from machines it was not trained on", "Only in the morning", "When the doctor is present"], "answer": 0 },
+          { "q_ar": "من يخطئ أقل حسب الدراسات؟", "q_en": "Who makes fewer mistakes according to studies?", "choices_ar": ["الطبيب مع البرنامج", "البرنامج وحده", "الطبيب وحده"], "choices_en": ["Doctor with the program", "Program alone", "Doctor alone"], "answer": 0 }
+        ],
+        "expert": [
+          { "q_ar": "ما هو انزياح البيانات؟", "q_en": "What is data drift?", "choices_ar": ["انخفاض الأداء عند تغير الجهاز أو الفئة السكانية", "زيادة سرعة الحاسوب", "نقل الصور بين المستشفيات"], "choices_en": ["Performance drop when scanner or population changes", "Faster computers", "Moving images between hospitals"], "answer": 0 },
+          { "q_ar": "كيف تُقيَّم هذه الأنظمة عادة؟", "q_en": "How are these systems usually evaluated?", "choices_ar": ["بالحساسية والخصوصية على مجموعات اختبار مستقلة", "بعدد المستخدمين", "بسعر الجهاز"], "choices_en": ["Sensitivity and specificity on independent test sets", "Number of users", "Device price"], "answer": 0 },
+          { "q_ar": "كيف تصنّف الجهات التنظيمية هذه الأنظمة؟", "q_en": "How do regulators classify these systems?", "choices_ar": ["كأجهزة طبية", "كألعاب", "كبرامج محاسبة"], "choices_en": ["As medical devices", "As games", "As accounting software"], "answer": 0 }
+        ]
+      },
+      "terms": [
+        { "term_en": "artificial intelligence", "term_ar": "الذكاء الاصطناعي", "def_ar": "برامج حاسوبية تتعلم من البيانات لتتخذ قرارات أو تنتج محتوى.", "def_en": "Computer programs that learn from data to make decisions or produce content." },
+        { "term_en": "computer vision", "term_ar": "الرؤية الحاسوبية", "def_ar": "قدرة الحاسوب على فهم الصور والفيديو.", "def_en": "A computer's ability to understand images and video." }
+      ],
+      "wiki": []
+    },
+    {
+      "id": "seed-us-1", "category": "us_military",
+      "title_en": "The Pentagon expands AI tools that sort battlefield video", "title_ar": "البنتاغون يوسّع أدوات الذكاء الاصطناعي التي تفرز فيديو ساحة المعركة",
+      "source": "Example", "url": "https://example.org/pentagon-ai", "published": "2026-09-15T09:00:00Z",
+      "levels": {
+        "beginner": {
+          "ar": "الجيش الأمريكي يملك طائرات وكاميرات تصور ساعات طويلة من الفيديو كل يوم. برامج الذكاء الاصطناعي تساعد الجنود على إيجاد الأشياء المهمة في هذا الفيديو بسرعة. الإنسان يراجع ما يجده البرنامج قبل أي قرار.",
+          "en": "The US military has aircraft and cameras that record many hours of video every day. AI programs help soldiers find the important things in this video quickly. A human reviews what the program finds before any decision."
+        },
+        "intermediate": {
+          "ar": "منذ سنوات يعمل البنتاغون على برامج تحلل صور الطائرات المسيّرة والأقمار الصناعية بشكل آلي، وتضع علامات على المركبات والمباني والتحركات. الهدف هو تقليل الوقت بين التقاط الصورة وفهم ما فيها. وزارة الدفاع تكرر أن الإنسان يبقى في حلقة القرار، خصوصاً عند استخدام القوة. النقاش داخل الكونغرس يدور حول الميزانيات، والاعتماد على شركات التقنية الخاصة، وسلامة هذه الأنظمة من التضليل.",
+          "en": "For years the Pentagon has worked on programs that automatically analyze drone and satellite imagery, tagging vehicles, buildings and movements. The goal is to shrink the time between capturing an image and understanding it. The Department of Defense repeats that a human stays in the decision loop, especially for the use of force. Debate in Congress covers budgets, reliance on private tech companies, and how safe these systems are from deception."
+        },
+        "expert": {
+          "ar": "تُبنى هذه القدرات على نماذج رؤية حاسوبية مدرّبة على بيانات استخباراتية مصنّفة، وتُدمج في منصات عرض موحدة للقادة. التحديات التقنية تشمل الأهداف المموّهة، والطقس، والهجمات العدائية التي تخدع النموذج بتعديلات صغيرة على الصورة. سياسياً، تراجع الوزارة توجيهاتها حول الأسلحة ذاتية التشغيل وتشترط اختباراً وتقييماً صارمين قبل النشر. الشركات المتعاقدة تتنافس على عقود سحابية وبيانات ضخمة، ما يثير أسئلة عن الاعتماد على جهات خاصة والقدرة على التدقيق. المتابعة المهمة: كيف تُقاس دقة هذه الأنظمة ميدانياً، ومن يتحمل المسؤولية عند الخطأ.",
+          "en": "These capabilities are built on computer-vision models trained on classified intelligence data and integrated into common operating pictures for commanders. Technical challenges include camouflaged targets, weather, and adversarial attacks that fool a model with small image changes. Politically, the department revises its directive on autonomous weapons and requires rigorous test and evaluation before fielding. Contractors compete for cloud and big-data contracts, raising questions about dependence on private firms and auditability. What to watch: how accuracy is measured in the field, and who is accountable when the system errs."
+        }
+      },
+      "questions": {
+        "beginner": [
+          { "q_ar": "ماذا يساعد البرنامج الجنود على فعله؟", "q_en": "What does the program help soldiers do?", "choices_ar": ["إيجاد الأشياء المهمة في الفيديو", "طهي الطعام", "قيادة الدبابات"], "choices_en": ["Find important things in video", "Cook food", "Drive tanks"], "answer": 0 },
+          { "q_ar": "من يراجع ما يجده البرنامج؟", "q_en": "Who reviews what the program finds?", "choices_ar": ["إنسان", "برنامج آخر", "لا أحد"], "choices_en": ["A human", "Another program", "Nobody"], "answer": 0 },
+          { "q_ar": "ما الذي يصور ساعات طويلة من الفيديو؟", "q_en": "What records many hours of video?", "choices_ar": ["طائرات وكاميرات", "هواتف الجنود", "التلفاز"], "choices_en": ["Aircraft and cameras", "Soldiers' phones", "Television"], "answer": 0 }
+        ],
+        "intermediate": [
+          { "q_ar": "ما هدف هذه البرامج؟", "q_en": "What is the goal of these programs?", "choices_ar": ["تقليل الوقت بين التقاط الصورة وفهمها", "تصوير أفلام", "بيع الصور"], "choices_en": ["Shrink time between capturing and understanding an image", "Make movies", "Sell images"], "answer": 0 },
+          { "q_ar": "ما موقف وزارة الدفاع من دور الإنسان؟", "q_en": "What is the department's position on the human role?", "choices_ar": ["يبقى في حلقة القرار", "يُستبدل بالكامل", "لا دور له"], "choices_en": ["Stays in the decision loop", "Fully replaced", "No role"], "answer": 0 },
+          { "q_ar": "أي موضوع يناقشه الكونغرس؟", "q_en": "Which topic does Congress debate?", "choices_ar": ["الميزانيات والاعتماد على الشركات الخاصة", "ألوان الطائرات", "أسماء الجنود"], "choices_en": ["Budgets and reliance on private companies", "Aircraft colors", "Soldiers' names"], "answer": 0 }
+        ],
+        "expert": [
+          { "q_ar": "ما هي الهجمات العدائية على النموذج؟", "q_en": "What are adversarial attacks on a model?", "choices_ar": ["تعديلات صغيرة على الصورة تخدع النموذج", "هجمات بالصواريخ", "قطع الكهرباء"], "choices_en": ["Small image changes that fool the model", "Missile attacks", "Power cuts"], "answer": 0 },
+          { "q_ar": "ما الشرط قبل نشر الأنظمة ذاتية التشغيل؟", "q_en": "What is required before fielding autonomous systems?", "choices_ar": ["اختبار وتقييم صارمان", "موافقة الشركة فقط", "لا شيء"], "choices_en": ["Rigorous test and evaluation", "Company approval only", "Nothing"], "answer": 0 },
+          { "q_ar": "على أي بيانات تُدرّب النماذج؟", "q_en": "What data are the models trained on?", "choices_ar": ["بيانات استخباراتية مصنّفة", "صور من الإنترنت فقط", "كتب مدرسية"], "choices_en": ["Classified intelligence data", "Internet photos only", "School books"], "answer": 0 }
+        ]
+      },
+      "terms": [
+        { "term_en": "drone", "term_ar": "الطائرة المسيّرة", "def_ar": "طائرة بدون طيار تُقاد عن بُعد أو ذاتياً.", "def_en": "An aircraft with no pilot on board, flown remotely or autonomously." },
+        { "term_en": "autonomous weapon", "term_ar": "السلاح ذاتي التشغيل", "def_ar": "سلاح يختار الهدف ويهاجمه دون تدخل بشري مباشر.", "def_en": "A weapon that selects and engages targets without direct human input." }
+      ],
+      "wiki": []
+    },
+    {
+      "id": "seed-ru-1", "category": "russia_military",
+      "title_en": "Russia tests drones that pick targets with onboard AI", "title_ar": "روسيا تختبر طائرات مسيّرة تختار الأهداف بذكاء اصطناعي مدمج",
+      "source": "Example", "url": "https://example.org/russia-drones", "published": "2026-09-14T10:00:00Z",
+      "levels": {
+        "beginner": {
+          "ar": "الطائرة المسيّرة هي طائرة صغيرة بدون طيار. روسيا تجرّب طائرات مسيّرة فيها برنامج ذكاء اصطناعي يساعدها على التعرف على الأهداف بنفسها. هذا مهم لأن الطائرة تستطيع أن تكمل مهمتها حتى لو انقطع الاتصال بمن يتحكم بها.",
+          "en": "A drone is a small aircraft with no pilot. Russia is testing drones with an AI program that helps them recognize targets on their own. This matters because the drone can finish its task even if the link to its operator is cut."
+        },
+        "intermediate": {
+          "ar": "في الحرب الحديثة يُستخدم التشويش لقطع الاتصال بين الطائرة المسيّرة ومشغّلها. الرد الروسي، مثل أطراف أخرى، هو وضع برنامج تعرّف على الصور داخل الطائرة نفسها حتى تتابع الهدف دون إشارة خارجية. التقارير تشير إلى أن الأنظمة الأولى بسيطة وتعمل في اللحظات الأخيرة من الطيران فقط. الخبراء يحذرون من أن هذا يقرّب العالم من أسلحة تختار أهدافها بلا إنسان.",
+          "en": "In modern war, jamming is used to cut the link between a drone and its operator. Russia's response, like other actors, is to put an image-recognition program inside the drone so it can track a target without an outside signal. Reports suggest the first systems are simple and work only in the final moments of flight. Experts warn this moves the world closer to weapons that choose targets without a human."
+        },
+        "expert": {
+          "ar": "التوجيه الطرفي بالذكاء الاصطناعي يعتمد على نماذج رؤية خفيفة تعمل على معالجات صغيرة داخل الطائرة، مدرّبة على صور مركبات ومعدات. القيود تشمل الطاقة الحاسوبية المحدودة، والأخطاء في التمييز بين الأهداف العسكرية والمدنية، وحساسية النماذج للتمويه. على مستوى الصناعة، تعتمد روسيا على مكونات إلكترونية مستوردة عبر وسطاء رغم العقوبات، ما يشكل نقطة ضعف في سلسلة التوريد. قانونياً، لا يوجد اتفاق دولي ملزم حول الأسلحة ذاتية التشغيل، والمفاوضات في الأمم المتحدة بطيئة. المتابعة المهمة: هل تنتقل هذه الأنظمة من التوجيه الطرفي إلى الاختيار الكامل للهدف.",
+          "en": "AI terminal guidance relies on lightweight vision models running on small processors inside the drone, trained on images of vehicles and equipment. Limits include scarce computing power, errors in distinguishing military from civilian targets, and model sensitivity to camouflage. Industrially, Russia depends on imported electronics routed through intermediaries despite sanctions, a supply-chain weak point. Legally, there is no binding international agreement on autonomous weapons, and UN negotiations are slow. What to watch: whether these systems move from terminal guidance to full target selection."
+        }
+      },
+      "questions": {
+        "beginner": [
+          { "q_ar": "ما هي الطائرة المسيّرة؟", "q_en": "What is a drone?", "choices_ar": ["طائرة صغيرة بدون طيار", "سيارة سريعة", "قارب"], "choices_en": ["A small aircraft with no pilot", "A fast car", "A boat"], "answer": 0 },
+          { "q_ar": "لماذا يهم أن تتعرف الطائرة على الهدف بنفسها؟", "q_en": "Why does it matter that the drone recognizes targets itself?", "choices_ar": ["تكمل مهمتها لو انقطع الاتصال", "تطير أعلى", "تصبح أرخص"], "choices_en": ["It can finish its task if the link is cut", "It flies higher", "It becomes cheaper"], "answer": 0 },
+          { "q_ar": "أي دولة يتحدث عنها الدرس؟", "q_en": "Which country is the lesson about?", "choices_ar": ["روسيا", "البرازيل", "كندا"], "choices_en": ["Russia", "Brazil", "Canada"], "answer": 0 }
+        ],
+        "intermediate": [
+          { "q_ar": "ما هو التشويش؟", "q_en": "What is jamming?", "choices_ar": ["قطع الاتصال بين الطائرة ومشغّلها", "طلاء الطائرة", "زيادة سرعة الطائرة"], "choices_en": ["Cutting the link between drone and operator", "Painting the drone", "Making the drone faster"], "answer": 0 },
+          { "q_ar": "متى تعمل الأنظمة الأولى حسب التقارير؟", "q_en": "When do the first systems work, per reports?", "choices_ar": ["في اللحظات الأخيرة من الطيران", "طوال الرحلة", "قبل الإقلاع"], "choices_en": ["In the final moments of flight", "The whole flight", "Before takeoff"], "answer": 0 },
+          { "q_ar": "مم يحذر الخبراء؟", "q_en": "What do experts warn about?", "choices_ar": ["أسلحة تختار أهدافها بلا إنسان", "ارتفاع أسعار الطائرات", "نقص الطيارين"], "choices_en": ["Weapons that choose targets without a human", "Higher drone prices", "Pilot shortage"], "answer": 0 }
+        ],
+        "expert": [
+          { "q_ar": "أين تعمل نماذج الرؤية في التوجيه الطرفي؟", "q_en": "Where do vision models run in terminal guidance?", "choices_ar": ["على معالجات صغيرة داخل الطائرة", "في مركز بيانات بعيد", "في هاتف المشغّل"], "choices_en": ["On small processors inside the drone", "In a distant data center", "On the operator's phone"], "answer": 0 },
+          { "q_ar": "ما نقطة الضعف في سلسلة التوريد الروسية؟", "q_en": "What is the weak point in Russia's supply chain?", "choices_ar": ["الاعتماد على إلكترونيات مستوردة", "نقص الوقود", "قلة الطيارين"], "choices_en": ["Dependence on imported electronics", "Fuel shortage", "Few pilots"], "answer": 0 },
+          { "q_ar": "ما وضع الاتفاق الدولي حول الأسلحة ذاتية التشغيل؟", "q_en": "What is the status of an international agreement on autonomous weapons?", "choices_ar": ["لا يوجد اتفاق ملزم", "اتفاق موقّع من الجميع", "محظورة تماماً"], "choices_en": ["No binding agreement exists", "Signed by everyone", "Fully banned"], "answer": 0 }
+        ]
+      },
+      "terms": [
+        { "term_en": "drone", "term_ar": "الطائرة المسيّرة", "def_ar": "طائرة بدون طيار تُقاد عن بُعد أو ذاتياً.", "def_en": "An aircraft with no pilot on board, flown remotely or autonomously." },
+        { "term_en": "jamming", "term_ar": "التشويش", "def_ar": "إرسال إشارات تعطّل الاتصال اللاسلكي.", "def_en": "Sending signals that disrupt radio communication." }
+      ],
+      "wiki": []
+    },
+    {
+      "id": "seed-cn-1", "category": "china_military",
+      "title_en": "China's military pushes AI for planning and unmanned ships", "title_ar": "الجيش الصيني يدفع بالذكاء الاصطناعي في التخطيط والسفن غير المأهولة",
+      "source": "Example", "url": "https://example.org/china-ai", "published": "2026-09-14T11:00:00Z",
+      "levels": {
+        "beginner": {
+          "ar": "الصين تريد أن يستخدم جيشها الذكاء الاصطناعي في أمور كثيرة. من ذلك برامج تساعد القادة على التخطيط، وسفن صغيرة تبحر بدون طاقم. الحكومة الصينية تقول إن هذا جزء من هدفها لتكون رائدة في الذكاء الاصطناعي.",
+          "en": "China wants its military to use AI in many ways. That includes programs that help commanders plan, and small ships that sail without a crew. The Chinese government says this is part of its goal to lead in AI."
+        },
+        "intermediate": {
+          "ar": "تسمّي الصين هدفها \"الذكنة\" العسكرية: دمج الذكاء الاصطناعي في القيادة والاستطلاع واللوجستيات. الجامعات ومعاهد الأبحاث المرتبطة بالجيش تنشر أوراقاً عن أسراب الطائرات المسيّرة والسفن ذاتية القيادة ودعم القرار. تعتمد الصين على شركات التقنية المحلية وعلى بيانات ضخمة، لكنها تواجه قيوداً على استيراد الرقائق المتقدمة. المحللون الغربيون يختلفون حول مدى تحول هذه الأبحاث إلى قدرات فعلية في الخدمة.",
+          "en": "China calls its goal military \"intelligentization\": integrating AI into command, reconnaissance and logistics. Universities and research institutes tied to the military publish papers on drone swarms, self-driving ships and decision support. China relies on domestic tech companies and large datasets, but faces restrictions on importing advanced chips. Western analysts disagree on how much of this research has become real, in-service capability."
+        },
+        "expert": {
+          "ar": "استراتيجية الاندماج العسكري المدني تسمح للجيش الصيني بالاستفادة من شركات الذكاء الاصطناعي التجارية والبيانات الوطنية. برامج دعم القرار تُختبر في تمارين محاكاة، بينما تركز مشاريع السفن غير المأهولة على الدوريات ومكافحة الغواصات. القيد الأكبر هو ضوابط التصدير الأمريكية على الرقائق المتقدمة ومعدات تصنيعها، ما يدفع الصين إلى تطوير بدائل محلية أقل كفاءة. المخاطر التي يناقشها الباحثون تشمل أتمتة قرارات التصعيد وانعدام الشفافية حول قواعد الاشتباك. المتابعة المهمة: مؤشرات على نشر أسراب ذاتية في التدريبات البحرية، وتقدم صناعة الرقائق المحلية.",
+          "en": "The military-civil fusion strategy lets the Chinese military draw on commercial AI firms and national datasets. Decision-support programs are tested in simulated exercises, while unmanned-ship projects focus on patrols and anti-submarine work. The biggest constraint is US export controls on advanced chips and the tools to make them, pushing China toward less efficient domestic alternatives. Risks researchers discuss include automating escalation decisions and opacity about rules of engagement. What to watch: signs of autonomous swarms in naval drills, and progress in the domestic chip industry."
+        }
+      },
+      "questions": {
+        "beginner": [
+          { "q_ar": "ما هي السفن غير المأهولة؟", "q_en": "What are unmanned ships?", "choices_ar": ["سفن تبحر بدون طاقم", "سفن كبيرة جداً", "سفن خشبية"], "choices_en": ["Ships that sail without a crew", "Very large ships", "Wooden ships"], "answer": 0 },
+          { "q_ar": "فيم يساعد الذكاء الاصطناعي القادة؟", "q_en": "How does AI help commanders?", "choices_ar": ["في التخطيط", "في الطبخ", "في الغناء"], "choices_en": ["In planning", "In cooking", "In singing"], "answer": 0 },
+          { "q_ar": "ما هدف الحكومة الصينية؟", "q_en": "What is the Chinese government's goal?", "choices_ar": ["أن تكون رائدة في الذكاء الاصطناعي", "إلغاء الجيش", "بناء ملاعب"], "choices_en": ["To lead in AI", "To abolish the army", "To build stadiums"], "answer": 0 }
+        ],
+        "intermediate": [
+          { "q_ar": "ماذا تعني \"الذكنة\" العسكرية؟", "q_en": "What does military intelligentization mean?", "choices_ar": ["دمج الذكاء الاصطناعي في القيادة والاستطلاع واللوجستيات", "زيادة عدد الجنود", "شراء طائرات أكثر"], "choices_en": ["Integrating AI into command, reconnaissance and logistics", "More soldiers", "Buying more aircraft"], "answer": 0 },
+          { "q_ar": "ما القيد الذي تواجهه الصين؟", "q_en": "What restriction does China face?", "choices_ar": ["استيراد الرقائق المتقدمة", "نقص البيانات", "قلة الجامعات"], "choices_en": ["Importing advanced chips", "Lack of data", "Few universities"], "answer": 0 },
+          { "q_ar": "على ماذا يختلف المحللون الغربيون؟", "q_en": "What do Western analysts disagree about?", "choices_ar": ["مدى تحول الأبحاث إلى قدرات فعلية", "اسم البرنامج", "لون السفن"], "choices_en": ["How much research became real capability", "The program's name", "Ship colors"], "answer": 0 }
+        ],
+        "expert": [
+          { "q_ar": "ماذا تتيح استراتيجية الاندماج العسكري المدني؟", "q_en": "What does military-civil fusion enable?", "choices_ar": ["استفادة الجيش من الشركات التجارية والبيانات الوطنية", "إلغاء الشركات الخاصة", "تصدير الرقائق"], "choices_en": ["Military use of commercial firms and national data", "Abolishing private firms", "Exporting chips"], "answer": 0 },
+          { "q_ar": "على ماذا تركز مشاريع السفن غير المأهولة؟", "q_en": "What do unmanned-ship projects focus on?", "choices_ar": ["الدوريات ومكافحة الغواصات", "السياحة", "الصيد"], "choices_en": ["Patrols and anti-submarine work", "Tourism", "Fishing"], "answer": 0 },
+          { "q_ar": "ما أحد المخاطر التي يناقشها الباحثون؟", "q_en": "What is one risk researchers discuss?", "choices_ar": ["أتمتة قرارات التصعيد", "ارتفاع أسعار الوقود", "نقص المياه"], "choices_en": ["Automating escalation decisions", "Fuel prices", "Water shortage"], "answer": 0 }
+        ]
+      },
+      "terms": [
+        { "term_en": "semiconductor", "term_ar": "الرقاقة الإلكترونية", "def_ar": "شريحة صغيرة تعالج البيانات داخل الحواسيب.", "def_en": "A small chip that processes data inside computers." }
+      ],
+      "wiki": []
+    },
+    {
+      "id": "seed-oth-1", "category": "other",
+      "title_en": "The EU starts enforcing its AI law for high-risk systems", "title_ar": "الاتحاد الأوروبي يبدأ تطبيق قانون الذكاء الاصطناعي على الأنظمة عالية الخطورة",
+      "source": "Example", "url": "https://example.org/eu-ai-act", "published": "2026-09-13T12:00:00Z",
+      "levels": {
+        "beginner": {
+          "ar": "الاتحاد الأوروبي مجموعة من الدول لها قوانين مشتركة. وضع قانوناً جديداً يحدد كيف يمكن للشركات استخدام الذكاء الاصطناعي. الأنظمة التي قد تضر الناس، مثل تلك المستخدمة في التوظيف أو المستشفيات، يجب أن تتبع قواعد أشد.",
+          "en": "The European Union is a group of countries with shared laws. It made a new law that sets how companies may use AI. Systems that could harm people, like those used in hiring or hospitals, must follow stricter rules."
+        },
+        "intermediate": {
+          "ar": "قانون الذكاء الاصطناعي الأوروبي يصنّف الأنظمة حسب الخطورة: بعض الاستخدامات محظورة، وبعضها عالي الخطورة يحتاج إلى فحص وتوثيق ومراقبة بشرية، وبعضها يحتاج فقط إلى شفافية. الشركات خارج أوروبا تخضع للقانون إذا باعت خدماتها لمستخدمين أوروبيين. الغرامات قد تصل إلى نسبة من الإيرادات العالمية. الاستخدامات العسكرية مستثناة من القانون، وهو ما ينتقده بعض الحقوقيين.",
+          "en": "The EU AI law classifies systems by risk: some uses are banned, high-risk ones need testing, documentation and human oversight, and others need only transparency. Companies outside Europe are covered if they sell to European users. Fines can reach a share of global revenue. Military uses are excluded from the law, which some rights groups criticize."
+        },
+        "expert": {
+          "ar": "يفرض القانون على مزوّدي الأنظمة عالية الخطورة نظام إدارة مخاطر، وحوكمة للبيانات، وسجلات تقنية، وتسجيلاً في قاعدة بيانات أوروبية، مع تقييم مطابقة قبل الطرح. نماذج الذكاء الاصطناعي ذات الأغراض العامة لها التزامات خاصة بالشفافية وحقوق النشر، وتُشدد على النماذج ذات المخاطر النظامية. التنفيذ موزع بين مكتب الذكاء الاصطناعي الأوروبي والسلطات الوطنية، ما يثير أسئلة عن الاتساق. الشركات تطالب بتأجيل بعض المواعيد بحجة غياب المعايير التقنية. المتابعة المهمة: أول غرامات فعلية، والمعايير الفنية المنسقة التي تحدد معنى \"الامتثال\" عملياً.",
+          "en": "The law requires providers of high-risk systems to run a risk-management system, data governance, technical documentation and registration in an EU database, with conformity assessment before market entry. General-purpose AI models carry transparency and copyright obligations, tightened for models with systemic risk. Enforcement is split between the EU AI Office and national authorities, raising consistency questions. Companies lobby to delay some deadlines, citing missing technical standards. What to watch: the first real fines, and the harmonized standards that define what compliance means in practice."
+        }
+      },
+      "questions": {
+        "beginner": [
+          { "q_ar": "ما هو الاتحاد الأوروبي؟", "q_en": "What is the European Union?", "choices_ar": ["مجموعة دول لها قوانين مشتركة", "شركة تقنية", "مدينة"], "choices_en": ["A group of countries with shared laws", "A tech company", "A city"], "answer": 0 },
+          { "q_ar": "أي أنظمة يجب أن تتبع قواعد أشد؟", "q_en": "Which systems must follow stricter rules?", "choices_ar": ["التي قد تضر الناس", "ألعاب الفيديو", "برامج الطقس"], "choices_en": ["Those that could harm people", "Video games", "Weather apps"], "answer": 0 },
+          { "q_ar": "ماذا يحدد القانون الجديد؟", "q_en": "What does the new law set?", "choices_ar": ["كيف تستخدم الشركات الذكاء الاصطناعي", "أسعار الحواسيب", "مواعيد العطل"], "choices_en": ["How companies may use AI", "Computer prices", "Holiday dates"], "answer": 0 }
+        ],
+        "intermediate": [
+          { "q_ar": "ماذا تحتاج الأنظمة عالية الخطورة؟", "q_en": "What do high-risk systems need?", "choices_ar": ["فحصاً وتوثيقاً ومراقبة بشرية", "إعلاناً تلفزيونياً", "لا شيء"], "choices_en": ["Testing, documentation and human oversight", "A TV ad", "Nothing"], "answer": 0 },
+          { "q_ar": "هل تخضع الشركات خارج أوروبا للقانون؟", "q_en": "Are companies outside Europe covered?", "choices_ar": ["نعم إذا باعت لمستخدمين أوروبيين", "لا أبداً", "فقط الشركات الأمريكية"], "choices_en": ["Yes, if they sell to European users", "Never", "Only US companies"], "answer": 0 },
+          { "q_ar": "ما الذي يُستثنى من القانون؟", "q_en": "What is excluded from the law?", "choices_ar": ["الاستخدامات العسكرية", "المستشفيات", "المدارس"], "choices_en": ["Military uses", "Hospitals", "Schools"], "answer": 0 }
+        ],
+        "expert": [
+          { "q_ar": "ماذا يجب قبل طرح نظام عالي الخطورة في السوق؟", "q_en": "What is required before a high-risk system enters the market?", "choices_ar": ["تقييم مطابقة", "حملة تسويق", "موافقة المستخدمين"], "choices_en": ["Conformity assessment", "A marketing campaign", "User votes"], "answer": 0 },
+          { "q_ar": "من يتقاسم التنفيذ؟", "q_en": "Who shares enforcement?", "choices_ar": ["مكتب الذكاء الاصطناعي الأوروبي والسلطات الوطنية", "الشركات نفسها", "الأمم المتحدة"], "choices_en": ["EU AI Office and national authorities", "The companies themselves", "The United Nations"], "answer": 0 },
+          { "q_ar": "لماذا تطالب الشركات بتأجيل المواعيد؟", "q_en": "Why do companies ask to delay deadlines?", "choices_ar": ["غياب المعايير التقنية", "نقص الموظفين", "العطلة الصيفية"], "choices_en": ["Missing technical standards", "Staff shortage", "Summer holidays"], "answer": 0 }
+        ]
+      },
+      "terms": [
+        { "term_en": "large language model", "term_ar": "النموذج اللغوي الكبير", "def_ar": "برنامج ذكاء اصطناعي مدرّب على نصوص ضخمة ليفهم اللغة ويكتبها.", "def_en": "An AI program trained on huge amounts of text to understand and write language." }
+      ],
+      "wiki": []
+    }
+  ]
+}
