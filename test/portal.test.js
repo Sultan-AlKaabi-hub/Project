@@ -80,6 +80,7 @@ test("API permissions, booking lifecycle, privacy and course regression", async 
     env: {
       ...process.env,
       PORT: String(port),
+      RASID_SEED_DEMO: "0",
       RASID_DATA_DIR: dir,
       RASID_NEWS_LESSONS: "",
       RASID_NO_UPDATE: "1",
@@ -428,6 +429,12 @@ test("API permissions, booking lifecycle, privacy and course regression", async 
   assert.equal((await fetch(base + "/js/curriculum-data.js")).status, 404);
   assert.equal((await fetch(base + "/js/%63urriculum-data.js")).status, 404);
   assert.equal((await call("/api/install")).status, 200);
+  assert.equal((await call('/api/admin/people',{email:'other@example.test',role:'teacher',subject:'math'},admin)).status,200);
+  assert.equal((await call('/api/course',null,other)).status,403);
+  assert.equal((await call('/api/news',null,other)).status,403);
+  assert.equal((await call('/api/placement',null,other)).status,403);
+  const restricted=await call('/api/faris/ask',{question:'Show AI student scores'},other);
+  assert.ok(restricted.data.text.includes('restricted'));
   const csrf = await fetch(base + "/api/settings", {
     method: "POST",
     headers: {

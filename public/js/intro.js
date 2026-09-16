@@ -1,128 +1,266 @@
-// Intro scene: pixel-art sunset, hills, a rider galloping in with the news, letters fluttering, birds flying.
-// Drawn on a 192x108 canvas and scaled up with crisp pixels. No assets: everything is code.
+// Scenic bitmap + independent pixel animation layers. No layout work in the animation loop.
 (function () {
-  const W = 192, H = 108;
-  const RIDER = {
-    body: [
-      "...........RRR............",
-      "..........RRRRR...........",
-      "..........RRfRR...........",
-      "...........RRR............",
-      "..........RRRRR..EE.......",
-      "..........RRRRR..EE.......",
-      "...........RRR............",
-      "....HHHHHHHHHHHHHH...mm...",
-      "...HHHHHHHHSSHHHHHHHHHHm..",
-      "..HHHHHHHHHSSHHHHHHHHHHH..",
-      "..HHHHHHHHHHHHHHHHHHHHh...",
-      "..THHHHHHHHHHHHHHHHH......"
-    ],
-    legsA: ["..T.HH.......HH...........", "..T.HH.......HH...........", "....dd.......dd..........."],
-    legsB: ["..T..HH....HH.............", "..T...HH..HH..............", "......dd..dd.............."],
-    colors: { R: "#7551BF", f: "#E8B79A", E: "#F4F4F6", H: "#BA936A", S: "#533D84", m: "#3A2A1E", h: "#2A2018", T: "#3A2A1E", d: "#2A2018" }
+  const palette = {
+    outline: "#292535",
+    dark: "#654039",
+    body: "#ad7552",
+    light: "#dbad72",
+    mane: "#352e38",
+    gold: "#f6d397",
+    purple: "#654899",
+    cloak: "#9970cf",
+    skin: "#efbb8d",
+    steel: "#b6d0d0",
   };
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
-  const mix = (a, b, t) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], t))).join(",")})`; };
-
-  function drawMap(ctx, map, colors, x, y) {
-    map.forEach((row, yy) => [...row].forEach((ch, xx) => { if (colors[ch]) { ctx.fillStyle = colors[ch]; ctx.fillRect(x + xx, y + yy, 1, 1); } }));
-  }
-
-  // Deterministic noise for grass and ground texture.
-  const rnd = (x, y) => { const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; return n - Math.floor(n); };
-
-  function mount(container, { onStart } = {}) {
-    let H = Math.max(108, Math.round(W * container.clientHeight / Math.max(container.clientWidth, 1)));
+  function mount(container) {
+    container.classList.add("pixel-world");
+    const landscape = document.createElement("img");
+    landscape.src = "/art/valley.png";
+    landscape.alt = "";
+    landscape.className = "world-landscape";
+    landscape.draggable = false;
+    const mist = document.createElement("div");
+    mist.className = "world-mist";
     const canvas = document.createElement("canvas");
-    canvas.width = W; canvas.height = H; canvas.className = "intro-canvas";
-    container.appendChild(canvas);
-    const ctx = canvas.getContext("2d");
-    ctx.imageSmoothingEnabled = false;
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let raf = 0, t0 = performance.now();
-    const letters = []; // { x, y, vx, vy, life }
-    const birds = Array.from({ length: 6 }, (_, i) => ({ x: 200 + i * 34, y: 14 + (i * 7) % 26, s: 0.35 + (i % 3) * 0.12, ph: i }));
-
-    function frame(now) {
-      ctx.fillStyle = '#62638D'; ctx.fillRect(0, 0, W, H);
-      ctx.save(); ctx.translate(0, H - 108);
-      const s = (now - t0) / 1000;
-      const sun = 0.48; // 0 day -> 1 dusk, slow loop
-      // sky bands
-      const top = mix("#6FA7E8", "#3B2C5E", sun), hor = mix("#F7C27A", "#E2543E", sun);
-      for (let i = 0; i < 8; i++) { ctx.fillStyle = mix(rgbToHex(top), rgbToHex(hor), i / 7); ctx.fillRect(0, i * 10, W, 10); }
-      // sun
-      const sy = 22, sx = 151;
-      ctx.fillStyle = mix("#FFE08A", "#FF7A3D", sun);
-      circle(ctx, sx, sy, 13);
-      ctx.fillStyle = mix("#FFF4C2", "#FFB27A", sun); circle(ctx, sx - 2, sy - 2, 4);
-      // clouds
-      ctx.fillStyle = mix("#FFFFFF", "#D9A6C9", sun);
-      cloud(ctx, 20 + ((s * 1.2) % 60), 16); cloud(ctx, 96 + ((s * 0.8) % 40), 24); cloud(ctx, 60 + ((s * 1) % 80), 8);
-      // Layered mountain valley, using the same violet and warm-gold palette as the UI.
-      function ridge(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,H);for(const [x,y] of points)ctx.lineTo(x,y);ctx.lineTo(W,H);ctx.closePath();ctx.fill();}
-      ridge([[0,48],[15,32],[27,44],[48,23],[66,49],[80,58],[99,63],[115,51],[135,40],[150,51],[176,24],[192,45]],'#9584B4');
-      ridge([[0,55],[17,41],[30,51],[47,29],[61,49],[80,63],[98,69],[121,55],[140,46],[159,58],[178,33],[192,48]],'#75658D');
-      ridge([[0,66],[20,53],[41,59],[57,47],[80,72],[98,77],[123,65],[147,57],[169,48],[192,63]],'#564767');
-      ctx.fillStyle='#F1D8CF';ctx.fillRect(46,25,4,2);ctx.fillRect(43,28,8,2);ctx.fillRect(175,27,4,2);
-      // far hills
-      ctx.fillStyle = mix("#5E8C5A", "#3D2E5A", sun);
-      hills(ctx, 76, 5, 0.9);
-      ctx.fillStyle = mix("#3F6B3C", "#2A2145", sun);
-      hills(ctx, 80, 4, 1.6);
-      // trees (left)
-      const treeD = mix("#1F4D2A", "#15182E", sun), treeL = mix("#2E6B3A", "#1E2340", sun);
-      [6, 22, 40].forEach((x, i) => pine(ctx, x, 60 + i * 3, 14 + (i % 2) * 4, treeD, treeL));
-      // ground
-      const g1 = mix("#4C9A3C", "#2E4A33", sun), g2 = mix("#3F8332", "#25402B", sun), soil = mix("#6B4A2E", "#3A2A24", sun);
-      for (let y = 78; y < 108; y++) for (let x = 0; x < W; x++) {
-        const n = rnd(x, y);
-        ctx.fillStyle = y < 90 ? (n > 0.82 ? g2 : g1) : y < 94 ? (n > 0.5 ? soil : g2) : (n > 0.88 ? "#8A6A4A" : soil);
-        ctx.fillRect(x, y, 1, 1);
+    canvas.className = "world-motion";
+    canvas.setAttribute("aria-hidden", "true");
+    container.append(landscape, mist, canvas);
+    const ctx = canvas.getContext("2d"),
+      motion = matchMedia("(prefers-reduced-motion: reduce)");
+    let W = 640,
+      H = 360,
+      raf = 0,
+      last = 0,
+      elapsed = 0,
+      active = true;
+    const rect = (color, x, y, w, h) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(Math.round(x), Math.round(y), w, h);
+    };
+    const poly = (color, points) => {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      points.forEach(([x, y], i) =>
+        i
+          ? ctx.lineTo(Math.round(x), Math.round(y))
+          : ctx.moveTo(Math.round(x), Math.round(y)),
+      );
+      ctx.closePath();
+      ctx.fill();
+    };
+    function horse(x, y, t) {
+      const beat = t * 10,
+        bob = motion.matches ? 0 : Math.round(Math.sin(beat) * 1.2);
+      ctx.save();
+      ctx.translate(Math.round(x), Math.round(y));
+      rect("#273d394d", 4, 2, 42, 2);
+      // Four articulated legs: the far pair is darker and offset in the gallop cycle.
+      for (let i = 0; i < 4; i++) {
+        const hip = i < 2 ? 12 : 35,
+          phase = beat + i * 2.2,
+          swing = motion.matches ? 0 : Math.sin(phase) * 7,
+          lift = motion.matches ? 0 : Math.max(0, Math.cos(phase)) * 5;
+        poly(i % 2 ? palette.dark : palette.body, [
+          [hip, -13 + bob],
+          [hip + 4, -13 + bob],
+          [hip + 4 + swing * 0.5, -6],
+          [hip + swing, 1 - lift],
+          [hip + swing - 3, 1 - lift],
+          [hip + swing * 0.4, -7],
+        ]);
+        rect(palette.outline, hip + swing - 3, 1 - lift, 5, 2);
       }
-      // road
-      ctx.fillStyle = mix("#C9A97A", "#6E5548", sun);
-      for (let x = 0; x < W; x++) { const y = 101 + Math.round(Math.sin(x / 30) * 2); ctx.fillRect(x, y, 1, 3 + (rnd(x, 1) > 0.5 ? 1 : 0)); }
-      // birds
-      ctx.fillStyle = mix("#2E2A33", "#0F0D16", sun);
-      for (const b of birds) {
-        if (!reduced) { b.x -= b.s; if (b.x < -10) { b.x = W + 10; } }
-        const flap = Math.floor(s * 6 + b.ph) % 2;
-        const by = Math.round(b.y + Math.sin(s * 2 + b.ph) * 1.5), bx = Math.round(b.x);
-        if (flap) { ctx.fillRect(bx, by, 1, 1); ctx.fillRect(bx + 1, by + 1, 1, 1); ctx.fillRect(bx + 2, by + 1, 1, 1); ctx.fillRect(bx + 3, by, 1, 1); }
-        else { ctx.fillRect(bx, by + 1, 1, 1); ctx.fillRect(bx + 1, by, 1, 1); ctx.fillRect(bx + 2, by, 1, 1); ctx.fillRect(bx + 3, by + 1, 1, 1); }
-      }
-      // rider: gallops in from the left, slows at center, then rides on and loops
-      const cycle = 14, p = reduced ? 0.48 : 0.48 + Math.sin(s / 8) * 0.07;
-      const rx = Math.round(-30 + p * (W + 60)), ry = 101 + (reduced ? 0 : Math.round(Math.abs(Math.sin(s * 8)) * -1));
-      const gallop = Math.floor(s * 8) % 2 === 0;
-      drawMap(ctx, RIDER.body, RIDER.colors, rx, ry - 12);
-      drawMap(ctx, gallop ? RIDER.legsA : RIDER.legsB, RIDER.colors, rx, ry);
-      // shadow
-      ctx.fillStyle = "rgba(0,0,0,.18)"; ctx.fillRect(rx + 3, ry + 3, 20, 1);
-      // letters flying out of the saddle bag
-      if (!reduced && Math.random() < 0.08 && rx > 0 && rx < W) letters.push({ x: rx + 17, y: ry - 7, vx: -0.35 - Math.random() * 0.3, vy: -0.25 - Math.random() * 0.2, life: 1, ph: Math.random() * 6 });
-      for (const l of letters) { l.x += l.vx; l.y += l.vy + Math.sin(s * 3 + l.ph) * 0.2; l.life -= 0.006; envelope(ctx, Math.round(l.x), Math.round(l.y), l.life); }
-      for (let i = letters.length - 1; i >= 0; i--) if (letters[i].life <= 0) letters.splice(i, 1);
+      ctx.translate(0, bob);
+      // Tail, flank, barrel, shoulder and upright neck, outlined in one silhouette.
+      poly(palette.mane, [
+        [8, -25],
+        [1, -25],
+        [-5, -19],
+        [-11, -20],
+        [-6, -16],
+        [3, -17],
+        [11, -23],
+      ]);
+      poly(palette.outline, [
+        [7, -26],
+        [29, -29],
+        [38, -26],
+        [40, -35],
+        [43, -40],
+        [44, -48],
+        [47, -43],
+        [51, -42],
+        [56, -36],
+        [61, -34],
+        [61, -29],
+        [55, -27],
+        [48, -29],
+        [43, -14],
+        [36, -11],
+        [17, -11],
+        [8, -16],
+        [5, -22],
+      ]);
+      poly(palette.body, [
+        [9, -25],
+        [26, -27],
+        [37, -24],
+        [43, -34],
+        [45, -41],
+        [50, -40],
+        [53, -35],
+        [59, -33],
+        [59, -30],
+        [53, -29],
+        [47, -32],
+        [42, -17],
+        [35, -13],
+        [18, -13],
+        [10, -17],
+        [7, -22],
+      ]);
+      poly(palette.light, [
+        [11, -24],
+        [29, -26],
+        [37, -23],
+        [35, -20],
+        [17, -19],
+        [10, -21],
+      ]);
+      poly(palette.dark, [
+        [11, -17],
+        [20, -15],
+        [35, -15],
+        [41, -20],
+        [39, -14],
+        [18, -12],
+      ]);
+      poly(palette.mane, [
+        [39, -28],
+        [40, -37],
+        [44, -43],
+        [47, -43],
+        [45, -35],
+        [42, -26],
+      ]);
+      rect(palette.gold, 48, -39, 3, 3);
+      rect(palette.outline, 51, -37, 2, 2);
+      rect(palette.dark, 57, -31, 2, 1);
+      // Bridle and rein.
+      rect(palette.gold, 54, -33, 1, 5);
+      poly(palette.outline, [
+        [54, -28],
+        [53, -27],
+        [35, -33],
+        [35, -34],
+      ]);
+      rect(palette.purple, 19, -28, 15, 6);
+      rect(palette.gold, 20, -27, 12, 1);
+      rect(palette.dark, 21, -25, 4, 12);
+      // Rider in violet cloak, with silver helmet and a gold-edged saddle bag.
+      poly(palette.purple, [
+        [23, -44],
+        [19, -39],
+        [9, -35],
+        [14, -31],
+        [24, -29],
+        [29, -31],
+        [30, -42],
+      ]);
+      poly(palette.cloak, [
+        [23, -43],
+        [19, -38],
+        [13, -35],
+        [24, -33],
+        [27, -38],
+      ]);
+      rect(palette.outline, 26, -42, 6, 14);
+      rect(palette.steel, 27, -41, 4, 7);
+      poly(palette.steel, [
+        [30, -40],
+        [35, -34],
+        [39, -33],
+        [38, -31],
+        [33, -32],
+        [28, -37],
+      ]);
+      rect(palette.skin, 37, -34, 3, 2);
+      rect(palette.dark, 28, -29, 5, 12);
+      rect(palette.outline, 28, -18, 8, 3);
+      rect(palette.outline, 25, -53, 9, 11);
+      rect(palette.steel, 25, -53, 8, 6);
+      rect(palette.gold, 26, -54, 6, 2);
+      rect(palette.skin, 29, -47, 5, 4);
+      rect(palette.outline, 32, -47, 2, 1);
+      rect(palette.purple, 22, -55, 5, 3);
+      rect(palette.cloak, 19, -56, 5, 2);
+      rect(palette.dark, 12, -25, 7, 8);
+      rect(palette.gold, 13, -24, 5, 1);
+      rect(palette.gold, 15, -21, 2, 2);
       ctx.restore();
-      if (!reduced) raf = requestAnimationFrame(frame);
     }
-    const resize = new ResizeObserver(() => {
-      H = Math.max(108, Math.round(W * container.clientHeight / Math.max(container.clientWidth, 1)));
-      if(canvas.height!==H) {canvas.height=H;ctx.imageSmoothingEnabled=false;if(reduced)frame(performance.now());}
-    });
-    resize.observe(container);
-    raf = requestAnimationFrame(frame);
-    return { unmount() { resize.disconnect(); cancelAnimationFrame(raf); canvas.remove(); } };
+    function draw(ts) {
+      if (!active) return;
+      if (last && !document.hidden) elapsed += Math.min(ts - last, 60) / 1000;
+      last = ts;
+      const t = motion.matches ? 0 : elapsed;
+      ctx.clearRect(0, 0, W, H);
+      // Small distant birds and light motes at different speeds create depth.
+      for (let i = 0; i < 5; i++) {
+        const x = ((W * 0.2 + i * 83 + t * (3 + i)) % (W + 20)) - 10,
+          y = H * 0.22 + Math.sin(t * 0.7 + i) * 3 + i * 6;
+        rect("#635970", x, y, 2, 1);
+        rect("#635970", x + 2, y + 1, 2, 1);
+        rect("#635970", x + 4, y, 2, 1);
+      }
+      const p = motion.matches ? 0.46 : (t / 19 + 0.12) % 1,
+        x = -75 + p * (W + 150),
+        y = H * 0.885;
+      horse(x, y, t);
+      canvas.dataset.riderX = String(Math.round(x));
+      for (let i = 0; i < 28; i++) {
+        const xx = (i * 73 - t * (6 + (i % 3))) % (W + 100),
+          yy = H * 0.87 + Math.sin(i * 3 + t * 0.6) * H * 0.08;
+        rect(i % 3 ? "#e8dca988" : "#fff1c5aa", xx, yy, 1 + (i % 2), 1);
+      }
+      // Foreground grass travels faster than distant birds; layered over the rider's hooves.
+      for (let i = 0; i < 22; i++) {
+        const xx = ((((i * 47 - t * 12) % (W + 60)) + W + 60) % (W + 60)) - 30,
+          yy = H - 4 - (i % 3) * 2;
+        rect("#173e38", xx, yy, 2, 6);
+        rect("#316951", xx + 3, yy + 2, 2, 4);
+      }
+      if (!motion.matches) raf = requestAnimationFrame(draw);
+    }
+    function resize() {
+      W = Math.max(320, Math.round(container.clientWidth / 2));
+      H = Math.max(160, Math.round(container.clientHeight / 2));
+      canvas.width = W;
+      canvas.height = H;
+      ctx.imageSmoothingEnabled = false;
+      if (motion.matches) draw(performance.now());
+    }
+    const observer = new ResizeObserver(resize);
+    observer.observe(container);
+    resize();
+    raf = requestAnimationFrame(draw);
+    const restart = () => {
+      cancelAnimationFrame(raf);
+      last = 0;
+      raf = requestAnimationFrame(draw);
+    };
+    motion.addEventListener("change", restart);
+    return {
+      unmount() {
+        active = false;
+        observer.disconnect();
+        motion.removeEventListener("change", restart);
+        cancelAnimationFrame(raf);
+        landscape.remove();
+        mist.remove();
+        canvas.remove();
+      },
+    };
   }
-
-  function rgbToHex(c) { if (c[0] === "#") return c; const m = c.match(/\d+/g).map(Number); return "#" + m.map((v) => v.toString(16).padStart(2, "0")).join(""); }
-  function circle(ctx, cx, cy, r) { for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r) ctx.fillRect(Math.round(cx + x), Math.round(cy + y), 1, 1); }
-  function cloud(ctx, x, y) { const px = Math.round(x % (W + 30)) - 15; ctx.fillRect(px, y + 2, 16, 3); ctx.fillRect(px + 3, y, 7, 2); ctx.fillRect(px + 9, y + 1, 5, 1); }
-  function hills(ctx, base, amp, f) { for (let x = 0; x < W; x++) { const h = Math.round(amp * (0.6 + 0.4 * Math.sin(x / (9 * f)) * Math.cos(x / (23 * f)) + 0.3 * Math.sin(x / (5 * f)))); ctx.fillRect(x, base - h, 1, 100); } }
-  function pine(ctx, x, y, h, dark, light) { for (let i = 0; i < h; i++) { const w = Math.floor(i / 2) + 1; ctx.fillStyle = i % 3 === 0 ? light : dark; ctx.fillRect(x - w, y - h + i, w * 2 + 1, 1); } ctx.fillStyle = "#3A2A1E"; ctx.fillRect(x, y, 1, 3); }
-  function envelope(ctx, x, y, a) { ctx.globalAlpha = Math.max(0, Math.min(1, a)); ctx.fillStyle = "#F7F3E8"; ctx.fillRect(x, y, 5, 4); ctx.fillStyle = "#C8372D"; ctx.fillRect(x + 2, y + 1, 1, 1); ctx.fillStyle = "#B8AFA0"; ctx.fillRect(x, y, 1, 1); ctx.fillRect(x + 4, y, 1, 1); ctx.globalAlpha = 1; }
-
   window.Intro = { mount };
 })();

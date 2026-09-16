@@ -1,6 +1,9 @@
 // Shared bilingual portal views. API permissions are enforced again on the server.
 (function () {
   const dictionary = {
+    owner_protected:["The owner account must remain an administrator.","يجب أن يبقى حساب المالك مسؤولاً."],
+    subject_restricted:["This content is restricted to the AI subject.","هذا المحتوى مخصص لمادة الذكاء الاصطناعي."],
+    demo_unavailable:["Add the sample campus data first.","أضف بيانات المنصة التجريبية أولاً."],
     time_conflict: ["This time overlaps an existing class, booking, or absence.","يتعارض الوقت مع حصة أو حجز أو طلب غياب موجود."],
     checkin_closed: ["Attendance is not open for this class yet, or the check-in window has ended.","لم يفتح تسجيل الحضور لهذه الحصة أو انتهت فترة التسجيل."],
     already_recorded: ["Attendance is already recorded. Ask your teacher to correct it.","تم تسجيل الحضور. اطلب من معلمك تصحيحه."],

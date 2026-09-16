@@ -1,3 +1,5 @@
+import {initializeCampus, seedCampusDemo, installCampus, notifyCoverage} from "./campus.js";
+import {subjectOf,hasAI} from "./subjects.js";
 // Rasid server: static PWA + JSON API + daily content update.
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -36,11 +38,13 @@ setInterval(() => {
   for (const [email, context] of readingContexts) if (context.at < Date.now() - 3600000) readingContexts.delete(email);
 }, 60000).unref();
 const db = load();
-migrateRoles(db); save();
+migrateRoles(db); initializeCampus(db);
+if(process.env.RASID_SEED_DEMO === "1" || (process.env.NODE_ENV === "production" && process.env.RASID_SEED_DEMO !== "0"))seedCampusDemo(db);
+save();
 const publicUser = (u) => ({
   email: u.email, name: u.name || u.email.split("@")[0], lang: u.lang || "ar", level: u.level || null, placed: Boolean(u.level),
   totpEnabled: Boolean(u.totp?.enabled), passkeys: (u.passkeys || []).length,
-  badges: u.badges || [], expertDone: Boolean(u.expertDone), isAdmin: isAdmin(u), role: roleOf(u)
+  badges: u.badges || [], expertDone: Boolean(u.expertDone), isAdmin: isAdmin(u), role: roleOf(u), subject:subjectOf(u), hasAI:hasAI(u), isDemo:Boolean(u.isDemo)
 });
 function isAdmin(u) { return roleOf(u) === "admin"; }
 function setCookie(res, token) {
@@ -77,8 +81,10 @@ app.use('/api', (req,res,next) => {
   if(++bucket.count>(authRequest?15:60)) { res.setHeader('Retry-After','60'); return res.status(429).json({error:'rate_limited'}); }
   next();
 });
+app.use(["/api/course","/api/placement","/api/news","/api/article","/api/certificate"],requireUser,(req,res,next)=>hasAI(req.user)?next():res.status(403).json({error:"subject_restricted"}));
 installPortal(app,{db,save,requireUser});
-installOperations(app,{db,save,requireUser});
+installOperations(app,{db,save:()=>{notifyCoverage(db);save();},requireUser});
+installCampus(app,{db,save,requireUser});
 app.get('/api/install', async (req,res) => {
   const url=process.env.PUBLIC_ORIGIN || req.protocol+'://'+req.get('host');
   res.json({url,qr:await QRCode.toDataURL(url,{width:240,margin:2}),apk:fs.existsSync(path.join(DATA_DIR,'rasid.apk'))});
@@ -92,7 +98,7 @@ app.post("/api/auth/signup", (req, res) => {
   if (!auth.validCredential(pin)) return res.status(400).json({ error: "bad_pin" });
   if (req.body.privacyAccepted !== true) return res.status(400).json({error:"privacy_required"});
   if (db.users[email]) return res.status(409).json({ error: "exists" });
-  db.users[email] = { email, role: "student", privacyAcceptedAt: Date.now(), privacyVersion: "2026-09-16", pinHash: auth.hashPin(pin), created: Date.now(), lang: req.body.lang === "en" ? "en" : "ar", level: null, read: {}, badges: [], passkeys: [] };
+  db.users[email] = { email, role: "student", subject:"ai", privacyAcceptedAt: Date.now(), privacyVersion: "2026-09-16", pinHash: auth.hashPin(pin), created: Date.now(), lang: req.body.lang === "en" ? "en" : "ar", level: null, read: {}, badges: [], passkeys: [] };
   save();
   setCookie(res, auth.createSession(email));
   res.json({ user: publicUser(db.users[email]) });
@@ -187,6 +193,7 @@ app.post("/api/settings", requireUser, (req, res) => {
 });
 app.delete("/api/account", requireUser, (req, res) => {
   const email = req.user.email;
+  if(email === "sultan.3ami@gmail.com")return res.status(409).json({error:"owner_protected"});
   if(isAdmin(req.user) && Object.values(db.users).filter(isAdmin).length<=1) return res.status(409).json({error:'last_admin'});
   db.bookings=db.bookings.filter(b=>b.requester!==email && b.host!==email);
   db.slots=db.slots.filter(s=>s.host!==email); db.alerts=db.alerts.filter(a=>a.email!==email && a.senderEmail!==email);
@@ -195,6 +202,7 @@ app.delete("/api/account", requireUser, (req, res) => {
   for(const u of Object.values(db.users)) if(u.teacherEmail===email) u.teacherEmail='';
   readingContexts.delete(email);
   eraseOperations(db,email);
+  db.shifts=db.shifts.filter(s=>s.teacher!==email);
   delete db.users[email];
   for (const [t, sess] of Object.entries(db.sessions)) if (sess.email === email) delete db.sessions[t];
   saveNow(); res.clearCookie("rasid"); res.json({ ok: true });
@@ -329,6 +337,7 @@ app.get("/api/sources", (req, res) => res.json({ sources: sourceList() }));
 app.post("/api/faris/ask", requireUser, async (req, res) => {
   const question = String(req.body.question || "").slice(0, 300);
   if (!question.trim()) return res.status(400).json({ error: "empty" });
+  if(!hasAI(req.user))return res.json({text:req.user.lang === "en" ? "Your workspace covers your subject schedule, leave requests, inbox and bookings. AI course records are restricted to AI teachers and administrators." : "تضم مساحتك مناوبات مادتك وطلبات الإجازة والبريد والحجوزات. سجلات الذكاء الاصطناعي متاحة لمعلمي المادة والمسؤولين فقط."});
   const privateResult = privateAnswer(question, req.user, db);
   if(privateResult) return res.json(privateResult);
   const r = await farisAnswer(question, { level: req.user.level || "beginner", lang: req.user.lang || "ar", article: req.body.useArticle && readingContexts.get(req.user.email)?.at>Date.now()-3600000 ? readingContexts.get(req.user.email) : null });

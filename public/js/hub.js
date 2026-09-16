@@ -160,7 +160,7 @@
         b.disabled = false;
       }
     }
-    VIEWS.hub = async () => {
+    VIEWS.hub = async (opts={}) => {
       const current = S.user.email;
       if (owner !== current) {
         owner = current;
@@ -169,6 +169,7 @@
         day = "";
         query = "";
       }
+      if(opts.tab)tab=opts.tab;
       const d = await api("/api/hub");
       if (S.view !== "hub" || S.user?.email !== current) return;
       const admin = S.user.role === "admin",
