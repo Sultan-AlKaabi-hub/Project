@@ -31,3 +31,11 @@ Use **Messages & alerts** to send an individual or role/group announcement with 
 ## Deployment
 
 Deploy `main` from `Sultan-AlKaabi-hub/Project`. Run `npm ci`, `npm test`, then `npm start`; `/healthz` is the health-check endpoint. Preserve the database using the storage and backup procedure in OPERATIONS.md. A free Render filesystem cannot retain accounts, passwords or progress across redeploys. The sample-data marker is stored in that same database and will also reset if storage is lost.
+
+## Owner recovery after fresh deployment
+
+The live service is https://rasid-904v.onrender.com. The previous rasid-txh4 service was deleted.
+
+A signed-in sultan.3ami@gmail.com account can use Settings → Restore administrator access with its private 256-bit recovery code. Only the SHA-256 digest is committed in server/owner-recovery.json; never commit or publish the private code. This recovery expires after seven days and can be used once per stored database. Failed attempts are limited to five per fifteen minutes; successful recovery ends other sessions for that account and preserves the existing password. Set OWNER_RECOVERY_DISABLED=1 to disable it early. To issue a replacement, generate a new random code and replace the id, digest and expiry; deliver the code privately to the owner. The operator bootstrap command remains available on hosts with shell access.
+
+On a free Render instance the database is ephemeral. If the database is lost, register/sign in again before using recovery; the used-code marker is also lost, so the private code remains sensitive until its expiry. A persistent disk/database is required for lasting accounts and progress. Recovery does not solve data persistence.

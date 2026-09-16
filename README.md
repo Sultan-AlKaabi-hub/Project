@@ -89,7 +89,7 @@ GitHub Pages cannot host this app: it only serves static files, and Rasid has a 
 
 1. Click the button (or in Render: **New → Blueprint** and pick this repository). `render.yaml` already describes the service.
 2. Add the environment variable `ANTHROPIC_API_KEY` (recommended) and, optionally, `ADMIN_EMAIL`.
-3. Deploy. The app comes up at `https://rasid-txh4.onrender.com` (Render adds a suffix if the name is taken). The GitHub Pages page at `sultan-alkaabi-hub.github.io/Project` redirects there.
+3. Deploy. The app comes up at `https://rasid-904v.onrender.com` (Render adds a suffix if the name is taken). The GitHub Pages page at `sultan-alkaabi-hub.github.io/Project` redirects there.
 
 Free-tier notes: the service sleeps after 15 minutes without traffic (first load takes about a minute), and there is no persistent disk, so `data/db.json` (accounts and progress) resets on each deploy. For real users pick a paid plan with a disk (see the comment in `render.yaml`), or any host with a volume: the `Dockerfile` works on Railway, Fly.io or a VPS with `docker run -p 3000:3000 -v rasid-data:/app/data rasid`.
 
