@@ -1,5 +1,5 @@
 # Full server version of Rasid. Build: docker build -t rasid .   Run: docker run -p 3000:3000 -v rasid-data:/app/data -e ANTHROPIC_API_KEY=... rasid
-FROM node:20-alpine
+FROM node:24-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts

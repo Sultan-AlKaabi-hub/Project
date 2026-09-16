@@ -14,6 +14,9 @@ import { LEVELS, aiAvailable, keySentences } from "./pipeline/generate.js";
 import { fetchArticle, favicon, translate } from "./pipeline/article.js";
 import { answer as farisAnswer } from "./faris.js";
 import * as course from "./curriculum.js";
+import QRCode from "qrcode";
+import {mailAvailable,sendReset} from "./mail.js";
+import { installPortal, migrateRoles, roleOf, privateAnswer } from "./portal.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(here, "..");
@@ -22,40 +25,72 @@ const PASS_MARK = 4;
 const NEXT = { beginner: "intermediate", intermediate: "expert", expert: "expert" };
 
 const app = express();
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 app.use(express.json({ limit: "200kb" }));
 app.use(cookieParser());
 
 // ---------- helpers ----------
+const readingContexts = new Map();
+setInterval(() => {
+  for (const [email, context] of readingContexts) if (context.at < Date.now() - 3600000) readingContexts.delete(email);
+}, 60000).unref();
 const db = load();
+migrateRoles(db); save();
 const publicUser = (u) => ({
   email: u.email, name: u.name || u.email.split("@")[0], lang: u.lang || "ar", level: u.level || null, placed: Boolean(u.level),
   totpEnabled: Boolean(u.totp?.enabled), passkeys: (u.passkeys || []).length,
-  badges: u.badges || [], expertDone: Boolean(u.expertDone), isAdmin: isAdmin(u)
+  badges: u.badges || [], expertDone: Boolean(u.expertDone), isAdmin: isAdmin(u), role: roleOf(u)
 });
-function isAdmin(u) {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (adminEmail) return u.email === adminEmail.toLowerCase();
-  const first = Object.values(db.users).sort((a, b) => a.created - b.created)[0];
-  return first?.email === u.email;
-}
+function isAdmin(u) { return roleOf(u) === "admin"; }
 function setCookie(res, token) {
-  res.cookie("rasid", token, { httpOnly: true, sameSite: "lax", maxAge: 90 * 24 * 3600 * 1000 });
+  res.cookie("rasid", token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" || Boolean(process.env.RENDER), maxAge: 90 * 24 * 3600 * 1000 });
 }
 function requireUser(req, res, next) {
   const u = auth.getSession(req.cookies.rasid);
   if (!u) return res.status(401).json({ error: "not signed in" });
+  if (!u.lastSeen || Date.now()-u.lastSeen>60000) { u.lastSeen=Date.now(); save(); }
   req.user = u; next();
 }
 
+// Same-origin writes, private response caching, and bounded abuse protection.
+app.use((req,res,next) => {
+  res.setHeader('X-Content-Type-Options','nosniff');
+  res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
+  res.setHeader('X-Frame-Options','DENY');
+  res.setHeader('Permissions-Policy','camera=(), geolocation=(), microphone=(self)');
+  if(req.path.startsWith('/api/')) res.setHeader('Cache-Control','no-store');
+  if(!['GET','HEAD','OPTIONS'].includes(req.method)) {
+    const expected=process.env.PUBLIC_ORIGIN || req.protocol+'://'+req.get('host');
+    if(req.get('sec-fetch-site')==='cross-site' || (req.get('origin') && req.get('origin')!==expected)) return res.status(403).json({error:'cross_origin'});
+  }
+  next();
+});
+const limits=new Map();
+app.use('/api', (req,res,next) => {
+  if(req.method==='GET') return next();
+  const authRequest=req.path.startsWith('/auth/');
+  const key=(authRequest?'auth:':'write:')+req.ip;
+  const now=Date.now(); let bucket=limits.get(key);
+  if(!bucket || bucket.until<now) { bucket={count:0,until:now+60000}; limits.set(key,bucket); }
+  if(limits.size>10000) for(const [k,v] of limits) if(v.until<now) limits.delete(k);
+  if(++bucket.count>(authRequest?15:60)) { res.setHeader('Retry-After','60'); return res.status(429).json({error:'rate_limited'}); }
+  next();
+});
+installPortal(app,{db,save,requireUser});
+app.get('/api/install', async (req,res) => {
+  const url=process.env.PUBLIC_ORIGIN || req.protocol+'://'+req.get('host');
+  res.json({url,qr:await QRCode.toDataURL(url,{width:240,margin:2}),apk:fs.existsSync(path.join(DATA_DIR,'rasid.apk'))});
+});
+app.get('/api/privacy', (req,res) => res.json({contact:process.env.PRIVACY_CONTACT || null,operator:process.env.PRIVACY_OPERATOR || null,hostingRegion:process.env.HOSTING_REGION || null}));
 // ---------- auth ----------
 app.post("/api/auth/signup", (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
   const { pin } = req.body;
   if (!auth.validEmail(email)) return res.status(400).json({ error: "bad_email" });
-  if (!auth.validPin(pin)) return res.status(400).json({ error: "bad_pin" });
+  if (!auth.validCredential(pin)) return res.status(400).json({ error: "bad_pin" });
+  if (req.body.privacyAccepted !== true) return res.status(400).json({error:"privacy_required"});
   if (db.users[email]) return res.status(409).json({ error: "exists" });
-  db.users[email] = { email, pinHash: auth.hashPin(pin), created: Date.now(), lang: req.body.lang === "en" ? "en" : "ar", level: null, read: {}, badges: [], passkeys: [] };
+  db.users[email] = { email, role: "student", privacyAcceptedAt: Date.now(), privacyVersion: "2026-09-16", pinHash: auth.hashPin(pin), created: Date.now(), lang: req.body.lang === "en" ? "en" : "ar", level: null, read: {}, badges: [], passkeys: [] };
   save();
   setCookie(res, auth.createSession(email));
   res.json({ user: publicUser(db.users[email]) });
@@ -64,7 +99,7 @@ app.post("/api/auth/signup", (req, res) => {
 app.post("/api/auth/login", (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
   const u = db.users[email];
-  if (!u || !auth.validPin(req.body.pin) || !auth.checkPin(req.body.pin, u.pinHash)) return res.status(401).json({ error: "wrong" });
+  if (!u || !auth.validCredential(req.body.pin) || !auth.checkPin(req.body.pin, u.pinHash)) return res.status(401).json({ error: "wrong" });
   if (u.totp?.enabled) return res.json({ needTotp: true, ticket: auth.createPending(email) });
   setCookie(res, auth.createSession(email));
   res.json({ user: publicUser(u) });
@@ -80,23 +115,27 @@ app.post("/api/auth/totp", (req, res) => {
 
 app.post("/api/auth/logout", (req, res) => { auth.destroySession(req.cookies.rasid); res.clearCookie("rasid"); res.json({ ok: true }); });
 
-// PIN reset: a 6-digit code is "sent" by email. Without SMTP configured it is printed to the server log.
-app.post("/api/auth/pin/reset-request", (req, res) => {
+// Recovery codes are delivered by configured SMTP, never logged.
+app.post("/api/auth/pin/reset-request", async (req, res) => {
+  if(!mailAvailable()) return res.status(503).json({error:"recovery_unavailable"});
   const email = String(req.body.email || "").trim().toLowerCase();
   const u = db.users[email];
   if (u) {
     u.resetCode = { code: String(crypto.randomInt(0, 1_000_000)).padStart(6, "0"), exp: Date.now() + 15 * 60 * 1000 };
     save();
-    console.log(`[mail] PIN reset code for ${email}: ${u.resetCode.code}`);
+    try { await sendReset(email,u.resetCode.code,u.lang); } catch { delete u.resetCode; save(); return res.status(503).json({error:"recovery_unavailable"}); }
   }
-  res.json({ sent: true, devCode: process.env.RASID_DEV_SHOW_CODES && u ? u.resetCode.code : undefined });
+  res.json({ sent: true });
 });
 app.post("/api/auth/pin/reset", (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
   const u = db.users[email];
   if (!u || !u.resetCode || u.resetCode.exp < Date.now() || u.resetCode.code !== String(req.body.code)) return res.status(401).json({ error: "bad_code" });
-  if (!auth.validPin(req.body.pin)) return res.status(400).json({ error: "bad_pin" });
-  u.pinHash = auth.hashPin(req.body.pin); delete u.resetCode; save();
+  if (!auth.validCredential(req.body.pin)) return res.status(400).json({ error: "bad_pin" });
+  u.pinHash = auth.hashPin(req.body.pin); delete u.resetCode;
+  for(const [token,session] of Object.entries(db.sessions)) if(session.email===email) delete db.sessions[token];
+  save();
+  if(u.totp?.enabled) return res.json({needTotp:true,ticket:auth.createPending(email)});
   setCookie(res, auth.createSession(email));
   res.json({ user: publicUser(u) });
 });
@@ -146,6 +185,13 @@ app.post("/api/settings", requireUser, (req, res) => {
 });
 app.delete("/api/account", requireUser, (req, res) => {
   const email = req.user.email;
+  if(isAdmin(req.user) && Object.values(db.users).filter(isAdmin).length<=1) return res.status(409).json({error:'last_admin'});
+  db.bookings=db.bookings.filter(b=>b.requester!==email && b.host!==email);
+  db.slots=db.slots.filter(s=>s.host!==email); db.alerts=db.alerts.filter(a=>a.email!==email && a.senderEmail!==email);
+  db.reports=(db.reports||[]).filter(r=>r.email!==email); db.privacyRequests=db.privacyRequests.filter(r=>r.email!==email);
+  db.audit=db.audit.filter(a=>a.actor!==email && a.subject!==email); delete db.challenges[email];
+  for(const u of Object.values(db.users)) if(u.teacherEmail===email) u.teacherEmail='';
+  readingContexts.delete(email);
   delete db.users[email];
   for (const [t, sess] of Object.entries(db.sessions)) if (sess.email === email) delete db.sessions[t];
   saveNow(); res.clearCookie("rasid"); res.json({ ok: true });
@@ -178,6 +224,8 @@ app.get("/api/course/lesson/:id", requireUser, (req, res) => {
     read: st.read.includes(l.id), index: i + 1, count: m.lessons.length, nextId: m.lessons[i + 1]?.id || null, locked: course.levelIndex(m.level) > course.levelIndex(u.level || "beginner") });
 });
 app.post("/api/course/lesson/:id/done", requireUser, (req, res) => {
+  const hit=course.lessonById(req.params.id);
+  if(hit && course.levelIndex(hit.module.level)>course.levelIndex(req.user.level || "beginner")) return res.status(403).json({error:"locked"});
   const moduleId = course.markRead(req.user, req.params.id);
   if (!moduleId) return res.status(404).json({ error: "not_found" });
   const lang = req.user.lang || "ar";
@@ -268,6 +316,8 @@ app.get("/api/article", requireUser, async (req, res) => {
   let text = a.text, translated = false;
   if (lang === "ar") { const t = await translate(a.text.length <= 7000 ? a.text : keySentences(a.text, 10).join(" ")); if (t) { text = t; translated = true; } }
   const titleAr = lang === "ar" ? await translate(a.title) : null;
+  readingContexts.set(req.user.email,{title:titleAr || a.title,text,url:a.url,at:Date.now()});
+  if(readingContexts.size>500) readingContexts.delete(readingContexts.keys().next().value);
   res.json({ title: titleAr || a.title, titleEn: a.title, translationPending: lang === "ar" && !translated, site: a.site, image: a.image, icon: favicon(a.url), url: a.url, words: a.words, text, textEn: a.text, translated, partial: a.text.length > 7000 && lang === "ar" });
 });
 app.get("/api/sources", (req, res) => res.json({ sources: sourceList() }));
@@ -276,7 +326,9 @@ app.get("/api/sources", (req, res) => res.json({ sources: sourceList() }));
 app.post("/api/faris/ask", requireUser, async (req, res) => {
   const question = String(req.body.question || "").slice(0, 300);
   if (!question.trim()) return res.status(400).json({ error: "empty" });
-  const r = await farisAnswer(question, { level: req.user.level || "beginner", lang: req.user.lang || "ar" });
+  const privateResult = privateAnswer(question, req.user, db);
+  if(privateResult) return res.json(privateResult);
+  const r = await farisAnswer(question, { level: req.user.level || "beginner", lang: req.user.lang || "ar", article: req.body.useArticle && readingContexts.get(req.user.email)?.at>Date.now()-3600000 ? readingContexts.get(req.user.email) : null });
   res.json(r);
 });
 app.post("/api/faris/report", requireUser, (req, res) => {
@@ -309,6 +361,12 @@ app.get("/apk", (req, res) => {
   res.status(404).type("text/plain").send("No APK built yet. See README: build one with PWABuilder (https://www.pwabuilder.com) from this site's URL and save it as data/rasid.apk.");
 });
 
+// Never serve the static-demo answer bank from the production server.
+app.use((req,res,next)=>{
+  let pathname;try{pathname=decodeURIComponent(req.path).replaceAll('\\','/').toLowerCase();}catch{return res.status(400).end();}
+  if(/\/(curriculum-data|local-api)\.js$/.test(pathname))return res.status(404).end();
+  next();
+});
 // ---------- static ----------
 app.get("/vendor/webauthn.js", (req, res) => res.sendFile(path.join(ROOT, "node_modules/@simplewebauthn/browser/dist/bundle/index.umd.min.js")));
 app.use(express.static(path.join(ROOT, "public"), { extensions: ["html"] }));
@@ -327,7 +385,7 @@ function seedIfEmpty() {
 }
 
 seedIfEmpty();
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Rasid running at http://localhost:${PORT}  (content engine: ${aiAvailable() ? "Claude" : "fallback, set ANTHROPIC_API_KEY for AI lessons"})`);
   if (process.env.RASID_NEWS_LESSONS) {
     const stale = !db.settings.lastUpdate || db.settings.lastUpdate.slice(0, 10) !== today();
@@ -335,3 +393,5 @@ app.listen(PORT, () => {
     cron.schedule("0 6 * * *", triggerUpdate);
   }
 });
+
+for(const signal of ["SIGTERM","SIGINT"]) process.on(signal,()=>{saveNow(); server.close(()=>process.exit(0));});

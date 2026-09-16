@@ -10,7 +10,11 @@ services:
     healthCheckPath: /api/status
     envVars:
       - key: NODE_VERSION
-        value: "20"
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: PUBLIC_ORIGIN
+        sync: false
       - key: ADMIN_EMAIL
         sync: false
       - key: ANTHROPIC_API_KEY

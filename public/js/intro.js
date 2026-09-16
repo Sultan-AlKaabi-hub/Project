@@ -19,7 +19,7 @@
     ],
     legsA: ["..T.HH.......HH...........", "..T.HH.......HH...........", "....dd.......dd..........."],
     legsB: ["..T..HH....HH.............", "..T...HH..HH..............", "......dd..dd.............."],
-    colors: { R: "#C8372D", f: "#E8B79A", E: "#F4F4F6", H: "#6B4A2E", S: "#8E2A22", m: "#3A2A1E", h: "#2A2018", T: "#3A2A1E", d: "#2A2018" }
+    colors: { R: "#7551BF", f: "#E8B79A", E: "#F4F4F6", H: "#BA936A", S: "#533D84", m: "#3A2A1E", h: "#2A2018", T: "#3A2A1E", d: "#2A2018" }
   };
   const lerp = (a, b, t) => a + (b - a) * t;
   const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
@@ -33,6 +33,7 @@
   const rnd = (x, y) => { const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; return n - Math.floor(n); };
 
   function mount(container, { onStart } = {}) {
+    let H = Math.max(108, Math.round(W * container.clientHeight / Math.max(container.clientWidth, 1)));
     const canvas = document.createElement("canvas");
     canvas.width = W; canvas.height = H; canvas.className = "intro-canvas";
     container.appendChild(canvas);
@@ -44,37 +45,45 @@
     const birds = Array.from({ length: 6 }, (_, i) => ({ x: 200 + i * 34, y: 14 + (i * 7) % 26, s: 0.35 + (i % 3) * 0.12, ph: i }));
 
     function frame(now) {
+      ctx.fillStyle = '#62638D'; ctx.fillRect(0, 0, W, H);
+      ctx.save(); ctx.translate(0, H - 108);
       const s = (now - t0) / 1000;
-      const sun = reduced ? 0.55 : (1 - Math.cos((s / 48) * Math.PI * 2)) / 2; // 0 day -> 1 dusk, slow loop
+      const sun = 0.48; // 0 day -> 1 dusk, slow loop
       // sky bands
       const top = mix("#6FA7E8", "#3B2C5E", sun), hor = mix("#F7C27A", "#E2543E", sun);
       for (let i = 0; i < 8; i++) { ctx.fillStyle = mix(rgbToHex(top), rgbToHex(hor), i / 7); ctx.fillRect(0, i * 10, W, 10); }
       // sun
-      const sy = lerp(18, 66, sun), sx = 146;
+      const sy = 22, sx = 151;
       ctx.fillStyle = mix("#FFE08A", "#FF7A3D", sun);
-      circle(ctx, sx, sy, 9);
+      circle(ctx, sx, sy, 13);
       ctx.fillStyle = mix("#FFF4C2", "#FFB27A", sun); circle(ctx, sx - 2, sy - 2, 4);
       // clouds
       ctx.fillStyle = mix("#FFFFFF", "#D9A6C9", sun);
       cloud(ctx, 20 + ((s * 1.2) % 60), 16); cloud(ctx, 96 + ((s * 0.8) % 40), 24); cloud(ctx, 60 + ((s * 1) % 80), 8);
+      // Layered mountain valley, using the same violet and warm-gold palette as the UI.
+      function ridge(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,H);for(const [x,y] of points)ctx.lineTo(x,y);ctx.lineTo(W,H);ctx.closePath();ctx.fill();}
+      ridge([[0,48],[15,32],[27,44],[48,23],[66,49],[80,58],[99,63],[115,51],[135,40],[150,51],[176,24],[192,45]],'#9584B4');
+      ridge([[0,55],[17,41],[30,51],[47,29],[61,49],[80,63],[98,69],[121,55],[140,46],[159,58],[178,33],[192,48]],'#75658D');
+      ridge([[0,66],[20,53],[41,59],[57,47],[80,72],[98,77],[123,65],[147,57],[169,48],[192,63]],'#564767');
+      ctx.fillStyle='#F1D8CF';ctx.fillRect(46,25,4,2);ctx.fillRect(43,28,8,2);ctx.fillRect(175,27,4,2);
       // far hills
       ctx.fillStyle = mix("#5E8C5A", "#3D2E5A", sun);
-      hills(ctx, 62, 18, 0.9);
+      hills(ctx, 76, 5, 0.9);
       ctx.fillStyle = mix("#3F6B3C", "#2A2145", sun);
-      hills(ctx, 70, 12, 1.6);
+      hills(ctx, 80, 4, 1.6);
       // trees (left)
       const treeD = mix("#1F4D2A", "#15182E", sun), treeL = mix("#2E6B3A", "#1E2340", sun);
       [6, 22, 40].forEach((x, i) => pine(ctx, x, 60 + i * 3, 14 + (i % 2) * 4, treeD, treeL));
       // ground
       const g1 = mix("#4C9A3C", "#2E4A33", sun), g2 = mix("#3F8332", "#25402B", sun), soil = mix("#6B4A2E", "#3A2A24", sun);
-      for (let y = 78; y < H; y++) for (let x = 0; x < W; x++) {
+      for (let y = 78; y < 108; y++) for (let x = 0; x < W; x++) {
         const n = rnd(x, y);
         ctx.fillStyle = y < 90 ? (n > 0.82 ? g2 : g1) : y < 94 ? (n > 0.5 ? soil : g2) : (n > 0.88 ? "#8A6A4A" : soil);
         ctx.fillRect(x, y, 1, 1);
       }
       // road
       ctx.fillStyle = mix("#C9A97A", "#6E5548", sun);
-      for (let x = 0; x < W; x++) { const y = 84 + Math.round(Math.sin(x / 30) * 2); ctx.fillRect(x, y, 1, 3 + (rnd(x, 1) > 0.5 ? 1 : 0)); }
+      for (let x = 0; x < W; x++) { const y = 101 + Math.round(Math.sin(x / 30) * 2); ctx.fillRect(x, y, 1, 3 + (rnd(x, 1) > 0.5 ? 1 : 0)); }
       // birds
       ctx.fillStyle = mix("#2E2A33", "#0F0D16", sun);
       for (const b of birds) {
@@ -85,8 +94,8 @@
         else { ctx.fillRect(bx, by + 1, 1, 1); ctx.fillRect(bx + 1, by, 1, 1); ctx.fillRect(bx + 2, by, 1, 1); ctx.fillRect(bx + 3, by + 1, 1, 1); }
       }
       // rider: gallops in from the left, slows at center, then rides on and loops
-      const cycle = 14, p = reduced ? 0.5 : (s % cycle) / cycle;
-      const rx = Math.round(-30 + p * (W + 60)), ry = 72 + (reduced ? 0 : Math.round(Math.abs(Math.sin(s * 8)) * -1));
+      const cycle = 14, p = reduced ? 0.48 : 0.48 + Math.sin(s / 8) * 0.07;
+      const rx = Math.round(-30 + p * (W + 60)), ry = 101 + (reduced ? 0 : Math.round(Math.abs(Math.sin(s * 8)) * -1));
       const gallop = Math.floor(s * 8) % 2 === 0;
       drawMap(ctx, RIDER.body, RIDER.colors, rx, ry - 12);
       drawMap(ctx, gallop ? RIDER.legsA : RIDER.legsB, RIDER.colors, rx, ry);
@@ -96,10 +105,16 @@
       if (!reduced && Math.random() < 0.08 && rx > 0 && rx < W) letters.push({ x: rx + 17, y: ry - 7, vx: -0.35 - Math.random() * 0.3, vy: -0.25 - Math.random() * 0.2, life: 1, ph: Math.random() * 6 });
       for (const l of letters) { l.x += l.vx; l.y += l.vy + Math.sin(s * 3 + l.ph) * 0.2; l.life -= 0.006; envelope(ctx, Math.round(l.x), Math.round(l.y), l.life); }
       for (let i = letters.length - 1; i >= 0; i--) if (letters[i].life <= 0) letters.splice(i, 1);
+      ctx.restore();
       if (!reduced) raf = requestAnimationFrame(frame);
     }
+    const resize = new ResizeObserver(() => {
+      H = Math.max(108, Math.round(W * container.clientHeight / Math.max(container.clientWidth, 1)));
+      if(canvas.height!==H) {canvas.height=H;ctx.imageSmoothingEnabled=false;if(reduced)frame(performance.now());}
+    });
+    resize.observe(container);
     raf = requestAnimationFrame(frame);
-    return { unmount() { cancelAnimationFrame(raf); canvas.remove(); } };
+    return { unmount() { resize.disconnect(); cancelAnimationFrame(raf); canvas.remove(); } };
   }
 
   function rgbToHex(c) { if (c[0] === "#") return c; const m = c.match(/\d+/g).map(Number); return "#" + m.map((v) => v.toString(16).padStart(2, "0")).join(""); }

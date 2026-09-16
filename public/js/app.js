@@ -41,6 +41,10 @@
     settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
   };
   ICONS.course = ICONS.lessons;
+  ICONS.calendar = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6M17 2v6M3 11h18M7 15h3M14 15h3"/></svg>';
+  ICONS.alerts = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17h14l-2-4V8a5 5 0 0 0-10 0v5zM10 21h4"/></svg>';
+  ICONS.people = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v2"/></svg>';
+  ICONS.privacy = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 9 4v6c0 5-9 10-9 10S3 17 3 12V6zM8 12l3 3 5-6"/></svg>';
   ICONS.news = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h13a2 2 0 0 1 2 2v10a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z"/><path d="M19 7v10"/><path d="M8 9h5M8 13h6"/></svg>';
   const BRAND_DOTS = '<svg class="dots" viewBox="0 0 22 22"><g fill="#7C5CE6"><circle cx="11" cy="4" r="2.4"/><circle cx="4" cy="11" r="2.4"/><circle cx="18" cy="11" r="2.4"/><circle cx="11" cy="18" r="2.4"/><circle cx="11" cy="11" r="2.4" opacity=".5"/></g></svg>';
 
@@ -48,12 +52,13 @@
     const app = $("#app");
     if (!S.user) { app.innerHTML = ""; app.className = ""; return; }
     app.className = "app";
-    const nav = [["home", "home"], ["course", "course"], ["news", "news"], ["progress", "progress"]];
+    const nav = [["home", "home"], ["course", "course"], ["news", "news"], ["progress", "progress"], ["calendar","calendar"], ["alerts","alerts"], ["privacy","privacy"]];
+    if(S.user.role === "admin" || S.user.role === "teacher") nav.push(["people","people"]);
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
         <div class="brand">${BRAND_DOTS}<span>${T("appName")}</span></div>
         <div class="nav-label">${T("workspace")}</div>
-        <nav class="nav">${nav.map(([v, k]) => `<button data-view="${v}" class="${S.view === v ? "active" : ""}">${ICONS[v]}<span>${T(k)}</span></button>`).join("")}</nav>
+        <nav class="nav">${nav.map(([v, k]) => `<button data-view="${v}" class="${S.view === v ? "active" : ""}">${ICONS[v] || ICONS.progress}<span>${T(k)}</span></button>`).join("")}</nav>
         <div class="nav-label">${T("manage")}</div>
         <nav class="nav"><button data-view="settings" class="${S.view === "settings" ? "active" : ""}">${ICONS.settings}<span>${T("settings")}</span></button></nav>
         <div class="status-box sunk">
@@ -66,6 +71,7 @@
       <main class="main" id="main"></main>`;
     app.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => { go(b.dataset.view); closeMenu(); }));
     $("#scrim").onclick = closeMenu;
+    api('/api/alerts').then(r=>{const label=app.querySelector('[data-view="alerts"] span');if(label){const count=r.alerts.filter(a=>!a.read).length;label.textContent=T('alerts')+(count?' ('+count+')':'');}}).catch(()=>{});
   }
   function renderLangPill() {
     let p = $("#lang-pill"); if (!p) { p = h('<button id="lang-pill" class="lang-pill" aria-label="language"></button>'); document.body.appendChild(p); }
@@ -81,11 +87,12 @@
 
   async function go(view, opts = {}) {
     S.view = view; S.lastOpts = opts;
-    if (S.user && !S.user.placed && !["settings", "placement"].includes(view)) S.view = "placement";
+    if (S.intro) { S.intro.unmount(); S.intro=null; }
+    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people"].includes(view)) S.view = "placement";
     if (!S.user) S.view = "auth";
     renderShell();
     const v = VIEWS[S.view];
-    if (v) await v(opts);
+    if (v) { try { await v(opts); } catch(e) { toast(Portal.error(e)); } }
     renderLangPill();
     wireTopbar();
     window.scrollTo(0, 0);
@@ -95,7 +102,7 @@
   const VIEWS = {};
   VIEWS.auth = async (opts) => {
     const app = $("#app"); app.className = "auth-wrap";
-    const mode = opts.mode || (sessionStorage.getItem("rasid.intro") ? (localStorage.getItem("rasid.seen") ? "login" : "lang") : "intro");
+    const mode = opts.mode || "login";
     if (mode === "intro") {
       app.className = "intro-wrap";
       app.innerHTML = `<div class="intro"><div class="intro-scene" id="scene"></div>
@@ -109,7 +116,8 @@
     }
     if (S.intro) { S.intro.unmount(); S.intro = null; }
     const box = h(`<div class="auth raised"><div class="logo">${BRAND_DOTS}<span class="word">${T("appName")}</span></div><p class="sub" style="text-align:center">${T("tagline")}</p><div id="auth-body"></div></div>`);
-    app.innerHTML = ""; app.appendChild(box);
+    app.innerHTML = `<div class="auth-landscape" id="auth-landscape" aria-hidden="true"></div><div class="auth-heading"><span class="eyebrow">RASID · راصد</span><h1>${T("introTitle")}</h1><p>${T("introSub")}</p></div>`; app.appendChild(box);
+    S.intro=Intro.mount($("#auth-landscape"));
     const body = $("#auth-body");
     const form = (inner) => { body.innerHTML = inner; };
 
@@ -122,9 +130,9 @@
       const signup = mode === "signup";
       form(`${DEMO ? `<div class="banner">ℹ ${T("demoAuth")}</div>` : ""}<h2>${signup ? T("createAccount") : T("signIn")}</h2>
         <form class="stack" id="f">
-          <div class="field"><label>${T("email")}</label><input id="email" type="email" inputmode="email" autocomplete="email" required><span class="ok" id="email-ok"></span></div>
-          <div class="field"><label>${T("pin")}</label><input id="pin" class="pin" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="${signup ? "new-password" : "current-password"}" required></div>
-          ${signup ? `<div class="field"><label>${T("pinAgain")}</label><input id="pin2" class="pin" type="password" inputmode="numeric" maxlength="6" required><span class="ok" id="pin-ok"></span></div>` : ""}
+          <div class="field"><label for="email">${T("email")}</label><input id="email" type="email" inputmode="email" autocomplete="email" required><span class="ok" id="email-ok"></span></div>
+          <div class="field"><label for="pin">${Portal.L("credential")}</label><input id="pin" type="password" minlength="6" maxlength="128" autocomplete="${signup ? "new-password" : "current-password"}" required></div>
+          ${signup ? `<div class="field"><label for="pin2">${Portal.L("confirmCredential")}</label><input id="pin2" type="password" maxlength="128" autocomplete="new-password" required><span class="ok" id="pin-ok"></span></div>` : ""}
           <div class="err" id="err"></div>
           <button class="btn primary big" type="submit">${signup ? T("continueBtn") : T("signIn")}</button>
         </form>
@@ -132,20 +140,22 @@
           ${signup ? "" : `${DEMO ? "" : `<button class="btn" id="passkey">${T("usePasskey")}</button>`}<button class="btn ghost" id="forgot">${T("forgotPin")}</button>`}
           <button class="btn ghost" id="switch">${signup ? T("haveAccount") : T("noAccount")}</button>
         </div>`);
-      const f = $("#f"), err = $("#err");
+      Portal.authExtras(body,signup);
+      const hint=document.createElement("p");hint.className="sub credential-hint";hint.textContent=Portal.L("credentialHint");$("#pin").after(hint);
+      const f = $("#f"), err = $("#err");err.setAttribute("role","alert");
       $("#email").oninput = (e) => { $("#email-ok").textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value) ? "✓" : ""; };
-      if (signup) $("#pin2").oninput = () => { $("#pin-ok").textContent = $("#pin").value.length === 6 && $("#pin").value === $("#pin2").value ? "✓ " + T("pinMatch") : ""; };
+      if (signup) $("#pin2").oninput = () => { $("#pin-ok").textContent = $("#pin").value.length >= 6 && $("#pin").value === $("#pin2").value ? "✓ " + T("pinMatch") : ""; };
       $("#switch").onclick = () => go("auth", { mode: signup ? "login" : "signup" });
       f.onsubmit = async (e) => {
         e.preventDefault(); err.textContent = "";
         const email = $("#email").value.trim(), pin = $("#pin").value;
-        if (!/^\d{6}$/.test(pin)) return (err.textContent = T("errBadPin"));
-        if (signup && pin !== $("#pin2").value) return (err.textContent = T("errBadPin"));
+        if (!/^\d{6}$/.test(pin) && !(pin.length>=12 && pin.length<=128 && /\D/.test(pin))) return (err.textContent = Portal.L("credentialHint"));
+        if (signup && pin !== $("#pin2").value) return (err.textContent = S.lang === 'ar' ? 'الرمزان أو كلمتا المرور غير متطابقتين.' : 'The PINs or passwords do not match.');
         try {
-          const r = await api(signup ? "/api/auth/signup" : "/api/auth/login", { email, pin, lang: S.lang });
+          const r = await api(signup ? "/api/auth/signup" : "/api/auth/login", { email, pin, lang: S.lang, privacyAccepted: signup ? $("#privacy-consent").checked : undefined });
           if (r.needTotp) return go("auth", { mode: "totp", ticket: r.ticket });
           await signedIn(r.user, signup);
-        } catch (ex) { err.textContent = { bad_email: T("errBadEmail"), bad_pin: T("errBadPin"), exists: T("errExists"), wrong: T("errWrong") }[ex.code] || T("errNet"); }
+        } catch (ex) { err.textContent = { bad_email: T("errBadEmail"), bad_pin: Portal.L("credentialHint"), exists: T("errExists"), wrong: T("errWrong") }[ex.code] || Portal.error(ex); }
       };
       if (!signup) {
         $("#forgot").onclick = () => go("auth", { mode: "reset", email: $("#email").value.trim() });
@@ -176,19 +186,20 @@
         <form class="stack" id="f1"><div class="field"><label>${T("email")}</label><input id="email" type="email" value="${esc(opts.email || "")}" required></div><button class="btn primary big">${T("continueBtn")}</button></form>
         <form class="stack" id="f2" hidden><p class="sub">${T("codeSentTitle")}</p>
           <div class="field"><label>${T("codeField")}</label><input id="code" class="pin" inputmode="numeric" maxlength="6" required></div>
-          <div class="field"><label>${T("newPin")}</label><input id="pin" class="pin" type="password" inputmode="numeric" maxlength="6" required></div>
+          <div class="field"><label>${Portal.L("credential")}</label><input id="pin" type="password" minlength="6" maxlength="128" autocomplete="new-password" required></div>
           <div class="err" id="err"></div><button class="btn primary big">${T("resetPin")}</button></form>
         <button class="btn ghost" id="back">${T("back")}</button>`);
       $("#back").onclick = () => go("auth", { mode: "login" });
-      $("#f1").onsubmit = async (e) => { e.preventDefault(); const r = await api("/api/auth/pin/reset-request", { email: $("#email").value.trim() }); $("#f1").hidden = true; $("#f2").hidden = false; if (r.devCode) $("#code").value = r.devCode; };
-      $("#f2").onsubmit = async (e) => { e.preventDefault(); try { const r = await api("/api/auth/pin/reset", { email: $("#email").value.trim(), code: $("#code").value, pin: $("#pin").value }); await signedIn(r.user, false); } catch (ex) { $("#err").textContent = ex.code === "bad_pin" ? T("errBadPin") : T("errWrongCode"); } };
+      $("#f1").onsubmit = async (e) => { e.preventDefault(); try { await api("/api/auth/pin/reset-request", { email: $("#email").value.trim() }); $("#f1").hidden = true; $("#f2").hidden = false; } catch(ex) { toast(Portal.error(ex)); } };
+      $("#f2").onsubmit = async (e) => { e.preventDefault(); try { const r = await api("/api/auth/pin/reset", { email: $("#email").value.trim(), code: $("#code").value, pin: $("#pin").value }); if(r.needTotp) return go("auth", {mode:"totp",ticket:r.ticket}); await signedIn(r.user, false); } catch (ex) { $("#err").textContent = ex.code === "bad_pin" ? T("errBadPin") : T("errWrongCode"); } };
     }
   };
 
   async function signedIn(user, isNew) {
+    if(S.intro){S.intro.unmount();S.intro=null;}
     S.user = user; S.lang = user.lang || S.lang; applyLang();
     Faris.show();
-    if (!DEMO && isNew && window.PublicKeyCredential && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    if (!DEMO && isNew && window.PublicKeyCredential) {
       setTimeout(() => offerPasskey(), 800);
     }
     await refresh();
@@ -367,7 +378,7 @@
       else openModule(l.moduleId);
     };
   }
-  window.App = { openLesson: (id) => openLesson(id) };
+  window.App = { openLesson: (id) => openLesson(id), getContext: () => ({useArticle:S.view==="article"}) };
 
   async function startQuiz(moduleId) {
     S.view = "quiz"; renderShell();
@@ -454,8 +465,10 @@
     $("#report").onclick = async () => { const note = prompt(T("reportProblem")) || ""; await api("/api/faris/report", { screen: S.view, note }); toast(T("reported")); };
     $("#reset").onclick = async () => { if (!confirm(T("startOverConfirm"))) return; const r = await api("/api/reset", {}); S.user = r.user; S.result = null; go("placement"); };
     $("#delacc").onclick = async () => { if (!confirm(T("deleteAccountConfirm"))) return; await api("/api/account", {}, "DELETE"); S.user = null; S.course = null; Faris.hide(); go("auth", { mode: "signup" }); };
-    $("#logout").onclick = async () => { await api("/api/auth/logout", {}); S.user = null; S.content = null; Faris.hide(); go("auth", { mode: "login" }); };
+    $("#logout").onclick = async () => { await api("/api/auth/logout", {}); S.user = null; S.content = null; S.course=null; S.result=null; Faris.hide(); go("auth", { mode: "login" }); };
   };
+
+  Portal.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar});
 
   // ---------- boot ----------
   window.addEventListener("online", () => { S.online = true; go(S.view); });

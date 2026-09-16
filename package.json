@@ -1,6 +1,6 @@
 {
   "name": "rasid",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Rasid (راصد): Arabic-first PWA that turns daily AI news into leveled lessons with a level-up quiz and Faris, the pixel-knight helper.",
   "type": "module",
   "main": "server/index.js",
@@ -9,18 +9,21 @@
     "dev": "node --watch server/index.js",
     "update": "node server/pipeline/run.js",
     "build-static": "node scripts/build-static.js",
-    "postinstall": "node scripts/build-static.js"
+    "postinstall": "node scripts/build-static.js",
+    "test": "node --test test/*.test.js",
+    "admin": "node scripts/bootstrap-admin.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.90.0",
+    "@anthropic-ai/sdk": "^0.91.1",
     "@simplewebauthn/browser": "^13.1.0",
     "@simplewebauthn/server": "^13.1.1",
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
+    "nodemailer": "^10.0.10",
     "qrcode": "^1.5.4",
     "rss-parser": "^3.13.0"
   }
