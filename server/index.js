@@ -1,5 +1,6 @@
 import {initializeCampus, seedCampusDemo, installCampus, notifyCoverage} from "./campus.js";
 import {subjectOf,hasAI} from "./subjects.js";
+import {installOwnerRecovery,ownerRecoveryAvailable} from "./owner-recovery.js";
 // Rasid server: static PWA + JSON API + daily content update.
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -44,7 +45,7 @@ save();
 const publicUser = (u) => ({
   email: u.email, name: u.name || u.email.split("@")[0], lang: u.lang || "ar", level: u.level || null, placed: Boolean(u.level),
   totpEnabled: Boolean(u.totp?.enabled), passkeys: (u.passkeys || []).length,
-  badges: u.badges || [], expertDone: Boolean(u.expertDone), isAdmin: isAdmin(u), role: roleOf(u), subject:subjectOf(u), hasAI:hasAI(u), isDemo:Boolean(u.isDemo)
+  badges: u.badges || [], expertDone: Boolean(u.expertDone), isAdmin: isAdmin(u), role: roleOf(u), subject:subjectOf(u), hasAI:hasAI(u), isDemo:Boolean(u.isDemo), ownerRecoveryAvailable:ownerRecoveryAvailable(db,u)
 });
 function isAdmin(u) { return roleOf(u) === "admin"; }
 function setCookie(res, token) {
@@ -85,6 +86,7 @@ app.use(["/api/course","/api/placement","/api/news","/api/article","/api/certifi
 installPortal(app,{db,save,requireUser});
 installOperations(app,{db,save:()=>{notifyCoverage(db);save();},requireUser});
 installCampus(app,{db,save,requireUser});
+installOwnerRecovery(app,{db,saveNow,requireUser,publicUser});
 app.get('/api/install', async (req,res) => {
   const url=process.env.PUBLIC_ORIGIN || req.protocol+'://'+req.get('host');
   res.json({url,qr:await QRCode.toDataURL(url,{width:240,margin:2}),apk:fs.existsSync(path.join(DATA_DIR,'rasid.apk'))});

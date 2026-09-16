@@ -440,6 +440,7 @@
     const installable = Boolean(window.deferredInstall);
     const demoNote = DEMO ? `<div class="banner">ℹ ${T("demoSettings")}</div>` : "";
     $("#main").innerHTML = topbar(T("settings"), u.email) + demoNote + `
+      ${u.ownerRecoveryAvailable ? `<div class="card" style="margin-bottom:16px"><h2>${S.lang === 'ar' ? 'استعادة صلاحية المسؤول' : 'Restore administrator access'}</h2><p>${S.lang === 'ar' ? 'أدخل رمز استعادة المالك الخاص المرسل إليك. تبقى كلمة مرورك الحالية كما هي.' : 'Enter the private owner recovery code provided to you. Your existing password stays unchanged.'}</p><form id="owner-recovery" class="stack"><label>${S.lang === 'ar' ? 'رمز الاستعادة الخاص' : 'Private recovery code'}<input name="code" type="password" autocomplete="off" required maxlength="128" style="width:100%;padding:12px"></label><button class="btn primary">${S.lang === 'ar' ? 'استعادة صلاحية المسؤول' : 'Restore administrator access'}</button><span role="status" id="owner-recovery-status"></span></form></div>` : ''}
       <div class="card"><div class="setting"><div><h3>${T("displayName")}</h3></div><form class="row" id="namef"><input id="name" value="${esc(u.name || "")}" maxlength="60" style="padding:10px 12px;border-radius:12px;border:0;background:var(--sunk);min-width:220px"><button class="btn small primary">${T("save")}</button></form></div>
       <div class="setting"><div><h3>${T("language")}</h3></div><div class="row"><button class="btn small ${S.lang === "ar" ? "primary" : ""}" data-lang="ar">العربية</button><button class="btn small ${S.lang === "en" ? "primary" : ""}" data-lang="en">English</button></div></div></div>
       <div class="card" style="margin-top:16px" ${DEMO ? "hidden" : ""}><h2>${T("security")}</h2>
@@ -467,6 +468,12 @@
     };
     if (!DEMO) $("#pk").onclick = registerPasskey;
     $("#namef").onsubmit = async (e) => { e.preventDefault(); const r = await api("/api/settings", { name: $("#name").value }); S.user = r.user; toast("✓ " + T("saved")); };
+    const recoveryForm = $("#owner-recovery");
+    if(recoveryForm)recoveryForm.onsubmit = async e => {
+      e.preventDefault(); const button=recoveryForm.querySelector('button'); button.disabled=true;
+      try { const r=await api('/api/auth/owner-recovery',{code:recoveryForm.elements.code.value}); recoveryForm.elements.code.value=''; S.user=r.user; await refresh(); await go('administration'); }
+      catch(error) { $('#owner-recovery-status').textContent=error.message === 'rate_limited' ? (S.lang === 'ar' ? 'حاول مجدداً بعد ١٥ دقيقة.' : 'Try again in 15 minutes.') : (S.lang === 'ar' ? 'الرمز غير صحيح أو انتهت صلاحيته.' : 'The recovery code is invalid or expired.'); button.disabled=false; }
+    };
     api("/api/sources").then((r) => { const el = $("#sources"); if (el) el.innerHTML = r.sources.map((s) => `<div><b>${S.lang === "ar" ? s.ar : s.en}</b>${s.sources.map(esc).join("<br>")}</div>`).join(""); }).catch(() => {});
     const inst = $("#install"); if (inst) inst.onclick = async () => { window.deferredInstall.prompt(); await window.deferredInstall.userChoice; window.deferredInstall = null; go("settings"); };
     const upd = $("#upd"); if (upd) upd.onclick = async () => { await api("/api/admin/update", {}); toast(T("updateStarted")); go("settings"); };
