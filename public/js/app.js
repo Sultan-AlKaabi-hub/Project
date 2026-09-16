@@ -28,7 +28,7 @@
 
   let toastTimer;
   function toast(msg) {
-    let t = $(".toast"); if (!t) { t = h('<div class="toast"></div>'); document.body.appendChild(t); }
+    let t = $(".toast"); if (!t) { t = h('<div class="toast" role="status" aria-live="polite" aria-atomic="true"></div>'); document.body.appendChild(t); }
     t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
   }
 
@@ -46,7 +46,7 @@
   ICONS.people = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v2"/></svg>';
   ICONS.privacy = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 9 4v6c0 5-9 10-9 10S3 17 3 12V6zM8 12l3 3 5-6"/></svg>';
   ICONS.news = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h13a2 2 0 0 1 2 2v10a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z"/><path d="M19 7v10"/><path d="M8 9h5M8 13h6"/></svg>';
-  const BRAND_DOTS = '<svg class="dots" viewBox="0 0 22 22"><g fill="#7C5CE6"><circle cx="11" cy="4" r="2.4"/><circle cx="4" cy="11" r="2.4"/><circle cx="18" cy="11" r="2.4"/><circle cx="11" cy="18" r="2.4"/><circle cx="11" cy="11" r="2.4" opacity=".5"/></g></svg>';
+  const BRAND_DOTS = '<svg class="dots ai-mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#163e46"/><path d="M24 8 38 24 24 40 10 24Z" fill="none" stroke="#8aead5" stroke-width="2"/><path d="M17 29 24 16 31 29M20 25h8" fill="none" stroke="#fff8e9" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="8" r="3" fill="#ffcd78"/><circle cx="38" cy="24" r="3" fill="#8aead5"/><circle cx="10" cy="24" r="3" fill="#8aead5"/></svg>';
 
   function renderShell() {
     S.renderVersion=(S.renderVersion||0)+1; S.mainObserver?.disconnect(); S.lessonObserver?.disconnect(); window.Lab?.cleanup(); if(S.quizGuard){window.removeEventListener("beforeunload",S.quizGuard);S.quizGuard=null;}
@@ -68,8 +68,8 @@
         <nav class="nav"><button data-view="settings" class="${S.view === "settings" ? "active" : ""}">${ICONS.settings}<span>${T("settings")}</span></button></nav>
         <div class="status-box sunk">
           <div class="t">${T("statusTitle")}</div>
-          <div class="row"><span class="dot"></span><b>${S.user.level ? LEVEL_ICON[S.user.level] + " " + T(S.user.level) : T("notPlaced")}</b></div>
-          <div class="row"><span class="dot good"></span><span id="status-lessons">${S.course ? `${S.course.modulesPassed}` : "–"} ${T("modulesDone")}</span></div>
+          <div class="row"><span class="dot"></span><b>${S.user.role !== "student" ? (S.user.role === "admin" ? (S.lang === "ar" ? "الإدارة" : "Administrator") : (S.lang === "ar" ? "معلم" : "Teacher")) : S.user.level ? LEVEL_ICON[S.user.level] + " " + T(S.user.level) : T("notPlaced")}</b></div>
+          <div class="row"><span class="dot good"></span><span id="status-lessons">${S.user.role !== 'student' ? (S.lang==='ar'?'مساحة عمل حسب صلاحياتك':'Your role-based workspace') : `${S.course ? S.course.modulesPassed : '–'} ${T("modulesDone")}`}</span></div>
         </div>
       </aside>
       <div class="scrim" id="scrim" hidden></div>
@@ -77,7 +77,7 @@
     app.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => { go(b.dataset.view); closeMenu(); }));
     $("#scrim").onclick = closeMenu;
     const brand=app.querySelector(".brand");brand.setAttribute("role","button");brand.tabIndex=0;brand.setAttribute("aria-label",S.lang==="ar"?"العودة إلى المقدمة":"Open intro");brand.onclick=()=>go("intro");brand.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go("intro");}};
-    S.mainObserver=new MutationObserver(()=>{wireTopbar();window.RasidMotion?.enhance();});S.mainObserver.observe($("#main"),{childList:true});
+    S.mainObserver=new MutationObserver(()=>{wireTopbar();window.RasidMotion?.enhance();window.Craft?.enhance();});S.mainObserver.observe($("#main"),{childList:true});
     api('/api/alerts').then(r=>{const label=app.querySelector('[data-view="alerts"] span');if(label){const count=r.alerts.filter(a=>!a.read).length;label.textContent=T('alerts')+(count?' ('+count+')':'');}}).catch(()=>{});
   }
   function renderLangPill() {
@@ -85,12 +85,12 @@
     p.innerHTML = `<span class="${S.lang === "en" ? "on" : ""}">EN</span><span class="sep">|</span><span class="${S.lang === "ar" ? "on" : ""}">ع</span>`;
     p.onclick = async () => { S.lang = S.lang === "ar" ? "en" : "ar"; applyLang(); Faris.say(T("farisHello"),{open:false}); if (S.user) { try { await api("/api/settings", { lang: S.lang }); } catch {} } S.course = null; if (S.view === "module" && S.module) return openModule(S.module.id); if (["lesson", "quiz", "article"].includes(S.view)) return go("course"); go(S.view, S.lastOpts || {}); };
   }
-  function closeMenu() { $("#sidebar")?.classList.remove("open"); const s = $("#scrim"); if (s) s.hidden = true; }
+  function closeMenu() { $("#sidebar")?.classList.remove("open"); const s = $("#scrim"); if (s) s.hidden = true; window.Craft?.syncMenu(); }
   function topbar(title, sub, right = "") {
     return `<div class="topbar"><div class="row"><button class="btn small menu-btn" id="menu-btn" aria-label="menu">☰</button><div><h1>${title}</h1>${sub ? `<p class="sub">${sub}</p>` : ""}</div></div><div class="row">${right}</div></div>
       ${S.online ? "" : `<div class="banner">⚠ ${T("offline")}</div>`}${DEMO && S.view === "news" ? `<div class="banner">ℹ ${T("demoNews")}</div>` : ""}`;
   }
-  function wireTopbar() { const b = $("#menu-btn"); if (b) b.onclick = () => { $("#sidebar").classList.add("open"); $("#scrim").hidden = false; }; }
+  function wireTopbar() { const b = $("#menu-btn"); if (b) b.onclick = () => { $("#sidebar").classList.add("open"); $("#scrim").hidden = false; window.Craft?.syncMenu(); $("#sidebar").querySelector("[role=button],button")?.focus(); }; }
 
   async function go(view, opts = {}) {
     window.Lab?.cleanup();
@@ -101,11 +101,21 @@
     if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab"].includes(S.view)) S.view="home";
     if(S.view === "intro")Faris.hide();else if(S.user)Faris.show();
     renderShell();
-    const v = VIEWS[S.view];
-    if (v) { try { await v(opts); } catch(e) { toast(Portal.error(e)); } }
+    const v = VIEWS[S.view], requestedView=S.view;
+    const main=$("#main");
+    if(main){main.setAttribute('aria-busy','true');main.innerHTML=`<div class="view-loading" role="status">${S.lang==='ar'?'جارٍ فتح مساحتك…':'Opening your workspace…'}</div>`;}
+    if (v) { try { await v(opts); } catch(e) {
+      if(S.view!==requestedView)return;
+      const target=$("#main");
+      if(target){target.innerHTML=`<section class="view-error" role="alert"><h1>${S.lang==='ar'?'تعذر فتح هذه الصفحة':'This page could not load'}</h1><p>${esc(Portal.error(e))}</p><button class="btn primary" id="retry-view">${S.lang==='ar'?'حاول مجدداً':'Try again'}</button></section>`;$("#retry-view").onclick=()=>go(requestedView,opts);}else toast(Portal.error(e));
+    } }
+    if(S.view!==requestedView)return;
+    $("#main")?.removeAttribute('aria-busy');
     renderLangPill();
     wireTopbar();
     window.RasidMotion?.enhance();
+    window.Craft?.enhance();
+    if($("#main"))$("#main").focus({preventScroll:true});
     document.querySelectorAll(".brand,.logo").forEach(el=>{el.setAttribute("role","button");el.tabIndex=0;el.setAttribute("aria-label",S.lang === "ar" ? "العودة إلى المقدمة" : "Open intro");el.onclick=()=>go("intro");el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go("intro");}};});
     window.scrollTo(0, 0);
   }
@@ -129,7 +139,7 @@
     }
     if (S.intro) { S.intro.unmount(); S.intro = null; }
     const box = h(`<div class="auth raised"><div class="logo">${BRAND_DOTS}<span class="word">${T("appName")}</span></div><p class="sub" style="text-align:center">${T("tagline")}</p><div id="auth-body"></div></div>`);
-    app.innerHTML = `<div class="auth-landscape" id="auth-landscape" aria-hidden="true"></div><div class="auth-heading"><span class="eyebrow">RASID · راصد</span><h1>${T("introTitle")}</h1><p>${T("introSub")}</p></div>`; app.appendChild(box);
+    app.innerHTML = `<div class="auth-landscape" id="auth-landscape" aria-hidden="true"></div><div class="auth-heading"><span class="eyebrow">RASID AI · راصد</span><h1>${T("introTitle")}</h1><p>${T("introSub")}</p></div>`; app.appendChild(box);
     S.intro=Intro.mount($("#auth-landscape"));
     const body = $("#auth-body");
     const form = (inner) => { body.innerHTML = inner; };
@@ -161,14 +171,17 @@
       $("#switch").onclick = () => go("auth", { mode: signup ? "login" : "signup" });
       f.onsubmit = async (e) => {
         e.preventDefault(); err.textContent = "";
+        if(f.dataset.pending)return;
         const email = $("#email").value.trim(), pin = $("#pin").value;
         if (!/^\d{6}$/.test(pin) && !(pin.length>=12 && pin.length<=128 && /\D/.test(pin))) return (err.textContent = Portal.L("credentialHint"));
         if (signup && pin !== $("#pin2").value) return (err.textContent = S.lang === 'ar' ? 'الرمزان أو كلمتا المرور غير متطابقتين.' : 'The PINs or passwords do not match.');
+        const submit=f.querySelector('.btn.primary');f.dataset.pending='true';submit.disabled=true;submit.setAttribute('aria-busy','true');
         try {
           const r = await api(signup ? "/api/auth/signup" : "/api/auth/login", { email, pin, lang: S.lang, privacyAccepted: signup ? $("#privacy-consent").checked : undefined });
           if (r.needTotp) return go("auth", { mode: "totp", ticket: r.ticket });
           await signedIn(r.user, signup);
         } catch (ex) { err.textContent = { bad_email: T("errBadEmail"), bad_pin: Portal.L("credentialHint"), exists: T("errExists"), wrong: T("errWrong") }[ex.code] || Portal.error(ex); }
+        finally {delete f.dataset.pending;submit.disabled=false;submit.removeAttribute('aria-busy');}
       };
       if (!signup) {
         $("#forgot").onclick = () => go("auth", { mode: "reset", email: $("#email").value.trim() });
@@ -501,8 +514,15 @@
   Lab.register({S,VIEWS,api,topbar,$,toast});
 
   // ---------- boot ----------
-  window.addEventListener("online", () => { S.online = true; go(S.view); });
-  window.addEventListener("offline", () => { S.online = false; go(S.view); });
+  function connectionChanged(){
+    S.online=navigator.onLine;
+    let note=document.querySelector('.connection-note');
+    if(!note){note=document.createElement('div');note.className='connection-note';note.setAttribute('role','status');document.body.append(note);}
+    note.hidden=S.online;note.textContent=S.lang==='ar'?'أنت غير متصل. ستبقى المدخلات هنا؛ أعد الاتصال قبل الحفظ.':'You are offline. Your entries stay here; reconnect before saving.';
+    if(S.online)toast(S.lang==='ar'?'تم الاتصال مجدداً. يمكنك المتابعة.':'Back online. You can continue.');
+  }
+  window.addEventListener('online',connectionChanged);
+  window.addEventListener('offline',connectionChanged);
   window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); window.deferredInstall = e; });
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 

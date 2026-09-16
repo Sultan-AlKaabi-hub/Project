@@ -19,12 +19,18 @@
     landscape.alt = "";
     landscape.className = "world-landscape";
     landscape.draggable = false;
+    landscape.decoding = "async";
+    landscape.fetchPriority = "high";
     const mist = document.createElement("div");
     mist.className = "world-mist";
     const canvas = document.createElement("canvas");
     canvas.className = "world-motion";
     canvas.setAttribute("aria-hidden", "true");
     container.append(landscape, mist, canvas);
+    const toggle = document.createElement("button");
+    toggle.className = "scene-toggle";
+    toggle.type = "button";
+    container.parentElement.append(toggle);
     const ctx = canvas.getContext("2d"),
       motion = matchMedia("(prefers-reduced-motion: reduce)");
     let W = 640,
@@ -32,7 +38,8 @@
       raf = 0,
       last = 0,
       elapsed = 0,
-      active = true;
+      active = true, paused = false, lastPaint = 0;
+    const still = () => motion.matches || paused;
     const rect = (color, x, y, w, h) => {
       ctx.fillStyle = color;
       ctx.fillRect(Math.round(x), Math.round(y), w, h);
@@ -199,8 +206,52 @@
       rect(palette.gold, 15, -21, 2, 2);
       ctx.restore();
     }
+    function cart(x, y, t) {
+      ctx.save();
+      ctx.translate(Math.round(x - 83), Math.round(y));
+      const bob = still() ? 0 : Math.round(Math.sin(t * 10) * .6);
+      // A brass chassis, two independently turning wheels and visible towing shaft.
+      rect("#172d3555", 5, 4, 65, 3);
+      rect("#af8150", 57, -14, 38, 3);
+      ctx.save(); ctx.translate(0, bob);
+      rect("#213642", 4, -21, 61, 14);
+      rect("#d5a56a", 2, -22, 65, 3);
+      rect("#6b4f3a", 4, -13, 61, 4);
+      for(let i=0;i<6;i++) rect("#bd965f", 7+i*10, -19, 2, 7);
+      // Computer, keyboard and a tiny connected-node diagram on its luminous screen.
+      rect("#182c37", 8, -48, 27, 23);
+      rect("#91e5cf", 10, -46, 23, 17);
+      rect("#194652", 12, -43, 19, 11);
+      rect("#80ddbe", 14, -41, 4, 3); rect("#eacc85", 25, -35, 4, 2);
+      rect("#80ddbe", 17, -38, 10, 1); rect("#80ddbe", 24, -38, 1, 4);
+      rect("#a8bfc0", 20, -25, 4, 3); rect("#d8e4d6", 12, -23, 24, 2);
+      // Three server blades, ventilation fins and gentle activity lights.
+      rect("#182c37", 40, -55, 22, 33);
+      rect("#698d97", 41, -54, 20, 2);
+      for(let i=0;i<3;i++) {
+        rect("#355763", 42, -50+i*9, 18, 7);
+        rect("#abc1c3", 44, -48+i*9, 9, 1);
+        rect("#abc1c3", 44, -46+i*9, 7, 1);
+        rect(still() || Math.sin(t*2+i)>0 ? "#89efd0":"#518d80", 56, -48+i*9, 2, 3);
+      }
+      // Signal mast and network orb: readable without flashing or strobing.
+      rect("#d5a56a", 63, -63, 2, 41);
+      rect("#8ee3ce", 61, -65, 6, 5);
+      ctx.restore();
+      for(const wx of [15,55]) {
+        ctx.save();ctx.translate(wx,-3);
+        ctx.fillStyle="#202c37";ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle="#d9ac73";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.stroke();
+        ctx.rotate(still()?0:t*3);
+        rect("#d9ac73",-6,-1,12,2);rect("#d9ac73",-1,-6,2,12);
+        rect("#f9dfad",-2,-2,4,4);ctx.restore();
+      }
+      ctx.restore();
+    }
     function draw(ts) {
-      if (!active) return;
+      if (!active || document.hidden) return;
+      if (!still() && ts-lastPaint<32) { raf=requestAnimationFrame(draw);return; }
+      lastPaint=ts;
       if (last && !document.hidden) elapsed += Math.min(ts - last, 60) / 1000;
       last = ts;
       const t = motion.matches ? 0 : elapsed;
@@ -213,9 +264,10 @@
         rect("#635970", x + 2, y + 1, 2, 1);
         rect("#635970", x + 4, y, 2, 1);
       }
-      const p = motion.matches ? 0.46 : (t / 19 + 0.12) % 1,
-        x = -75 + p * (W + 150),
+      const p = motion.matches ? 0.58 : (t / 24 + 0.32) % 1,
+        x = -80 + p * (W + 250),
         y = H * 0.885;
+      cart(x, y, t);
       horse(x, y, t);
       canvas.dataset.riderX = String(Math.round(x));
       for (let i = 0; i < 28; i++) {
@@ -230,7 +282,7 @@
         rect("#173e38", xx, yy, 2, 6);
         rect("#316951", xx + 3, yy + 2, 2, 4);
       }
-      if (!motion.matches) raf = requestAnimationFrame(draw);
+      if (!still()) raf = requestAnimationFrame(draw);
     }
     function resize() {
       W = Math.max(320, Math.round(container.clientWidth / 2));
@@ -238,7 +290,7 @@
       canvas.width = W;
       canvas.height = H;
       ctx.imageSmoothingEnabled = false;
-      if (motion.matches) draw(performance.now());
+      if (still()) draw(performance.now());
     }
     const observer = new ResizeObserver(resize);
     observer.observe(container);
@@ -246,19 +298,28 @@
     raf = requestAnimationFrame(draw);
     const restart = () => {
       cancelAnimationFrame(raf);
-      last = 0;
+      last = 0; lastPaint = 0;
+      container.classList.toggle('scene-paused',still() || document.hidden);
+      toggle.textContent = document.documentElement.lang==='ar' ? (still()?'تشغيل المشهد':'إيقاف الحركة') : (still()?'Play scene':'Pause motion');
+      toggle.disabled = motion.matches;
+      toggle.setAttribute('aria-pressed',String(still()));
       raf = requestAnimationFrame(draw);
     };
+    toggle.onclick=()=>{paused=!paused;restart();};
+    document.addEventListener('visibilitychange',restart);
     motion.addEventListener("change", restart);
+    restart();
     return {
       unmount() {
         active = false;
         observer.disconnect();
         motion.removeEventListener("change", restart);
+        document.removeEventListener('visibilitychange',restart);
         cancelAnimationFrame(raf);
         landscape.remove();
         mist.remove();
         canvas.remove();
+        toggle.remove();
       },
     };
   }

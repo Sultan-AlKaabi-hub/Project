@@ -1,7 +1,7 @@
 // All user-facing strings. Arabic first.
 window.I18N = {
   ar: {
-    appName: "راصد", tagline: "أخبار الذكاء الاصطناعي بمستواك", introTitle: "الأخبار تصلك كل صباح", introSub: "دروس قصيرة من أخبار الذكاء الاصطناعي، بمستواك، بالعربية. يرافقك فارس خطوة بخطوة.", enter: "ابدأ الرحلة",
+    appName: "راصد AI", tagline: "فضول. ذكاء. آفاق جديدة.", introTitle: "حوّل فضولك إلى قدرات.", introSub: "عالم من الذكاء الاصطناعي ينتظرك. تعلّم من الأخبار والتجارب المرئية مع مرشد يتحدث لغتك.", enter: "ابدأ الرحلة",
     chooseLang: "اختر لغتك", arabic: "العربية", english: "English",
     createAccount: "إنشاء حساب", signIn: "تسجيل الدخول", email: "البريد الإلكتروني", pin: "رمز الدخول (6 أرقام)", pinAgain: "أعد كتابة الرمز",
     pinMatch: "الرمزان متطابقان", continueBtn: "متابعة", haveAccount: "لديك حساب؟ سجّل الدخول", noAccount: "مستخدم جديد؟ أنشئ حساباً",
@@ -43,7 +43,7 @@ window.I18N = {
     starIcon: "★", squareIcon: "■", circleIcon: "●"
   },
   en: {
-    appName: "Rasid", tagline: "AI news at your level", introTitle: "The news rides in every morning", introSub: "Short lessons built from AI news, at your level, in Arabic. Faris walks with you step by step.", enter: "Begin the journey",
+    appName: "Rasid AI", tagline: "Curiosity. Intelligence. Possibility.", introTitle: "Turn curiosity into capability.", introSub: "A world of AI to explore. Learn through live news, visual experiments and a guide who speaks your language.", enter: "Begin the journey",
     chooseLang: "Choose your language", arabic: "العربية", english: "English",
     createAccount: "Create account", signIn: "Sign in", email: "Email", pin: "PIN (6 digits)", pinAgain: "Retype the PIN",
     pinMatch: "PINs match", continueBtn: "Continue", haveAccount: "Have an account? Sign in", noAccount: "New here? Create an account",
