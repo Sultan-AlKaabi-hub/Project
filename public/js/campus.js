@@ -520,7 +520,7 @@
           ? `<div class="campus-note"><p>${S.lang === "ar" ? "حساب المالك جاهز لاستعادة صلاحية المسؤول باستخدام الرمز الخاص." : "Your owner account can restore administrator access using your private recovery code."}</p><button class="btn primary" data-campus-go="settings">${S.lang === "ar" ? "استعادة صلاحية المسؤول" : "Restore administrator access"}</button></div>`
           : "") +
           note(d) +
-          `<div class="campus-welcome"><div><span class="eyebrow">RASID · راصد</span><h2>${esc(S.user.name)}</h2><p>${date(Date.now())} · ${L(S.user.role === "admin" ? "adminRole" : S.user.role)}</p></div><div class="campus-welcome-art" aria-hidden="true"></div></div>` +
+          `<div class="campus-welcome"><div><span class="eyebrow">RASID AI · راصد</span><h2>${esc(S.user.name)}</h2><p>${date(Date.now())} · ${L(S.user.role === "admin" ? "adminRole" : S.user.role)}</p></div><div class="campus-welcome-art" aria-hidden="true"></div></div>` +
           stats([
             staff
               ? [

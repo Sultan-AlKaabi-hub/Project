@@ -1,6 +1,6 @@
 // Service worker: only public app-shell files are cached; personal data always needs the server.
-const SHELL = "rasid-shell-v9";
-const SHELL_FILES = ["css/experience.css", "js/voice.js", "js/algorithm-model.js", "js/lab.js", "js/motion.js", "./", "index.html", "css/app.css", "css/portal.css", "css/hub.css", "css/campus.css", "js/campus.js", "art/valley.png", "js/hub.js", "js/i18n.js", "js/sprite.js", "js/intro.js", "js/faris.js", "js/app.js", "js/portal.js", "vendor/webauthn.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"];
+const SHELL = "rasid-shell-v10";
+const SHELL_FILES = ["css/craft.css", "js/craft.js", "css/experience.css", "js/voice.js", "js/algorithm-model.js", "js/lab.js", "js/motion.js", "./", "index.html", "css/app.css", "css/portal.css", "css/hub.css", "css/campus.css", "js/campus.js", "art/valley.png", "js/hub.js", "js/i18n.js", "js/sprite.js", "js/intro.js", "js/faris.js", "js/app.js", "js/portal.js", "vendor/webauthn.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES).catch(() => {})).then(() => self.skipWaiting()));
@@ -18,5 +18,5 @@ self.addEventListener("fetch", (e) => {
   if (url.pathname !== '/' && !SHELL_FILES.includes(url.pathname.slice(1))) return;
   // App shell: network first (so updates land immediately), cache when offline.
   e.respondWith(fetch(e.request).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(SHELL).then((c) => c.put(e.request, copy)); } return r; })
-    .catch(() => caches.match(e.request).then((m) => m || caches.match("index.html"))));
+    .catch(() => caches.match(e.request).then((m) => m || (e.request.mode === "navigate" ? caches.match("index.html") : Response.error()))));
 });
