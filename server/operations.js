@@ -1,3 +1,4 @@
+import {subjectOf} from "./subjects.js";
 import crypto from "node:crypto";
 import { canView, roleOf } from "./portal.js";
 
@@ -6,7 +7,7 @@ export function operationsFor(db, u) {
   const visible = (email) =>
     Object.hasOwn(db.users, email) && canView(u, db.users[email]);
   const sessions = (db.classes || []).filter(
-    (s) => s.host === u.email || s.members.some(visible),
+    (s) => (roleOf(u) === "admin" || (s.subject || "ai") === subjectOf(u)) && (s.host === u.email || s.members.some(visible)),
   );
   return {
     classes: sessions.map((s) => ({
@@ -20,7 +21,7 @@ export function operationsFor(db, u) {
       .map((m) => ({
         ...m,
         recipients: m.sender === u.email ? m.recipients : [u.email],
-        readBy: m.readBy.filter((e) => e === u.email),
+        readBy: m.sender === u.email ? m.readBy : m.readBy.filter((e) => e === u.email),
       })),
     groups: (db.groups || [])
       .filter(
@@ -32,7 +33,7 @@ export function operationsFor(db, u) {
       .map((g) => ({ ...g, members: g.members.filter(visible) })),
     resources: (db.resources || []).filter(
       (r) =>
-        r.status === "approved" || r.owner === u.email || roleOf(u) === "admin",
+        (r.status === "approved" && (r.subject || "ai") === subjectOf(u)) || r.owner === u.email || roleOf(u) === "admin",
     ),
     people: Object.values(db.users)
       .filter(
@@ -168,6 +169,7 @@ export function installOperations(app, { db, save, requireUser }) {
       )
     )
       return fail(res);
+    if((db.absences||[]).some(a=>a.email === req.user.email && a.status === "approved" && a.start < end && a.end > start))return fail(res,409,"time_conflict");
     const people = [req.user.email, ...members],
       interval = { start, end };
     if (
@@ -193,6 +195,7 @@ export function installOperations(app, { db, save, requireUser }) {
       location,
       host: req.user.email,
       members,
+      subject: subjectOf(req.user),
       status: "scheduled",
     };
     db.classes.push(s);
@@ -385,6 +388,7 @@ export function installOperations(app, { db, save, requireUser }) {
       title,
       url: parsed.href,
       owner: req.user.email,
+      subject: subjectOf(req.user),
       status: isAdmin(req.user) ? "approved" : "pending",
     };
     db.resources.push(r);

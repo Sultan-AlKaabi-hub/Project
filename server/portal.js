@@ -1,3 +1,4 @@
+import {subjectOf,hasAI} from "./subjects.js";
 import { operationsFor } from "./operations.js";
 import crypto from "node:crypto";
 import { courseSummary } from "./curriculum.js";
@@ -9,7 +10,7 @@ export const canView = (viewer, target) =>
   roleOf(viewer) === "admin" ||
   (roleOf(viewer) === "teacher" &&
     roleOf(target) === "student" &&
-    target.teacherEmail === viewer.email);
+    target.teacherEmail === viewer.email && subjectOf(viewer) === subjectOf(target));
 export function migrateRoles(db) {
   // Preserve the legacy administrator once, never make a new registration an administrator.
   if (!db.settings.rolesMigrated) {
@@ -34,6 +35,7 @@ export function userSummary(u, lang = "en") {
     role: roleOf(u),
     teacherEmail: u.teacherEmail || "",
     level: u.level,
+    subject: subjectOf(u), isDemo:Boolean(u.isDemo), created:u.created,
     lastSeen: u.lastSeen || null,
     online: Boolean(u.lastSeen && Date.now() - u.lastSeen < 5 * 60 * 1000),
     modulesPassed: c.modulesPassed,
@@ -97,13 +99,16 @@ export function installPortal(app, { db, save, requireUser }) {
     res.json({
       users: Object.values(db.users)
         .filter((u) => canView(req.user, u))
-        .map((u) => userSummary(u, req.user.lang)),
+        .map((u) => hasAI(req.user) && hasAI(u) ? userSummary(u, req.user.lang) : ({email:u.email,name:u.name,role:roleOf(u),subject:subjectOf(u),modules:[],modulesPassed:0,totalModules:0,lessonsRead:0})),
     }),
   );
   app.post("/api/admin/people", requireUser, admin, (req, res) => {
     const u = db.users[clean(req.body.email, 200).toLowerCase()];
     if (!u) return res.status(404).json({ error: "not_found" });
     const role = req.body.role;
+    const subject = role === "student" ? "ai" : (req.body.subject || subjectOf(u));
+    if(!["ai","math","science","arabic","english"].includes(subject))return res.status(400).json({error:"invalid_request"});
+    if(u.email === "sultan.3ami@gmail.com" && role !== "admin")return res.status(409).json({error:"owner_protected"});
     if (!["student", "teacher", "admin"].includes(role))
       return res.status(400).json({ error: "bad_role" });
     if (
@@ -115,13 +120,13 @@ export function installPortal(app, { db, save, requireUser }) {
     const teacherEmail = clean(req.body.teacherEmail, 200).toLowerCase();
     if (
       teacherEmail &&
-      (role !== "student" || roleOf(db.users[teacherEmail]) !== "teacher")
+      (role !== "student" || roleOf(db.users[teacherEmail]) !== "teacher" || subjectOf(db.users[teacherEmail]) !== "ai")
     )
       return res.status(400).json({ error: "bad_teacher" });
-    const oldRole = roleOf(u);
-    u.role = role;
+    const oldRole = roleOf(u), oldSubject=subjectOf(u);
+    u.role = role; u.subject = subject;
     u.teacherEmail = role === "student" ? teacherEmail : "";
-    if (oldRole === "teacher" && role !== "teacher")
+    if (oldRole === "teacher" && (role !== "teacher" || oldSubject !== subject))
       for (const student of Object.values(db.users))
         if (student.teacherEmail === u.email) student.teacherEmail = "";
     if (role === "student" && oldRole !== "student") {
@@ -304,6 +309,7 @@ export function installPortal(app, { db, save, requireUser }) {
     )
       return res.status(409).json({ error: "conflict" });
     if(status === "approved" && (db.classes||[]).some(s=>s.status!=="cancelled" && overlap(s,b) && [s.host,...s.members].some(e=>e===b.host||e===b.requester))) return res.status(409).json({error:"conflict"});
+    if(status === "approved" && (db.absences||[]).some(a=>a.email === b.host && a.status === "approved" && overlap(a,b)))return res.status(409).json({error:"conflict"});
     b.status = status;
     b.updated = Date.now();
     if (status === "approved")

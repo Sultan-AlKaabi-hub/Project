@@ -52,13 +52,16 @@
     const app = $("#app");
     if (!S.user) { app.innerHTML = ""; app.className = ""; return; }
     app.className = "app";
-    const nav = [["home", "home"], ["course", "course"], ["news", "news"], ["progress", "progress"], ["calendar","calendar"], ["hub","hub"], ["alerts","alerts"], ["privacy","privacy"]];
-    if(S.user.role === "admin" || S.user.role === "teacher") nav.push(["people","people"]);
+    let nav = [["home", "home"], ["course", "course"], ["news", "news"], ["progress", "progress"], ["calendar","calendar"], ["hub","hub"], ["alerts","alerts"], ["privacy","privacy"]];
+    if(S.user.role !== "student") nav.push(["administration","administration"],["staff","staff"]);
+    if(S.user.role === "admin" || (S.user.role === "teacher" && S.user.hasAI !== false)) nav.push(["people","people"]);
+    nav.push(["messages","messages"]);
+    if(S.user.hasAI === false)nav=nav.filter(([v])=>!["course","news","progress","administration"].includes(v));
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
         <div class="brand">${BRAND_DOTS}<span>${T("appName")}</span></div>
         <div class="nav-label">${T("workspace")}</div>
-        <nav class="nav">${nav.map(([v, k]) => `<button data-view="${v}" class="${S.view === v ? "active" : ""}">${ICONS[v] || ICONS.progress}<span>${T(k)}</span></button>`).join("")}</nav>
+        <nav class="nav">${nav.map(([v, k]) => `<button data-view="${v}" class="${S.view === v ? "active" : ""}">${ICONS[v] || ICONS.progress}<span>${v === "people" && S.user.role === "teacher" ? (S.lang === "ar" ? "طلابي" : "My students") : v === "administration" && S.user.role === "teacher" ? (S.lang === "ar" ? "التقدم والحضور" : "Progress & attendance") : v === "staff" && S.user.role === "teacher" ? (S.lang === "ar" ? "مناوباتي" : "My shifts") : T(k)}</span></button>`).join("")}</nav>
         <div class="nav-label">${T("manage")}</div>
         <nav class="nav"><button data-view="settings" class="${S.view === "settings" ? "active" : ""}">${ICONS.settings}<span>${T("settings")}</span></button></nav>
         <div class="status-box sunk">
@@ -88,18 +91,22 @@
   async function go(view, opts = {}) {
     S.view = view; S.lastOpts = opts;
     if (S.intro) { S.intro.unmount(); S.intro=null; }
-    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub"].includes(view)) S.view = "placement";
-    if (!S.user) S.view = "auth";
+    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes"].includes(view)) S.view = "placement";
+    if (!S.user && view !== "intro") S.view = "auth";
+    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article"].includes(S.view)) S.view="home";
+    if(S.view === "intro")Faris.hide();else if(S.user)Faris.show();
     renderShell();
     const v = VIEWS[S.view];
     if (v) { try { await v(opts); } catch(e) { toast(Portal.error(e)); } }
     renderLangPill();
     wireTopbar();
+    document.querySelectorAll(".brand,.logo").forEach(el=>{el.setAttribute("role","button");el.tabIndex=0;el.setAttribute("aria-label",S.lang === "ar" ? "العودة إلى المقدمة" : "Open intro");el.onclick=()=>go("intro");el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go("intro");}};});
     window.scrollTo(0, 0);
   }
 
   // ---------- auth ----------
   const VIEWS = {};
+  VIEWS.intro=()=>VIEWS.auth({mode:"intro"});
   VIEWS.auth = async (opts) => {
     const app = $("#app"); app.className = "auth-wrap";
     const mode = opts.mode || "login";
@@ -111,7 +118,7 @@
         <button class="btn primary big" id="enter">${T("enter")}</button></div></div>`;
       renderLangPill();
       S.intro = Intro.mount($("#scene"));
-      $("#enter").onclick = () => { sessionStorage.setItem("rasid.intro", "1"); if (S.intro) { S.intro.unmount(); S.intro = null; } go("auth", { mode: localStorage.getItem("rasid.seen") ? "login" : "lang" }); };
+      $("#enter").onclick = () => { sessionStorage.setItem("rasid.intro", "1"); if (S.intro) { S.intro.unmount(); S.intro = null; } S.user ? go("home") : go("auth", { mode: localStorage.getItem("rasid.seen") ? "login" : "lang" }); };
       return;
     }
     if (S.intro) { S.intro.unmount(); S.intro = null; }
@@ -203,7 +210,7 @@
       setTimeout(() => offerPasskey(), 800);
     }
     await refresh();
-    if (!user.placed) { go("placement"); Faris.say(T("farisHello"), { actions: [{ label: T("start"), run: () => Faris.say(T("farisPlacement")) }] }); }
+    if (!user.placed && user.role === "student") { go("home"); Faris.say(T("farisHello"), { actions: [{ label: T("start"), run: () => Faris.say(T("farisPlacement")) }] }); }
     else { go("home"); Faris.say(T("farisHello"), { open: false, pulse: true }); }
   }
   async function offerPasskey() {
@@ -219,6 +226,7 @@
     } catch (e) { toast(e.message || T("errNet")); }
   }
   async function refresh() {
+    if(S.user?.hasAI === false){S.course=null;return;}
     try { const r = await api("/api/course"); S.course = r.course; S.user = r.user; S.online = true; }
     catch (e) { if (e.message === "Failed to fetch") S.online = false; }
   }
@@ -470,6 +478,7 @@
 
   Portal.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar});
   LearningHub.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar});
+  Campus.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar,openModule});
 
   // ---------- boot ----------
   window.addEventListener("online", () => { S.online = true; go(S.view); });
@@ -480,7 +489,7 @@
   (async () => {
     applyLang();
     Faris.mount(); Faris.hide();
-    try { const { user } = await api("/api/me"); if (user) { S.user = user; S.lang = user.lang || S.lang; applyLang(); Faris.show(); await refresh(); return go(user.placed ? "home" : "placement"); } }
+    try { const { user } = await api("/api/me"); if (user) { S.user = user; S.lang = user.lang || S.lang; applyLang(); Faris.show(); await refresh(); return go("home"); } }
     catch { S.online = false; }
     go("auth");
   })();
