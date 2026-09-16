@@ -13,6 +13,7 @@ import { CATEGORIES, fetchCategory, sourceList } from "./pipeline/fetchNews.js";
 import { LEVELS, aiAvailable, keySentences } from "./pipeline/generate.js";
 import { fetchArticle, favicon, translate } from "./pipeline/article.js";
 import { answer as farisAnswer } from "./faris.js";
+import * as course from "./curriculum.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(here, "..");
@@ -45,20 +46,6 @@ function requireUser(req, res, next) {
   const u = auth.getSession(req.cookies.rasid);
   if (!u) return res.status(401).json({ error: "not signed in" });
   req.user = u; next();
-}
-const lessonById = (id) => db.lessons.find((l) => l.id === id);
-const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-function readSet(u, level) { u.read = u.read || {}; u.read[level] = u.read[level] || {}; return u.read[level]; }
-
-function lessonCard(l, level, lang, read) {
-  const cat = CATEGORIES.find((c) => c.id === l.category);
-  const text = l.levels[level]?.[lang] || l.levels[level]?.en || "";
-  return {
-    id: l.id, category: l.category, categoryLabel: lang === "ar" ? cat?.ar : cat?.en,
-    title: lang === "ar" ? l.title_ar : l.title_en, source: l.source, date: l.date,
-    preview: text.slice(0, 140), read: Boolean(read[l.id]), engine: l.engine,
-    image: l.image || null, icon: l.icon || favicon(l.url), arMissing: Boolean(l.arMissing)
-  };
 }
 
 // ---------- auth ----------
@@ -158,133 +145,55 @@ app.post("/api/settings", requireUser, (req, res) => {
 });
 app.post("/api/reset", requireUser, (req, res) => {
   const u = req.user;
-  u.level = null; u.read = {}; u.badges = []; u.expertDone = false; delete u.activeQuiz; delete u.review;
+  u.level = null; u.read = {}; u.badges = []; u.expertDone = false; u.course = { modules: {} }; delete u.activeQuiz; delete u.review; delete u.activePlacement;
   save(); res.json({ user: publicUser(u) });
 });
 
-// ---------- content ----------
-function requiredFor(level) {
-  const { date, ids } = currentRequired(level);
-  return { date, ids: ids.filter(lessonById) };
-}
-function progressFor(u, level) {
-  const req = requiredFor(level);
-  const read = readSet(u, level);
-  const done = req.ids.filter((id) => read[id]).length;
-  const retryBlocked = Boolean(u.review?.wrong?.length) && u.review.wrong.some((id) => !u.review.reread?.includes(id));
-  return { date: req.date, requiredIds: req.ids, done, total: req.ids.length, quizReady: req.ids.length > 0 && done === req.ids.length && !retryBlocked, retryBlocked };
-}
-
-app.get("/api/content", requireUser, (req, res) => {
-  const u = req.user, lang = u.lang || "ar", level = u.level || "beginner";
-  const prog = progressFor(u, level);
-  const read = readSet(u, level);
-  const lessons = db.lessons.slice(0, 40).map((l) => ({ ...lessonCard(l, level, lang, read), required: prog.requiredIds.includes(l.id) }));
-  lessons.sort((a, b) => (b.required - a.required) || (a.read - b.read));
-  res.json({
-    user: publicUser(u), level, lang, progress: prog,
-    categories: CATEGORIES.map((c) => ({ id: c.id, label: lang === "ar" ? c.ar : c.en })),
-    lessons, lastUpdate: db.settings.lastUpdate, engine: db.settings.source,
-    review: u.review || null
-  });
+// ---------- course (the AI curriculum) ----------
+app.get("/api/course", requireUser, (req, res) => {
+  const u = req.user, lang = u.lang || "ar";
+  res.json({ user: publicUser(u), lang, course: course.courseSummary(u, lang), lastUpdate: db.settings.lastUpdate });
 });
-
-app.get("/api/lesson/:id", requireUser, (req, res) => {
-  const l = lessonById(req.params.id);
-  if (!l) return res.status(404).json({ error: "not_found" });
-  const u = req.user, lang = u.lang || "ar", level = u.level || "beginner";
-  const cat = CATEGORIES.find((c) => c.id === l.category);
-  res.json({
-    id: l.id, category: l.category, categoryLabel: lang === "ar" ? cat?.ar : cat?.en, level,
-    title: lang === "ar" ? l.title_ar : l.title_en, source: l.source, url: l.url, date: l.date,
-    text: l.levels[level]?.[lang] || l.levels[level]?.en, textEn: l.levels[level]?.en,
-    terms: (l.terms || []).map((t) => ({ term: lang === "ar" ? t.term_ar : t.term_en, termEn: t.term_en, def: lang === "ar" ? t.def_ar : t.def_en })),
-    wiki: l.wiki || [], read: Boolean(readSet(u, level)[l.id]),
-    image: l.image || null, icon: l.icon || favicon(l.url), arMissing: Boolean(l.arMissing),
-    article: l.article ? { ok: l.article.ok, words: l.article.words, text: lang === "ar" && l.article.text_ar ? l.article.text_ar : l.article.text, textEn: l.article.text, isTranslated: lang === "ar" && Boolean(l.article.text_ar) } : null,
-    highlight: req.query.highlight ? String(req.query.highlight) : null
-  });
+app.get("/api/course/module/:id", requireUser, (req, res) => {
+  const m = course.moduleById(req.params.id); if (!m) return res.status(404).json({ error: "not_found" });
+  const u = req.user, lang = u.lang || "ar";
+  const sum = course.moduleSummary(u, m, lang);
+  const st = course.progress(u).modules[m.id] || { read: [] };
+  res.json({ ...sum, lessonList: m.lessons.map((l) => ({ id: l.id, title: l.title[lang], read: st.read.includes(l.id) })) });
 });
-
-app.post("/api/lesson/:id/done", requireUser, (req, res) => {
-  const u = req.user, level = u.level || "beginner";
-  if (!lessonById(req.params.id)) return res.status(404).json({ error: "not_found" });
-  readSet(u, level)[req.params.id] = Date.now();
-  if (u.review?.wrong?.includes(req.params.id)) {
-    u.review.reread = u.review.reread || [];
-    if (!u.review.reread.includes(req.params.id)) u.review.reread.push(req.params.id);
-  }
-  save();
-  res.json({ progress: progressFor(u, level), review: u.review || null });
+app.get("/api/course/lesson/:id", requireUser, (req, res) => {
+  const hit = course.lessonById(req.params.id); if (!hit) return res.status(404).json({ error: "not_found" });
+  const u = req.user, lang = u.lang || "ar";
+  const m = hit.module, l = hit.lesson;
+  const st = course.progress(u).modules[m.id] || { read: [] };
+  const i = m.lessons.indexOf(l);
+  res.json({ id: l.id, moduleId: m.id, moduleTitle: m.title[lang], level: m.level, icon: m.icon, title: l.title[lang], body: l.body[lang], bodyEn: l.body.en,
+    read: st.read.includes(l.id), index: i + 1, count: m.lessons.length, nextId: m.lessons[i + 1]?.id || null, locked: course.levelIndex(m.level) > course.levelIndex(u.level || "beginner") });
+});
+app.post("/api/course/lesson/:id/done", requireUser, (req, res) => {
+  const moduleId = course.markRead(req.user, req.params.id);
+  if (!moduleId) return res.status(404).json({ error: "not_found" });
+  const lang = req.user.lang || "ar";
+  res.json({ module: course.moduleSummary(req.user, course.moduleById(moduleId), lang), course: course.courseSummary(req.user, lang) });
+});
+app.get("/api/course/quiz/:moduleId", requireUser, (req, res) => {
+  const u = req.user, lang = u.lang || "ar";
+  const m = course.moduleById(req.params.moduleId); if (!m) return res.status(404).json({ error: "not_found" });
+  const sum = course.moduleSummary(u, m, lang);
+  if (!sum.quizReady) return res.status(400).json({ error: "not_ready", module: sum });
+  res.json(course.drawQuiz(u, m.id, lang));
+});
+app.post("/api/course/quiz", requireUser, (req, res) => {
+  const r = course.gradeQuiz(req.user, req.body.answers || [], req.user.lang || "ar");
+  if (!r) return res.status(400).json({ error: "no_quiz" });
+  res.json({ ...r, user: publicUser(req.user), course: course.courseSummary(req.user, req.user.lang || "ar") });
 });
 
 // ---------- placement ----------
-function q(l, level, lang, idx) {
-  const src = l.questions[level][idx];
-  return { lessonId: l.id, level, idx, title: lang === "ar" ? l.title_ar : l.title_en, q: lang === "ar" ? src.q_ar : src.q_en, choices: lang === "ar" ? src.choices_ar : src.choices_en };
-}
-app.get("/api/placement", requireUser, (req, res) => {
-  const lang = req.user.lang || "ar";
-  const items = [];
-  for (const level of LEVELS) {
-    const pool = requiredFor(level).ids.map(lessonById).filter((l) => l?.questions?.[level]?.length);
-    const chosen = pool.sort(() => Math.random() - 0.5).slice(0, 2);
-    for (const l of chosen) items.push(q(l, level, lang, Math.floor(Math.random() * l.questions[level].length)));
-  }
-  req.user.activePlacement = items.map((i) => ({ lessonId: i.lessonId, level: i.level, idx: i.idx }));
-  save();
-  res.json({ questions: items.map((i, n) => ({ n, q: i.q, choices: i.choices, title: i.title })) });
-});
+app.get("/api/placement", requireUser, (req, res) => res.json(course.drawPlacement(req.user, req.user.lang || "ar")));
 app.post("/api/placement", requireUser, (req, res) => {
-  const u = req.user;
-  let level = "beginner", score = 0;
-  if (!req.body.skipped && u.activePlacement) {
-    const answers = req.body.answers || [];
-    u.activePlacement.forEach((p, i) => { const l = lessonById(p.lessonId); if (l && l.questions[p.level][p.idx].answer === answers[i]) score++; });
-    level = score >= 5 ? "expert" : score >= 3 ? "intermediate" : "beginner";
-  }
-  u.level = level; delete u.activePlacement; save();
-  res.json({ level, score, user: publicUser(u), progress: progressFor(u, level) });
-});
-
-// ---------- level-up quiz ----------
-app.get("/api/quiz", requireUser, (req, res) => {
-  const u = req.user, level = u.level || "beginner", lang = u.lang || "ar";
-  const prog = progressFor(u, level);
-  if (!prog.quizReady) return res.status(400).json({ error: "not_ready", progress: prog });
-  const items = prog.requiredIds.map(lessonById).filter((l) => l?.questions?.[level]?.length)
-    .map((l) => q(l, level, lang, Math.floor(Math.random() * l.questions[level].length)));
-  u.activeQuiz = { level, items: items.map((i) => ({ lessonId: i.lessonId, idx: i.idx })), started: Date.now() };
-  save();
-  res.json({ level, passMark: PASS_MARK, questions: items.map((i, n) => ({ n, lessonId: i.lessonId, q: i.q, choices: i.choices, title: i.title })) });
-});
-app.post("/api/quiz", requireUser, (req, res) => {
-  const u = req.user, lang = u.lang || "ar";
-  const quiz = u.activeQuiz;
-  if (!quiz) return res.status(400).json({ error: "no_quiz" });
-  const answers = req.body.answers || [];
-  const review = quiz.items.map((it, i) => {
-    const l = lessonById(it.lessonId); const src = l.questions[quiz.level][it.idx];
-    const chosen = answers[i];
-    return { lessonId: it.lessonId, title: lang === "ar" ? l.title_ar : l.title_en, q: lang === "ar" ? src.q_ar : src.q_en,
-      choices: lang === "ar" ? src.choices_ar : src.choices_en, chosen, answer: src.answer, correct: chosen === src.answer };
-  });
-  const score = review.filter((r) => r.correct).length;
-  const passed = score >= PASS_MARK;
-  delete u.activeQuiz;
-  let newLevel = quiz.level;
-  if (passed) {
-    u.badges = u.badges || [];
-    if (!u.badges.includes(quiz.level)) u.badges.push(quiz.level);
-    delete u.review;
-    if (quiz.level === "expert") u.expertDone = true; else newLevel = NEXT[quiz.level];
-    u.level = newLevel;
-  } else {
-    const wrong = review.filter((r) => !r.correct).map((r) => r.lessonId);
-    u.review = { wrong, reread: [] };
-  }
-  save();
-  res.json({ score, total: review.length, passed, review, level: newLevel, previousLevel: quiz.level, user: publicUser(u), progress: progressFor(u, newLevel) });
+  const r = course.gradePlacement(req.user, req.body.answers || [], Boolean(req.body.skipped));
+  res.json({ ...r, user: publicUser(req.user), course: course.courseSummary(req.user, req.user.lang || "ar") });
 });
 
 // ---------- live news feed ----------
@@ -293,8 +202,7 @@ app.get("/api/news", requireUser, async (req, res) => {
   const cat = CATEGORIES.find((c) => c.id === catId);
   if (!cat) return res.status(400).json({ error: "bad_category" });
   const items = await fetchCategory(cat, 10, { fresh: req.query.fresh === "1" });
-  const lessonFor = (url) => db.lessons.find((l) => l.url === url);
-  res.json({ category: cat.id, fetchedAt: new Date().toISOString(), items: items.map((a) => { const l = lessonFor(a.url); return { ...a, lessonId: l?.id || null, image: l?.image || null, icon: favicon(a.url) }; }) });
+  res.json({ category: cat.id, fetchedAt: new Date().toISOString(), items: items.map((a) => ({ ...a, icon: favicon(a.url) })) });
 });
 // Read any headline inside the app: fetch + extract on demand (cached). Arabic via free translation.
 app.get("/api/article", requireUser, async (req, res) => {
@@ -315,8 +223,7 @@ app.post("/api/faris/ask", requireUser, async (req, res) => {
   const question = String(req.body.question || "").slice(0, 300);
   if (!question.trim()) return res.status(400).json({ error: "empty" });
   const r = await farisAnswer(question, { level: req.user.level || "beginner", lang: req.user.lang || "ar" });
-  const l = r.lessonId && lessonById(r.lessonId);
-  res.json({ ...r, lessonTitle: l ? (req.user.lang === "en" ? l.title_en : l.title_ar) : null });
+  res.json(r);
 });
 app.post("/api/faris/report", requireUser, (req, res) => {
   db.reports = db.reports || [];
@@ -368,9 +275,8 @@ function seedIfEmpty() {
 seedIfEmpty();
 app.listen(PORT, () => {
   console.log(`Rasid running at http://localhost:${PORT}  (content engine: ${aiAvailable() ? "Claude" : "fallback, set ANTHROPIC_API_KEY for AI lessons"})`);
-  if (!process.env.RASID_NO_UPDATE) {
-    const live = db.lessons.filter((l) => l.engine !== 'seed');
-    const stale = !db.settings.lastUpdate || db.settings.lastUpdate.slice(0, 10) !== today() || live.length < 5 || live.some((l) => (l.version || 1) < 2);
+  if (process.env.RASID_NEWS_LESSONS) {
+    const stale = !db.settings.lastUpdate || db.settings.lastUpdate.slice(0, 10) !== today();
     if (stale) setTimeout(triggerUpdate, 2000);
     cron.schedule("0 6 * * *", triggerUpdate);
   }

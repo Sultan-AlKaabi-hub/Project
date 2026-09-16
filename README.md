@@ -44,13 +44,22 @@ npm run update
 | `data/seed.json` | Five example lessons shown until the first live update succeeds |
 | `public/` | The PWA: `index.html`, `css/app.css`, `js/app.js`, `js/faris.js`, `js/i18n.js`, `sw.js`, `manifest.webmanifest`, icons |
 
-## The learning loop
+## The learning path
 
-1. **Welcome and sign in.** Arabic by default, English switch. Email + 6-digit PIN. Optional two-step code and fingerprint/face.
-2. **Placement.** Six questions (two per level) or "Start as Beginner". 0–2 correct → Beginner, 3–4 → Intermediate, 5–6 → Expert.
-3. **Learn.** Five required lessons, one per category. "Got it" appears only at the end of a lesson.
-4. **Level-up quiz.** Five questions, one per required lesson, pass at 4. No timer.
-5. **Result.** Pass: next level saved. Fail: review shows the correct answers; "Try again" unlocks only after every linked lesson is reread.
+The course lives in  (, , ), written in Arabic with an English twin, so lessons never depend on translation services. 20 modules, 60 lessons, 100 quiz questions.
+
+| Level | Modules |
+|---|---|
+| Beginner | What is AI · Where AI is used (civilian and military) · Data and algorithms · Machine learning · Chatbots (ChatGPT, Claude, Gemini) · Safety and ethics |
+| Intermediate | Neural networks · Computer vision · Large language models · Prompt engineering · Python for AI · Networks and APIs · BRD and SRS |
+| Expert | Deep learning architectures (CNN, RNN, transformers) · AI agents · Robotics and autonomy · Math behind AI (discrete math, probability, linear algebra) · Algorithms, complexity and recursion · Military AI (US, Russia, China) · Evaluation, alignment and deployment |
+
+1. **Placement.** Six questions drawn from all three levels, or "Start as Beginner". Levels below the placed level count as passed.
+2. **Modules.** Each module has three lessons and a five-question quiz. Reading all three lessons unlocks the quiz; pass mark is 4 of 5.
+3. **Fail.** The quiz locks until the module's lessons are reread. Unlimited attempts, new question draw each time.
+4. **Level-up.** Passing every module in a level unlocks the next level. Expert completion ends the required quizzes.
+
+The **Live News** screen is separate: real headlines from named sources with an in-app reader (Arabic by machine translation when the free services are available, English otherwise). Set  to also generate news-based lessons daily (needs  for good results).
 
 ## Install on a phone
 

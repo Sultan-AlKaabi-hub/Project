@@ -37,6 +37,7 @@
     progress: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>',
     settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>'
   };
+  ICONS.course = ICONS.lessons;
   ICONS.news = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h13a2 2 0 0 1 2 2v10a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z"/><path d="M19 7v10"/><path d="M8 9h5M8 13h6"/></svg>';
   const BRAND_DOTS = '<svg class="dots" viewBox="0 0 22 22"><g fill="#7C5CE6"><circle cx="11" cy="4" r="2.4"/><circle cx="4" cy="11" r="2.4"/><circle cx="18" cy="11" r="2.4"/><circle cx="11" cy="18" r="2.4"/><circle cx="11" cy="11" r="2.4" opacity=".5"/></g></svg>';
 
@@ -44,7 +45,7 @@
     const app = $("#app");
     if (!S.user) { app.innerHTML = ""; app.className = ""; return; }
     app.className = "app";
-    const nav = [["home", "home"], ["news", "news"], ["lessons", "lessons"], ["quiz", "quiz"], ["progress", "progress"]];
+    const nav = [["home", "home"], ["course", "course"], ["news", "news"], ["progress", "progress"]];
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
         <div class="brand">${BRAND_DOTS}<span>${T("appName")}</span></div>
@@ -55,7 +56,7 @@
         <div class="status-box sunk">
           <div class="t">${T("statusTitle")}</div>
           <div class="row"><span class="dot"></span><b>${S.user.level ? LEVEL_ICON[S.user.level] + " " + T(S.user.level) : T("notPlaced")}</b></div>
-          <div class="row"><span class="dot good"></span><span id="status-lessons">${S.content ? `${S.content.progress.done}/${S.content.progress.total}` : "–"} ${T("lessonsDone")}</span></div>
+          <div class="row"><span class="dot good"></span><span id="status-lessons">${S.course ? `${S.course.modulesPassed}` : "–"} ${T("modulesDone")}</span></div>
         </div>
       </aside>
       <div class="scrim" id="scrim" hidden></div>
@@ -66,7 +67,7 @@
   function renderLangPill() {
     let p = $("#lang-pill"); if (!p) { p = h('<button id="lang-pill" class="lang-pill" aria-label="language"></button>'); document.body.appendChild(p); }
     p.innerHTML = `<span class="${S.lang === "en" ? "on" : ""}">EN</span><span class="sep">|</span><span class="${S.lang === "ar" ? "on" : ""}">ع</span>`;
-    p.onclick = async () => { S.lang = S.lang === "ar" ? "en" : "ar"; applyLang(); if (S.user) { try { await api("/api/settings", { lang: S.lang }); } catch {} } S.content = null; go(S.view, S.lastOpts || {}); };
+    p.onclick = async () => { S.lang = S.lang === "ar" ? "en" : "ar"; applyLang(); if (S.user) { try { await api("/api/settings", { lang: S.lang }); } catch {} } S.course = null; if (S.view === "module" && S.module) return openModule(S.module.id); if (["lesson", "quiz", "article"].includes(S.view)) return go("course"); go(S.view, S.lastOpts || {}); };
   }
   function closeMenu() { $("#sidebar")?.classList.remove("open"); const s = $("#scrim"); if (s) s.hidden = true; }
   function topbar(title, sub, right = "") {
@@ -204,7 +205,7 @@
     } catch (e) { toast(e.message || T("errNet")); }
   }
   async function refresh() {
-    try { S.content = await api("/api/content"); S.user = S.content.user; S.online = true; }
+    try { const r = await api("/api/course"); S.course = r.course; S.user = r.user; S.online = true; }
     catch (e) { if (e.message === "Failed to fetch") S.online = false; }
   }
 
@@ -213,33 +214,29 @@
     const m = $("#main");
     m.innerHTML = topbar(T("placementTitle"), T("placementSub")) + `<div class="card q-card" id="pl"><div class="row"><button class="btn primary" id="startq">${T("startQuestions")}</button><button class="btn" id="skip">${T("startBeginner")}</button></div></div>`;
     $("#skip").onclick = () => finishPlacement({ skipped: true });
-    $("#startq").onclick = async () => {
-      const { questions } = await api("/api/placement");
-      runQuestions($("#pl"), questions, async (answers) => finishPlacement({ answers }));
-    };
+    $("#startq").onclick = async () => { const { questions } = await api("/api/placement"); runQuestions($("#pl"), questions, async (answers) => finishPlacement({ answers })); };
   };
   async function finishPlacement(body) {
     const r = await api("/api/placement", body);
-    S.user = r.user; await refresh();
-    const m = $("#main");
-    m.innerHTML = topbar(T("yourLevel")) + `<div class="card result"><div class="level-badge" style="justify-content:center"><span class="icon">${LEVEL_ICON[r.level]}</span>${T(r.level)}</div><p class="sub" style="margin:14px 0 22px">${T("lessonsAhead")}</p><button class="btn primary big" id="ok">${T("ok")}</button></div>`;
-    $("#ok").onclick = () => { go("home"); Faris.say(T("farisPlaced", { level: T(r.level) })); };
+    S.user = r.user; S.course = r.course;
+    $("#main").innerHTML = topbar(T("yourLevel")) + `<div class="card result"><div class="level-badge" style="justify-content:center"><span class="icon">${LEVEL_ICON[r.level]}</span>${T(r.level)}</div><p class="sub" style="margin:14px 0 22px">${T("modulesAhead", { n: r.course.levels.find((l) => l.id === r.level).total })}</p><button class="btn primary big" id="ok">${T("ok")}</button></div>`;
+    $("#ok").onclick = () => { go("course"); Faris.say(T("farisPlaced", { level: T(r.level) })); };
   }
 
-  // Generic question runner (placement + quiz). onDone(answers)
+  // Generic question runner (placement + module quiz). onDone(answers)
   function runQuestions(container, questions, onDone, { quitLabel } = {}) {
     let i = 0; const answers = [];
     const step = () => {
       const q = questions[i];
       container.innerHTML = `<div class="dots">${questions.map((_, k) => `<i class="${k <= i ? "on" : ""}"></i>`).join("")}</div>
-        ${q.title ? `<div class="about"><span class="pill muted">${T("aboutArticle")}</span> ${esc(q.title)}</div>` : ""}
+        ${q.title ? `<div class="about"><span class="pill muted">${T("aboutModule")}</span> ${esc(q.title)}</div>` : ""}
         <div class="question">${esc(q.q)}</div>
         <div class="choices">${q.choices.map((c, k) => `<button class="choice" data-k="${k}">${esc(c)}</button>`).join("")}</div>
         <div class="row" style="margin-top:18px;justify-content:space-between"><button class="btn primary" id="next" disabled>${i === questions.length - 1 ? T("finish") : T("next")}</button>${quitLabel ? `<button class="btn ghost" id="quit">${quitLabel}</button>` : ""}</div>`;
       let sel = null;
       container.querySelectorAll(".choice").forEach((b) => (b.onclick = () => { container.querySelectorAll(".choice").forEach((x) => x.classList.remove("sel")); b.classList.add("sel"); sel = Number(b.dataset.k); $("#next").disabled = false; }));
       $("#next").onclick = () => { answers.push(sel); i++; if (i < questions.length) step(); else onDone(answers); };
-      const qb = $("#quit"); if (qb) qb.onclick = () => { if (confirm(T("quitConfirm"))) go("lessons"); };
+      const qb = $("#quit"); if (qb) qb.onclick = () => { if (confirm(T("quitConfirm"))) go("course"); };
     };
     step();
   }
@@ -247,28 +244,25 @@
   // ---------- home ----------
   VIEWS.home = async () => {
     await refresh();
-    const c = S.content, p = c.progress, pct = p.total ? Math.round((p.done / p.total) * 100) : 0;
-    const engine = c.engine === "claude" ? T("engineClaude") : c.lessons.some((l) => l.engine === "seed") && !c.lastUpdate ? T("engineSeed") : T("engineFallback");
-    const quizBtn = p.quizReady ? `<button class="btn primary" id="toquiz">${T("quizReady")}</button>` : `<button class="btn primary" disabled>${p.retryBlocked ? T("quizBlocked") : T("quizLocked")}</button>`;
+    const c = S.course, lv = c.levels.find((l) => l.id === c.level), pct = lv.total ? Math.round((lv.passed / lv.total) * 100) : 0;
     $("#main").innerHTML = topbar(T("greeting"), T("greetingSub")) + `
       <div class="hero">
         <div class="card level-card">
           <span class="pill">${T("level")}</span>
           <div class="level-badge"><span class="icon">${LEVEL_ICON[c.level]}</span>${T(c.level)}</div>
-          <p class="sub">${T("requiredToday")}: <b>${p.done} ${T("ofFive")} ${p.total}</b></p>
+          <p class="sub">${T("modulesPassed")}: <b>${lv.passed} ${T("ofFive")} ${lv.total}</b></p>
           <div class="bar"><i style="width:${pct}%"></i></div>
-          <div class="row" style="margin-top:8px">${quizBtn}<button class="btn" id="tolessons">${T("openLessons")}</button></div>
+          <div class="row" style="margin-top:8px">${c.next ? `<button class="btn primary" id="cont">${c.next.status === "quiz" ? T("takeQuiz") : T("continueModule")}: ${esc(c.next.title)}</button>` : `<span class="pill good">✓ ${T("levelComplete")}</span>`}<button class="btn" id="tocourse">${T("openCourse")}</button></div>
         </div>
-        <div class="card ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--sunk)" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--good)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(pct / 100) * 314} 314" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" class="num" fill="var(--ink)" font-size="26" font-weight="700">${pct}%</text></svg></div>
+        <div class="card ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--sunk)" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="var(--good)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(pct / 100) * 314} 314" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" fill="var(--ink)" font-size="26" font-weight="700">${pct}%</text></svg></div>
       </div>
       <div class="stats">
-        <div class="card stat"><span class="n">${S.user.badges.length}</span><span class="l">${T("passed")}</span></div>
-        <div class="card stat"><span class="n">${c.lessons.filter((l) => l.read).length}</span><span class="l">${T("read")}</span></div>
-        <div class="card stat"><span class="n">${c.lessons.length}</span><span class="l">${T("lessons")}</span></div>
-      </div>
-      <p class="sub" style="margin-top:16px">${engine}${c.lastUpdate ? ` · ${T("lastUpdate")}: ${new Date(c.lastUpdate).toLocaleString(S.lang === "ar" ? "ar" : "en")}` : ""}</p>`;
-    $("#tolessons").onclick = () => go("lessons");
-    const q = $("#toquiz"); if (q) q.onclick = () => go("quiz");
+        <div class="card stat"><span class="n">${c.modulesPassed}</span><span class="l">${T("modules")}</span></div>
+        <div class="card stat"><span class="n">${c.lessonsRead}</span><span class="l">${T("lessonsRead")}</span></div>
+        <div class="card stat"><span class="n">${S.user.badges.length}</span><span class="l">${T("levelsPassed")}</span></div>
+      </div>`;
+    $("#tocourse").onclick = () => go("course");
+    const b = $("#cont"); if (b) b.onclick = () => openModule(c.next.id);
   };
 
   // ---------- live news ----------
@@ -284,13 +278,12 @@
     const list = $("#news"); if (!list) return;
     const fmt = (d) => { const ms = Date.now() - new Date(d).getTime(), h = Math.floor(ms / 3600000); return h < 1 ? (S.lang === "ar" ? "قبل دقائق" : "minutes ago") : h < 24 ? (S.lang === "ar" ? `قبل ${h} س` : `${h}h ago`) : (S.lang === "ar" ? `قبل ${Math.floor(h / 24)} ي` : `${Math.floor(h / 24)}d ago`); };
     list.innerHTML = r.items.length ? r.items.map((it) => `
-      <div class="card news-item ${it.image ? "has-img" : ""}">${it.image ? `<img class="thumb" src="${esc(it.image)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<div>
+      <div class="card news-item"><div>
         <p class="t"><a href="#" data-read="${esc(it.url)}">${esc(it.title)}</a></p>
         <div class="m"><span class="pill muted">${it.icon ? `<img class="favicon" src="${esc(it.icon)}" alt="">` : ""}${esc(it.source)}</span><span>${fmt(it.published)}</span>${it.via ? `<span>· ${esc(it.via)}</span>` : ""}</div>
         ${it.snippet ? `<p class="snip">${esc(it.snippet.slice(0, 180))}…</p>` : ""}
-        <div class="row" style="margin-top:8px"><button class="btn small primary" data-read="${esc(it.url)}">${T("readHere")}</button>${it.lessonId ? `<button class="btn small" data-open="${it.lessonId}">${T("openLessonBtn")}</button>` : ""}<a class="btn ghost small" href="${esc(it.url)}" target="_blank" rel="noopener">${T("readOriginal")}</a></div>
+        <div class="row" style="margin-top:8px"><button class="btn small primary" data-read="${esc(it.url)}">${T("readHere")}</button><a class="btn ghost small" href="${esc(it.url)}" target="_blank" rel="noopener">${T("readOriginal")}</a></div>
       </div></div>`).join("") + `<p class="sub">${T("fetchedAt")}: ${new Date(r.fetchedAt).toLocaleTimeString(S.lang === "ar" ? "ar" : "en")}</p>` : `<p class="sub">${T("noNews")}</p>`;
-    list.querySelectorAll("[data-open]").forEach((b) => (b.onclick = () => openLesson(b.dataset.open)));
     list.querySelectorAll("[data-read]").forEach((b) => (b.onclick = (e) => { e.preventDefault(); openArticle(b.dataset.read); }));
   };
 
@@ -312,116 +305,110 @@
   }
 
   // ---------- lessons ----------
-  VIEWS.lessons = async () => {
+  // ---------- course: levels and module cards ----------
+  VIEWS.course = async () => {
     await refresh();
-    const c = S.content, p = c.progress;
-    const list = c.lessons.filter((l) => S.tab === "all" || l.category === S.tab);
-    $("#main").innerHTML = topbar(T("lessons"), `${T("requiredToday")}: ${p.done} ${T("ofFive")} ${p.total}`,
-      p.quizReady ? `<button class="btn primary" id="toquiz">${T("quizReady")}</button>` : `<button class="btn primary" disabled>${p.retryBlocked ? T("quizBlocked") : T("quizLocked")}</button>`) + `
-      <div class="tabs">${[{ id: "all", label: T("all") }, ...c.categories].map((t) => `<button data-t="${t.id}" class="${S.tab === t.id ? "active" : ""}">${t.label}</button>`).join("")}</div>
-      <div class="lesson-list">${list.map((l) => `
-        <button class="card lesson ${l.read ? "done" : ""} ${l.image ? "has-img" : ""}" data-id="${l.id}">
-          ${l.image ? `<img class="thumb" src="${esc(l.image)}" alt="" loading="lazy" onerror="this.remove()">` : ""}
-          <div><div class="meta"><span class="pill muted">${esc(l.categoryLabel)}</span>${l.required ? `<span class="pill">★ ${T("required")}</span>` : ""}${l.read ? `<span class="pill good">✓ ${T("read")}</span>` : ""}</div>
-          <p class="title">${esc(l.title)}</p><p class="prev">${esc(l.preview)}…</p><div class="src">${l.icon ? `<img class="favicon" src="${esc(l.icon)}" alt="">` : ""}${esc(l.source)} · ${l.date}</div></div>
-          <span class="check ${l.read ? "on" : ""}">✓</span>
-        </button>`).join("")}</div>`;
-    $("#main").querySelectorAll("[data-t]").forEach((b) => (b.onclick = () => { S.tab = b.dataset.t; go("lessons"); }));
-    $("#main").querySelectorAll("[data-id]").forEach((b) => (b.onclick = () => openLesson(b.dataset.id)));
-    const q = $("#toquiz"); if (q) q.onclick = () => go("quiz");
-    if (!sessionStorage.getItem("rasid.tourLessons")) { sessionStorage.setItem("rasid.tourLessons", "1"); Faris.say(T("farisLessons")); }
+    const c = S.course;
+    $("#main").innerHTML = topbar(T("course"), T("courseSub")) + c.levels.map((lv) => `
+      <section class="level-section ${lv.locked ? "locked" : ""}">
+        <div class="level-head"><div class="level-badge"><span class="icon">${LEVEL_ICON[lv.id]}</span>${T(lv.id)}</div>
+          <span class="pill ${lv.complete ? "good" : lv.locked ? "muted" : ""}">${lv.complete ? "✓ " + T("levelComplete") : lv.locked ? "🔒 " + T("lockedLevel") : `${lv.passed} / ${lv.total} ${T("modules")}`}</span></div>
+        <div class="modules">${lv.modules.map((m, i) => `
+          <div class="card module ${m.status}">
+            <div class="mod-top"><span class="mod-icon">${m.icon}</span><div><div class="mod-day">${T("module")} ${i + 1}</div><h3>${esc(m.title)}</h3></div>
+              ${m.passed ? `<span class="pill good">✓ ${T("passed")}</span>` : m.locked ? `<span class="pill muted">🔒</span>` : ""}</div>
+            <p class="mod-desc">${esc(m.desc)}</p>
+            <div class="mod-prog"><div class="bar"><i style="width:${Math.round((m.read / m.lessons) * 100)}%"></i></div><span>${m.read} / ${m.lessons} ${T("lessons")}</span></div>
+            <div class="chips">${m.skills.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</div>
+            <div class="row">${m.locked ? "" : `<button class="btn ${m.passed ? "" : "primary"}" data-mod="${m.id}">${m.passed ? T("review") : m.status === "quiz" ? T("takeQuiz") : m.read ? T("continueModule") : T("startModule")} →</button>`}</div>
+          </div>`).join("")}</div>
+      </section>`).join("");
+    $("#main").querySelectorAll("[data-mod]").forEach((b) => (b.onclick = () => openModule(b.dataset.mod)));
+    if (!sessionStorage.getItem("rasid.tourCourse")) { sessionStorage.setItem("rasid.tourCourse", "1"); Faris.say(T("farisCourse")); }
   };
 
-  async function openLesson(id, highlight) {
+  async function openModule(id) {
+    S.view = "module"; renderShell();
+    const m = await api(`/api/course/module/${id}`);
+    S.module = m;
+    $("#main").innerHTML = topbar(`${m.icon} ${esc(m.title)}`, `${T(m.level)} · ${m.read} / ${m.lessons} ${T("lessons")}`, `<button class="btn small" id="back">${T("back")}</button>`) + `
+      <div class="card"><p>${esc(m.desc)}</p><div class="chips">${m.skills.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</div></div>
+      <div class="lesson-list" style="margin-top:16px">${m.lessonList.map((l, i) => `
+        <button class="card lesson ${l.read ? "done" : ""}" data-id="${l.id}"><div><div class="meta"><span class="pill muted">${T("lesson")} ${i + 1}</span>${l.read ? `<span class="pill good">✓ ${T("read")}</span>` : ""}</div><p class="title">${esc(l.title)}</p></div><span class="check ${l.read ? "on" : ""}">✓</span></button>`).join("")}</div>
+      <div class="card" style="margin-top:16px"><h3>${T("moduleQuiz")}</h3><p class="sub">${T("quizIntro")}</p>
+        ${m.passed ? `<span class="pill good">✓ ${T("passed")}</span> ` : ""}
+        <button class="btn primary" id="quiz" ${m.quizReady || m.passed ? "" : "disabled"}>${m.passed ? T("retakeQuiz") : m.needsReread ? T("quizBlocked") : m.quizReady ? T("takeQuiz") : T("quizLocked")}</button></div>`;
+    $("#back").onclick = () => go("course");
+    $("#main").querySelectorAll("[data-id]").forEach((b) => (b.onclick = () => openLesson(b.dataset.id)));
+    $("#quiz").onclick = () => startQuiz(m.id);
+  }
+
+  async function openLesson(id) {
     S.view = "lesson"; renderShell();
-    const l = await api(`/api/lesson/${id}${highlight ? `?highlight=${encodeURIComponent(highlight)}` : ""}`);
-    S.lesson = l;
-    // Dotted-underline terms inside text.
-    let body = esc(l.text);
-    for (const t of l.terms) { const re = new RegExp(esc(t.term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"); body = body.replace(re, (m) => `<span class="term" data-term="${esc(t.term)}">${m}</span>`); }
-    if (l.highlight) { const re = new RegExp(esc(l.highlight).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"); body = body.replace(re, (m) => `<mark>${m}</mark>`); }
-    $("#main").innerHTML = topbar(esc(l.title), `${esc(l.categoryLabel)} · ${T(l.level)} · ${l.date}`, `<button class="btn small" id="back">${T("back")}</button>`) + `
-      ${l.arMissing && S.lang === "ar" ? `<div class="banner">⏳ ${T("arPending")}</div>` : ""}
-      <div class="card reader">${l.image ? `<img class="hero-img" src="${esc(l.image)}" alt="" onerror="this.remove()">` : ""}<div class="body">${body}</div><div id="def"></div>
-        ${l.article?.ok ? `<div class="article-box"><button class="btn small" id="toggle-article">${T("fullArticle")} · ${l.article.words} ${T("words")}</button>
-          <div id="article" hidden><p class="sub" style="margin-top:12px">${l.article.isTranslated ? T("translatedNote") : ""}</p><div class="article-text ${l.article.isTranslated ? "" : "ltr"}">${paras(l.article.text)}</div></div></div>` : ""}
+    const l = await api(`/api/course/lesson/${id}`);
+    $("#main").innerHTML = topbar(esc(l.title), `${l.icon} ${esc(l.moduleTitle)} · ${T("lesson")} ${l.index} / ${l.count}`, `<button class="btn small" id="back">${T("back")}</button>`) + `
+      <div class="card reader"><div class="body">${paras(l.body)}</div>
+        ${S.lang === "ar" ? `<details class="en-twin"><summary>English version</summary><div class="article-text ltr">${paras(l.bodyEn)}</div></details>` : ""}
         <p class="endmark">— ${T("endOfLesson")} —</p>
-        <p class="sub">${T("source")}: ${esc(l.source)} · <a href="${esc(l.url)}" target="_blank" rel="noopener">${T("openSource")}</a></p>
-        <div id="gotit" hidden style="margin-top:14px"><button class="btn primary big" id="done">${l.read ? "✓ " + T("read") : T("gotIt")}</button></div>
+        <div id="gotit" hidden style="margin-top:14px"><button class="btn primary big" id="done">${l.read ? "✓ " + T("read") + (l.nextId ? " · " + T("nextLesson") : "") : T("gotIt")}</button></div>
       </div>`;
-    $("#back").onclick = () => go(S.result ? "result" : "lessons");
-    const ta = $("#toggle-article"); if (ta) ta.onclick = () => { const box = $("#article"); box.hidden = !box.hidden; ta.textContent = box.hidden ? `${T("fullArticle")} · ${l.article.words} ${T("words")}` : T("hideArticle"); };
-    $("#main").querySelectorAll(".term").forEach((s) => (s.onclick = () => {
-      const t = l.terms.find((x) => x.term === s.dataset.term);
-      $("#def").innerHTML = `<div class="def sunk"><span class="t">${esc(t.term)}</span>: ${esc(t.def)} <button class="btn ghost small" id="cd">${T("close")}</button></div>`;
-      $("#cd").onclick = () => ($("#def").innerHTML = "");
-    }));
-    // "Got it" appears only when the end is on screen.
-    const end = $(".endmark");
+    $("#back").onclick = () => openModule(l.moduleId);
     const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { $("#gotit").hidden = false; io.disconnect(); } });
-    io.observe(end);
+    io.observe($(".endmark"));
     $("#done").onclick = async () => {
-      const r = await api(`/api/lesson/${id}/done`, {});
-      const left = r.progress.total - r.progress.done;
-      if (S.result) { S.result.review.forEach((it) => { if (it.lessonId === id) it.reread = true; }); S.result.retryBlocked = r.progress.retryBlocked; go("result"); return; }
-      await refresh(); go("lessons");
-      Faris.say(left === 0 ? T("farisAllDone") : T("farisLessonDone", { n: left }), { open: true });
+      const r = await api(`/api/course/lesson/${id}/done`, {});
+      S.course = r.course;
+      if (r.module.quizReady) { Faris.say(T("farisModuleDone")); openModule(l.moduleId); }
+      else if (l.nextId) openLesson(l.nextId);
+      else openModule(l.moduleId);
     };
   }
   window.App = { openLesson: (id) => openLesson(id) };
 
-  // ---------- quiz ----------
-  VIEWS.quiz = async () => {
-    await refresh();
-    const p = S.content.progress;
-    $("#main").innerHTML = topbar(T("quiz"), T(S.content.level)) + `<div class="card q-card" id="qz"><p>${T("quizIntro")}</p>${p.quizReady ? `<button class="btn primary big" id="start">${T("start")}</button>` : `<button class="btn primary big" disabled>${p.retryBlocked ? T("quizBlocked") : T("quizLocked")}</button><p class="sub" style="margin-top:10px">${p.done} ${T("ofFive")} ${p.total}</p>`}</div>`;
-    const s = $("#start"); if (!s) return;
-    s.onclick = async () => {
-      const { questions } = await api("/api/quiz");
-      Faris.say(T("farisQuiz"), { open: false, pulse: true });
-      const guard = (e) => { e.preventDefault(); e.returnValue = ""; };
-      window.addEventListener("beforeunload", guard);
-      runQuestions($("#qz"), questions, async (answers) => {
-        window.removeEventListener("beforeunload", guard);
-        const r = await api("/api/quiz", { answers });
-        S.result = { ...r, retryBlocked: !r.passed }; S.user = r.user; await refresh(); go("result");
-      }, { quitLabel: T("quit") });
-    };
-  };
+  async function startQuiz(moduleId) {
+    S.view = "quiz"; renderShell();
+    let q; try { q = await api(`/api/course/quiz/${moduleId}`); } catch { return openModule(moduleId); }
+    $("#main").innerHTML = topbar(T("quiz"), esc(q.title)) + `<div class="card q-card" id="qz"></div>`;
+    Faris.say(T("farisQuiz"), { open: false, pulse: true });
+    const guard = (e) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", guard);
+    runQuestions($("#qz"), q.questions, async (answers) => {
+      window.removeEventListener("beforeunload", guard);
+      const r = await api("/api/course/quiz", { answers });
+      S.result = r; S.user = r.user; S.course = r.course; go("result");
+    }, { quitLabel: T("quit") });
+  }
 
   VIEWS.result = async () => {
-    const r = S.result; if (!r) return go("home");
-    const passed = r.passed;
-    const head = passed ? (r.previousLevel === "expert" ? T("expertNow") : T("levelUp")) : T("failed");
-    const allReread = r.review.filter((i) => !i.correct).every((i) => i.reread);
-    $("#main").innerHTML = topbar(head) + `
+    const r = S.result; if (!r) return go("course");
+    const head = r.expertDone ? T("expertNow") : r.levelUp ? T("levelUp") : r.passed ? T("modulePassed") : T("failed");
+    $("#main").innerHTML = topbar(head, esc(r.moduleTitle)) + `
       <div class="card result"><div class="score">${r.score}/${r.total}</div>
-        ${passed ? `<div class="level-badge" style="justify-content:center;margin:10px 0"><span class="icon">${LEVEL_ICON[r.level]}</span>${T(r.level)}</div><button class="btn primary big" id="cont">${T("continueBtn")}</button>`
-                 : `<p class="sub">${T("tryAgainHint")}</p><button class="btn primary big" id="retry" ${allReread ? "" : "disabled"}>${T("tryAgain")}</button>`}
+        ${r.levelUp ? `<div class="level-badge" style="justify-content:center;margin:10px 0"><span class="icon">${LEVEL_ICON[r.levelUp]}</span>${T(r.levelUp)}</div>` : ""}
+        ${r.passed ? `<button class="btn primary big" id="cont">${T("continueBtn")}</button>` : `<p class="sub">${T("rereadHint")}</p><button class="btn primary big" id="reread">${T("rereadModule")}</button>`}
       </div>
-      ${passed ? "" : `<h2 style="margin-top:24px">${T("reviewTitle")}</h2><div class="stack">${r.review.map((it) => `
+      <h2 style="margin-top:24px">${T("reviewTitle")}</h2><div class="stack">${r.review.map((it) => `
         <div class="card review-item"><div class="row" style="justify-content:space-between"><b>${esc(it.q)}</b><span class="mark ${it.correct ? "ok" : "no"}">${it.correct ? "✓" : "✗"}</span></div>
           <p class="sub">${T("yourAnswer")}: ${esc(it.choices[it.chosen] ?? "—")}</p>
-          ${it.correct ? "" : `<p><span class="mark ok">✓</span> ${T("correctAnswer")}: <b>${esc(it.choices[it.answer])}</b></p><p class="sub">${esc(it.title)}</p><button class="btn small ${it.reread ? "" : "primary"}" data-reread="${it.lessonId}" data-h="${esc(it.choices[it.answer])}">${it.reread ? "✓ " + T("rereadDone") : T("reread")}</button>`}
-        </div>`).join("")}</div>`}`;
-    const c = $("#cont"); if (c) c.onclick = () => { const lv = r.level; S.result = null; go("home"); Faris.say(r.previousLevel === "expert" ? T("farisExpert") : T("farisPass", { level: T(lv) })); };
-    const rt = $("#retry"); if (rt) rt.onclick = () => { S.result = null; go("quiz"); };
-    $("#main").querySelectorAll("[data-reread]").forEach((b) => (b.onclick = () => openLesson(b.dataset.reread, b.dataset.h)));
-    if (!passed && !r._said) { r._said = true; Faris.say(T("farisFail", { n: r.total - r.score })); }
+          ${it.correct ? "" : `<p><span class="mark ok">✓</span> ${T("correctAnswer")}: <b>${esc(it.choices[it.answer])}</b></p>`}
+        </div>`).join("")}</div>`;
+    const c = $("#cont"); if (c) c.onclick = () => { S.result = null; go("course"); Faris.say(r.expertDone ? T("farisExpert") : r.levelUp ? T("farisPass", { level: T(r.levelUp) }) : T("farisModulePass")); };
+    const rr = $("#reread"); if (rr) rr.onclick = () => { S.result = null; openLesson(r.lessonIds[0]); };
+    if (!r.passed && !r._said) { r._said = true; Faris.say(T("farisFail", { n: r.total - r.score })); }
   };
 
-  // ---------- progress ----------
   VIEWS.progress = async () => {
     await refresh();
-    const u = S.user, levels = ["beginner", "intermediate", "expert"];
-    $("#main").innerHTML = topbar(T("progress")) + `<div class="grid">${levels.map((lv) => {
-      const passed = u.badges.includes(lv), current = u.level === lv;
-      return `<div class="card"><div class="level-badge"><span class="icon">${LEVEL_ICON[lv]}</span>${T(lv)}</div><p style="margin-top:8px"><span class="pill ${passed ? "good" : current ? "" : "muted"}">${passed ? "✓ " + T("passed") : current ? T("level") : "—"}</span></p></div>`;
-    }).join("")}</div>
-    ${u.expertDone ? `<div class="card" style="margin-top:16px"><h3>${T("expertNow")}</h3><p class="sub">${T("dailyChallenge")}</p></div>` : ""}`;
+    const c = S.course;
+    $("#main").innerHTML = topbar(T("progress")) + `<div class="grid">${c.levels.map((lv) => `
+      <div class="card"><div class="level-badge"><span class="icon">${LEVEL_ICON[lv.id]}</span>${T(lv.id)}</div>
+        <p style="margin-top:8px"><span class="pill ${lv.complete ? "good" : lv.locked ? "muted" : ""}">${lv.complete ? "✓ " + T("levelComplete") : lv.locked ? "🔒 " + T("lockedLevel") : T("level")}</span></p>
+        <div class="bar" style="margin:10px 0"><i style="width:${Math.round((lv.passed / lv.total) * 100)}%"></i></div>
+        <ul class="skills">${lv.modules.map((m) => `<li class="${m.passed ? "ok" : ""}">${m.passed ? "✓" : "○"} ${esc(m.title)}</li>`).join("")}</ul></div>`).join("")}</div>
+      ${c.expertDone ? `<div class="card" style="margin-top:16px"><h3>${T("expertNow")}</h3></div>` : ""}`;
   };
 
-  // ---------- settings ----------
+
   VIEWS.settings = async () => {
     const u = S.user;
     let status = null; try { status = await api("/api/status"); } catch {}

@@ -263,3 +263,28 @@ html[dir="rtl"] .lang-pill { right: auto; left: 16px; }
 .article-text.ltr { direction: ltr; text-align: left; }
 .about { font-size: 15px; color: var(--muted); margin-bottom: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 @media (max-width: 600px) { .thumb { width: 72px; height: 56px; } }
+
+/* course */
+.level-section { margin-bottom: 30px; }
+.level-section.locked { opacity: .75; }
+.level-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.module { display: flex; flex-direction: column; gap: 12px; border-top: 4px solid var(--accent); }
+.module.passed { border-top-color: var(--good); }
+.module.locked { border-top-color: var(--line); }
+.module.quiz { border-top-color: var(--amber); }
+.mod-top { display: flex; align-items: flex-start; gap: 12px; }
+.mod-top h3 { margin: 0; font-size: 18px; }
+.mod-top > div { flex: 1; }
+.mod-icon { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 24px; background: var(--sunk); box-shadow: inset 3px 3px 6px var(--sh-d), inset -3px -3px 6px var(--sh-l); flex: 0 0 auto; }
+.mod-day { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); }
+.mod-desc { color: var(--muted); font-size: 15px; margin: 0; }
+.mod-prog { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.mod-prog .bar { flex: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+.skills { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--muted); }
+.skills li.ok { color: var(--good); }
+.en-twin { margin-top: 14px; color: var(--muted); }
+.en-twin summary { cursor: pointer; font-weight: 600; }
+.reader .body p { margin: 0 0 14px; }
