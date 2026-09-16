@@ -73,10 +73,10 @@ GitHub Pages cannot host this app: it only serves static files, and Rasid has a 
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Sultan-AlKaabi-hub/Project)
 
-1. Click the button (or in Render: **New → Blueprint** and pick this repository).  already describes the service.
-2. Add the environment variable  (recommended) and, optionally, .
-3. Deploy. The app comes up at  (Render adds a suffix if the name is taken). The GitHub Pages page at  redirects there.
+1. Click the button (or in Render: **New → Blueprint** and pick this repository). `render.yaml` already describes the service.
+2. Add the environment variable `ANTHROPIC_API_KEY` (recommended) and, optionally, `ADMIN_EMAIL`.
+3. Deploy. The app comes up at `https://rasid.onrender.com` (Render adds a suffix if the name is taken). The GitHub Pages page at `sultan-alkaabi-hub.github.io/Project` redirects there.
 
-Free-tier notes: the service sleeps after 15 minutes without traffic (first load takes about a minute), and there is no persistent disk, so  (accounts and progress) resets on each deploy. For real users pick a paid plan with a disk (see the comment in ), or any host with a volume: the  works on Railway, Fly.io or a VPS with .
+Free-tier notes: the service sleeps after 15 minutes without traffic (first load takes about a minute), and there is no persistent disk, so `data/db.json` (accounts and progress) resets on each deploy. For real users pick a paid plan with a disk (see the comment in `render.yaml`), or any host with a volume: the `Dockerfile` works on Railway, Fly.io or a VPS with `docker run -p 3000:3000 -v rasid-data:/app/data rasid`.
 
 Passkeys (fingerprint / Face ID) need HTTPS, which every host above provides.
