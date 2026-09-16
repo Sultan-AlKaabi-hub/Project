@@ -64,6 +64,7 @@
       saveState(S); return { user: publicUser(S.user) };
     }
     if (p === "/api/auth/logout") { return { ok: true }; }
+    if (p === "/api/account") { S = {}; saveState(S); return { ok: true }; }
     if (p === "/api/auth/pin/reset-request") return { sent: true, devCode: "000000" };
     if (p === "/api/auth/pin/reset") { if (S.user && S.user.email === String(body.email).toLowerCase() && /^\d{6}$/.test(body.pin)) { S.user.pin = body.pin; saveState(S); return { user: publicUser(S.user) }; } throw fail("bad_code", 401); }
     if (p.startsWith("/api/auth/passkey") || p.startsWith("/api/security/")) throw fail("demo_only");

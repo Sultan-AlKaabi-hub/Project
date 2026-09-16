@@ -271,7 +271,7 @@
   // ---------- live news ----------
   VIEWS.news = async (opts) => {
     await refresh();
-    const c = S.content; S.newsTab = S.newsTab || "civilian";
+    const c = { categories: ["civilian", "us_military", "russia_military", "china_military", "other"].map((id) => ({ id, label: T("cat_" + id) })) }; S.newsTab = S.newsTab || "civilian";
     const m = $("#main");
     m.innerHTML = topbar(`<span class="live"><span class="dot good"></span>${T("news")}</span>`, "", `<button class="btn small" id="fresh">${T("refresh")}</button>`) +
       `<div class="tabs">${c.categories.map((t) => `<button data-t="${t.id}" class="${S.newsTab === t.id ? "active" : ""}">${t.label}</button>`).join("")}</div><div class="lesson-list" id="news"><p class="sub">…</p></div>`;
@@ -437,6 +437,7 @@
         <div class="setting"><div><h3>${T("reportProblem")}</h3></div><button class="btn small" id="report">${T("reportProblem")}</button></div>
         <div class="setting"><div><h3>${T("startOver")}</h3><div class="d">${T("startOverD")}</div></div><button class="btn small" id="reset">${T("startOver")}</button></div>
         <div class="setting"><div><h3>${T("signOut")}</h3></div><button class="btn small" id="logout">${T("signOut")}</button></div>
+        <div class="setting"><div><h3>${T("deleteAccount")}</h3><div class="d">${T("deleteAccountD")}</div></div><button class="btn small" id="delacc">${T("deleteAccount")}</button></div>
       </div>`;
     $("#main").querySelectorAll("[data-lang]").forEach((b) => (b.onclick = async () => { S.lang = b.dataset.lang; applyLang(); await api("/api/settings", { lang: S.lang }); go("settings"); }));
     if (DEMO) { $("#totp").onclick = () => toast(T("demoOnly")); $("#pk").onclick = () => toast(T("demoOnly")); } else $("#totp").onclick = async () => {
@@ -452,6 +453,7 @@
     const upd = $("#upd"); if (upd) upd.onclick = async () => { await api("/api/admin/update", {}); toast(T("updateStarted")); go("settings"); };
     $("#report").onclick = async () => { const note = prompt(T("reportProblem")) || ""; await api("/api/faris/report", { screen: S.view, note }); toast(T("reported")); };
     $("#reset").onclick = async () => { if (!confirm(T("startOverConfirm"))) return; const r = await api("/api/reset", {}); S.user = r.user; S.result = null; go("placement"); };
+    $("#delacc").onclick = async () => { if (!confirm(T("deleteAccountConfirm"))) return; await api("/api/account", {}, "DELETE"); S.user = null; S.course = null; Faris.hide(); go("auth", { mode: "signup" }); };
     $("#logout").onclick = async () => { await api("/api/auth/logout", {}); S.user = null; S.content = null; Faris.hide(); go("auth", { mode: "login" }); };
   };
 

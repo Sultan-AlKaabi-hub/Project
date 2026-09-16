@@ -144,6 +144,12 @@ app.post("/api/settings", requireUser, (req, res) => {
   if (typeof req.body.name === "string") req.user.name = req.body.name.trim().slice(0, 60);
   save(); res.json({ user: publicUser(req.user) });
 });
+app.delete("/api/account", requireUser, (req, res) => {
+  const email = req.user.email;
+  delete db.users[email];
+  for (const [t, sess] of Object.entries(db.sessions)) if (sess.email === email) delete db.sessions[t];
+  saveNow(); res.clearCookie("rasid"); res.json({ ok: true });
+});
 app.post("/api/reset", requireUser, (req, res) => {
   const u = req.user;
   u.level = null; u.read = {}; u.badges = []; u.expertDone = false; u.course = { modules: {} }; delete u.activeQuiz; delete u.review; delete u.activePlacement;
