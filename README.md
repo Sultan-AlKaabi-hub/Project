@@ -46,7 +46,7 @@ npm run update
 
 ## The learning path
 
-The course lives in  (, , ), written in Arabic with an English twin, so lessons never depend on translation services. 20 modules, 60 lessons, 100 quiz questions.
+The course lives in `data/curriculum/` (`beginner.js`, `intermediate.js`, `expert.js`), written in Arabic with an English twin, so lessons never depend on translation services. 20 modules, 60 lessons, 100 quiz questions.
 
 | Level | Modules |
 |---|---|
@@ -59,7 +59,7 @@ The course lives in  (, , ), written in Arabic with an English twin, so lessons 
 3. **Fail.** The quiz locks until the module's lessons are reread. Unlimited attempts, new question draw each time.
 4. **Level-up.** Passing every module in a level unlocks the next level. Expert completion ends the required quizzes.
 
-The **Live News** screen is separate: real headlines from named sources with an in-app reader (Arabic by machine translation when the free services are available, English otherwise). Set  to also generate news-based lessons daily (needs  for good results).
+The **Live News** screen is separate: real headlines from named sources with an in-app reader (Arabic by machine translation when the free services are available, English otherwise). Set `RASID_NEWS_LESSONS=1` to also generate news-based lessons daily (needs `ANTHROPIC_API_KEY` for good results).
 
 ## Install on a phone
 
