@@ -251,3 +251,15 @@ html[dir="rtl"] .lang-pill { right: auto; left: 16px; }
 .sources { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .sources div { background: var(--sunk); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
 .sources b { display: block; margin-bottom: 4px; }
+
+/* images and article reader */
+.thumb { width: 96px; height: 72px; object-fit: cover; border-radius: 12px; flex: 0 0 auto; }
+.lesson.has-img { grid-template-columns: auto 1fr auto; }
+.news-item.has-img { grid-template-columns: auto 1fr; }
+.favicon { width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-inline-end: 4px; }
+.hero-img { width: 100%; max-height: 320px; object-fit: cover; border-radius: 14px; margin-bottom: 16px; }
+.article-box { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.article-text p { font-size: 17px; line-height: 1.9; margin: 0 0 12px; }
+.article-text.ltr { direction: ltr; text-align: left; }
+.about { font-size: 15px; color: var(--muted); margin-bottom: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+@media (max-width: 600px) { .thumb { width: 72px; height: 56px; } }

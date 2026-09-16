@@ -10,7 +10,8 @@ import { load, save, saveNow, today, DATA_DIR } from "./db.js";
 import * as auth from "./auth.js";
 import { runUpdate, currentRequired } from "./pipeline/run.js";
 import { CATEGORIES, fetchCategory, sourceList } from "./pipeline/fetchNews.js";
-import { LEVELS, aiAvailable } from "./pipeline/generate.js";
+import { LEVELS, aiAvailable, keySentences } from "./pipeline/generate.js";
+import { fetchArticle, favicon, translate } from "./pipeline/article.js";
 import { answer as farisAnswer } from "./faris.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -55,7 +56,8 @@ function lessonCard(l, level, lang, read) {
   return {
     id: l.id, category: l.category, categoryLabel: lang === "ar" ? cat?.ar : cat?.en,
     title: lang === "ar" ? l.title_ar : l.title_en, source: l.source, date: l.date,
-    preview: text.slice(0, 140), read: Boolean(read[l.id]), engine: l.engine
+    preview: text.slice(0, 140), read: Boolean(read[l.id]), engine: l.engine,
+    image: l.image || null, icon: l.icon || favicon(l.url), arMissing: Boolean(l.arMissing)
   };
 }
 
@@ -198,6 +200,8 @@ app.get("/api/lesson/:id", requireUser, (req, res) => {
     text: l.levels[level]?.[lang] || l.levels[level]?.en, textEn: l.levels[level]?.en,
     terms: (l.terms || []).map((t) => ({ term: lang === "ar" ? t.term_ar : t.term_en, termEn: t.term_en, def: lang === "ar" ? t.def_ar : t.def_en })),
     wiki: l.wiki || [], read: Boolean(readSet(u, level)[l.id]),
+    image: l.image || null, icon: l.icon || favicon(l.url), arMissing: Boolean(l.arMissing),
+    article: l.article ? { ok: l.article.ok, words: l.article.words, text: lang === "ar" && l.article.text_ar ? l.article.text_ar : l.article.text, textEn: l.article.text, isTranslated: lang === "ar" && Boolean(l.article.text_ar) } : null,
     highlight: req.query.highlight ? String(req.query.highlight) : null
   });
 });
@@ -217,7 +221,7 @@ app.post("/api/lesson/:id/done", requireUser, (req, res) => {
 // ---------- placement ----------
 function q(l, level, lang, idx) {
   const src = l.questions[level][idx];
-  return { lessonId: l.id, level, idx, q: lang === "ar" ? src.q_ar : src.q_en, choices: lang === "ar" ? src.choices_ar : src.choices_en };
+  return { lessonId: l.id, level, idx, title: lang === "ar" ? l.title_ar : l.title_en, q: lang === "ar" ? src.q_ar : src.q_en, choices: lang === "ar" ? src.choices_ar : src.choices_en };
 }
 app.get("/api/placement", requireUser, (req, res) => {
   const lang = req.user.lang || "ar";
@@ -229,7 +233,7 @@ app.get("/api/placement", requireUser, (req, res) => {
   }
   req.user.activePlacement = items.map((i) => ({ lessonId: i.lessonId, level: i.level, idx: i.idx }));
   save();
-  res.json({ questions: items.map((i, n) => ({ n, q: i.q, choices: i.choices })) });
+  res.json({ questions: items.map((i, n) => ({ n, q: i.q, choices: i.choices, title: i.title })) });
 });
 app.post("/api/placement", requireUser, (req, res) => {
   const u = req.user;
@@ -252,7 +256,7 @@ app.get("/api/quiz", requireUser, (req, res) => {
     .map((l) => q(l, level, lang, Math.floor(Math.random() * l.questions[level].length)));
   u.activeQuiz = { level, items: items.map((i) => ({ lessonId: i.lessonId, idx: i.idx })), started: Date.now() };
   save();
-  res.json({ level, passMark: PASS_MARK, questions: items.map((i, n) => ({ n, lessonId: i.lessonId, q: i.q, choices: i.choices })) });
+  res.json({ level, passMark: PASS_MARK, questions: items.map((i, n) => ({ n, lessonId: i.lessonId, q: i.q, choices: i.choices, title: i.title })) });
 });
 app.post("/api/quiz", requireUser, (req, res) => {
   const u = req.user, lang = u.lang || "ar";
@@ -289,8 +293,20 @@ app.get("/api/news", requireUser, async (req, res) => {
   const cat = CATEGORIES.find((c) => c.id === catId);
   if (!cat) return res.status(400).json({ error: "bad_category" });
   const items = await fetchCategory(cat, 10, { fresh: req.query.fresh === "1" });
-  const lessonFor = (url) => db.lessons.find((l) => l.url === url)?.id || null;
-  res.json({ category: cat.id, fetchedAt: new Date().toISOString(), items: items.map((a) => ({ ...a, lessonId: lessonFor(a.url) })) });
+  const lessonFor = (url) => db.lessons.find((l) => l.url === url);
+  res.json({ category: cat.id, fetchedAt: new Date().toISOString(), items: items.map((a) => { const l = lessonFor(a.url); return { ...a, lessonId: l?.id || null, image: l?.image || null, icon: favicon(a.url) }; }) });
+});
+// Read any headline inside the app: fetch + extract on demand (cached). Arabic via free translation.
+app.get("/api/article", requireUser, async (req, res) => {
+  const url = String(req.query.url || "");
+  if (!/^https?:\/\//.test(url)) return res.status(400).json({ error: "bad_url" });
+  const a = await fetchArticle(url);
+  if (!a || !a.ok) return res.status(404).json({ error: "no_text", url: a?.url || url });
+  const lang = req.user.lang || "ar";
+  let text = a.text, translated = false;
+  if (lang === "ar") { const t = await translate(a.text.length <= 7000 ? a.text : keySentences(a.text, 10).join(" ")); if (t) { text = t; translated = true; } }
+  const titleAr = lang === "ar" ? await translate(a.title) : null;
+  res.json({ title: titleAr || a.title, titleEn: a.title, translationPending: lang === "ar" && !translated, site: a.site, image: a.image, icon: favicon(a.url), url: a.url, words: a.words, text, textEn: a.text, translated, partial: a.text.length > 7000 && lang === "ar" });
 });
 app.get("/api/sources", (req, res) => res.json({ sources: sourceList() }));
 
@@ -353,7 +369,8 @@ seedIfEmpty();
 app.listen(PORT, () => {
   console.log(`Rasid running at http://localhost:${PORT}  (content engine: ${aiAvailable() ? "Claude" : "fallback, set ANTHROPIC_API_KEY for AI lessons"})`);
   if (!process.env.RASID_NO_UPDATE) {
-    const stale = !db.settings.lastUpdate || db.settings.lastUpdate.slice(0, 10) !== today();
+    const live = db.lessons.filter((l) => l.engine !== 'seed');
+    const stale = !db.settings.lastUpdate || db.settings.lastUpdate.slice(0, 10) !== today() || live.length < 5 || live.some((l) => (l.version || 1) < 2);
     if (stale) setTimeout(triggerUpdate, 2000);
     cron.schedule("0 6 * * *", triggerUpdate);
   }

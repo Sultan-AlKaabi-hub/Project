@@ -15,7 +15,7 @@ Open http://localhost:3000. The first account created becomes the admin (or set 
 
 | Variable | Effect |
 |---|---|
-| `ANTHROPIC_API_KEY` | Lessons and quiz questions are written by Claude (`claude-opus-5`). Without it the app runs in **fallback mode**: templated English summaries translated to Arabic with the free MyMemory API and template questions. |
+| `ANTHROPIC_API_KEY` | **Recommended.** Claude (`claude-opus-5`) reads each full article and writes the Arabic article, the three lesson levels, and real exam questions about the content. Without it the app runs in **fallback mode**: it still reads the full article, but summaries are extractive, questions are fill-in-the-blank and statement-match built from the text, and Arabic comes from free translation services that are rate limited (lessons show English with a "translation pending" note until the daily catch-up pass fills them in). |
 | `RASID_MODEL` | Override the Claude model id. |
 | `ADMIN_EMAIL` | Which account sees the "Update news now" button. |
 | `RASID_NO_UPDATE=1` | Skip the automatic update on start and the 06:00 daily job. |
@@ -34,7 +34,8 @@ npm run update
 |---|---|
 | `server/index.js` | Express API, static PWA, daily cron (06:00), admin update |
 | `server/auth.js` | Email + 6-digit PIN (scrypt), sessions, Google Authenticator (TOTP), passkeys (fingerprint / Face ID via WebAuthn) |
-| `server/pipeline/fetchNews.js` | Google News RSS per category: Civilian, US Military, Russian Military, Chinese Military, Other Regions |
+| `server/pipeline/fetchNews.js` | Live headlines per category from Google News search feeds plus direct RSS (MIT Technology Review, The Verge, VentureBeat, Defense One, Breaking Defense, DefenseScoop, Moscow Times, SCMP, Euractiv, Al Jazeera, Arab News) |
+| `server/pipeline/article.js` | Decodes Google News links, fetches the real article page, extracts the main text and lead image, free English→Arabic translation with caching and back-off |
 | `server/pipeline/wikipedia.js` | One-line definitions, Arabic Wikipedia first, English fallback |
 | `server/pipeline/generate.js` | Claude structured-output generation of the three levels + questions; automatic fallback |
 | `server/pipeline/run.js` | Orchestrates an update and picks the 5 required lessons per level (one per category) |

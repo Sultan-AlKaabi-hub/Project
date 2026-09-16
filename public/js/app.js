@@ -232,6 +232,7 @@
     const step = () => {
       const q = questions[i];
       container.innerHTML = `<div class="dots">${questions.map((_, k) => `<i class="${k <= i ? "on" : ""}"></i>`).join("")}</div>
+        ${q.title ? `<div class="about"><span class="pill muted">${T("aboutArticle")}</span> ${esc(q.title)}</div>` : ""}
         <div class="question">${esc(q.q)}</div>
         <div class="choices">${q.choices.map((c, k) => `<button class="choice" data-k="${k}">${esc(c)}</button>`).join("")}</div>
         <div class="row" style="margin-top:18px;justify-content:space-between"><button class="btn primary" id="next" disabled>${i === questions.length - 1 ? T("finish") : T("next")}</button>${quitLabel ? `<button class="btn ghost" id="quit">${quitLabel}</button>` : ""}</div>`;
@@ -283,14 +284,32 @@
     const list = $("#news"); if (!list) return;
     const fmt = (d) => { const ms = Date.now() - new Date(d).getTime(), h = Math.floor(ms / 3600000); return h < 1 ? (S.lang === "ar" ? "قبل دقائق" : "minutes ago") : h < 24 ? (S.lang === "ar" ? `قبل ${h} س` : `${h}h ago`) : (S.lang === "ar" ? `قبل ${Math.floor(h / 24)} ي` : `${Math.floor(h / 24)}d ago`); };
     list.innerHTML = r.items.length ? r.items.map((it) => `
-      <div class="card news-item"><div>
-        <p class="t"><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a></p>
-        <div class="m"><span class="pill muted">${esc(it.source)}</span><span>${fmt(it.published)}</span>${it.via ? `<span>· ${esc(it.via)}</span>` : ""}</div>
+      <div class="card news-item ${it.image ? "has-img" : ""}">${it.image ? `<img class="thumb" src="${esc(it.image)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<div>
+        <p class="t"><a href="#" data-read="${esc(it.url)}">${esc(it.title)}</a></p>
+        <div class="m"><span class="pill muted">${it.icon ? `<img class="favicon" src="${esc(it.icon)}" alt="">` : ""}${esc(it.source)}</span><span>${fmt(it.published)}</span>${it.via ? `<span>· ${esc(it.via)}</span>` : ""}</div>
         ${it.snippet ? `<p class="snip">${esc(it.snippet.slice(0, 180))}…</p>` : ""}
-        <div class="row" style="margin-top:8px">${it.lessonId ? `<button class="btn small primary" data-open="${it.lessonId}">${T("openLessonBtn")}</button>` : ""}<a class="btn small" href="${esc(it.url)}" target="_blank" rel="noopener">${T("readOriginal")}</a></div>
+        <div class="row" style="margin-top:8px"><button class="btn small primary" data-read="${esc(it.url)}">${T("readHere")}</button>${it.lessonId ? `<button class="btn small" data-open="${it.lessonId}">${T("openLessonBtn")}</button>` : ""}<a class="btn ghost small" href="${esc(it.url)}" target="_blank" rel="noopener">${T("readOriginal")}</a></div>
       </div></div>`).join("") + `<p class="sub">${T("fetchedAt")}: ${new Date(r.fetchedAt).toLocaleTimeString(S.lang === "ar" ? "ar" : "en")}</p>` : `<p class="sub">${T("noNews")}</p>`;
     list.querySelectorAll("[data-open]").forEach((b) => (b.onclick = () => openLesson(b.dataset.open)));
+    list.querySelectorAll("[data-read]").forEach((b) => (b.onclick = (e) => { e.preventDefault(); openArticle(b.dataset.read); }));
   };
+
+  const paras = (t) => esc(t).split(/\n\n+|(?<=[.!?\u061F])\s+(?=[A-Z\u0600-\u06FF])/).filter(Boolean).map((p) => `<p>${p}</p>`).join("");
+
+  // In-app reader for any headline: the site is fetched and its text shown here (Arabic by translation).
+  async function openArticle(url) {
+    S.view = "article"; renderShell();
+    $("#main").innerHTML = topbar("…", "", `<button class="btn small" id="back">${T("back")}</button>`) + `<div class="card reader"><p class="sub">${T("farisThinking")}</p></div>`;
+    $("#back").onclick = () => go("news");
+    let r; try { r = await api(`/api/article?url=${encodeURIComponent(url)}`); } catch (ex) { r = null; }
+    if (!r) { $("#main").innerHTML = topbar(T("news"), "", `<button class="btn small" id="back">${T("back")}</button>`) + `<div class="card reader"><p>${T("noText")}</p><a class="btn small" href="${esc(url)}" target="_blank" rel="noopener">${T("readOriginal")}</a></div>`; $("#back").onclick = () => go("news"); return; }
+    $("#main").innerHTML = topbar(esc(r.title), `${r.icon ? `<img class="favicon" src="${esc(r.icon)}" alt="">` : ""}${esc(r.site)} · ${r.words} ${T("words")}`, `<button class="btn small" id="back">${T("back")}</button>`) + `
+      <div class="card reader">${r.image ? `<img class="hero-img" src="${esc(r.image)}" alt="" onerror="this.remove()">` : ""}
+        ${r.translated ? `<p class="sub">${r.partial ? T("partialNote") : T("translatedNote")}</p>` : r.translationPending ? `<div class="banner">⏳ ${T("arPending")}</div>` : ""}
+        <div class="article-text ${r.translated ? "" : "ltr"}">${paras(r.text)}</div>
+        <p style="margin-top:14px"><a class="btn small" href="${esc(r.url)}" target="_blank" rel="noopener">${T("readOriginal")}</a></p></div>`;
+    $("#back").onclick = () => go("news");
+  }
 
   // ---------- lessons ----------
   VIEWS.lessons = async () => {
@@ -301,9 +320,10 @@
       p.quizReady ? `<button class="btn primary" id="toquiz">${T("quizReady")}</button>` : `<button class="btn primary" disabled>${p.retryBlocked ? T("quizBlocked") : T("quizLocked")}</button>`) + `
       <div class="tabs">${[{ id: "all", label: T("all") }, ...c.categories].map((t) => `<button data-t="${t.id}" class="${S.tab === t.id ? "active" : ""}">${t.label}</button>`).join("")}</div>
       <div class="lesson-list">${list.map((l) => `
-        <button class="card lesson ${l.read ? "done" : ""}" data-id="${l.id}">
+        <button class="card lesson ${l.read ? "done" : ""} ${l.image ? "has-img" : ""}" data-id="${l.id}">
+          ${l.image ? `<img class="thumb" src="${esc(l.image)}" alt="" loading="lazy" onerror="this.remove()">` : ""}
           <div><div class="meta"><span class="pill muted">${esc(l.categoryLabel)}</span>${l.required ? `<span class="pill">★ ${T("required")}</span>` : ""}${l.read ? `<span class="pill good">✓ ${T("read")}</span>` : ""}</div>
-          <p class="title">${esc(l.title)}</p><p class="prev">${esc(l.preview)}…</p><div class="src">${esc(l.source)} · ${l.date}</div></div>
+          <p class="title">${esc(l.title)}</p><p class="prev">${esc(l.preview)}…</p><div class="src">${l.icon ? `<img class="favicon" src="${esc(l.icon)}" alt="">` : ""}${esc(l.source)} · ${l.date}</div></div>
           <span class="check ${l.read ? "on" : ""}">✓</span>
         </button>`).join("")}</div>`;
     $("#main").querySelectorAll("[data-t]").forEach((b) => (b.onclick = () => { S.tab = b.dataset.t; go("lessons"); }));
@@ -321,12 +341,16 @@
     for (const t of l.terms) { const re = new RegExp(esc(t.term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"); body = body.replace(re, (m) => `<span class="term" data-term="${esc(t.term)}">${m}</span>`); }
     if (l.highlight) { const re = new RegExp(esc(l.highlight).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"); body = body.replace(re, (m) => `<mark>${m}</mark>`); }
     $("#main").innerHTML = topbar(esc(l.title), `${esc(l.categoryLabel)} · ${T(l.level)} · ${l.date}`, `<button class="btn small" id="back">${T("back")}</button>`) + `
-      <div class="card reader"><div class="body">${body}</div><div id="def"></div>
+      ${l.arMissing && S.lang === "ar" ? `<div class="banner">⏳ ${T("arPending")}</div>` : ""}
+      <div class="card reader">${l.image ? `<img class="hero-img" src="${esc(l.image)}" alt="" onerror="this.remove()">` : ""}<div class="body">${body}</div><div id="def"></div>
+        ${l.article?.ok ? `<div class="article-box"><button class="btn small" id="toggle-article">${T("fullArticle")} · ${l.article.words} ${T("words")}</button>
+          <div id="article" hidden><p class="sub" style="margin-top:12px">${l.article.isTranslated ? T("translatedNote") : ""}</p><div class="article-text ${l.article.isTranslated ? "" : "ltr"}">${paras(l.article.text)}</div></div></div>` : ""}
         <p class="endmark">— ${T("endOfLesson")} —</p>
         <p class="sub">${T("source")}: ${esc(l.source)} · <a href="${esc(l.url)}" target="_blank" rel="noopener">${T("openSource")}</a></p>
         <div id="gotit" hidden style="margin-top:14px"><button class="btn primary big" id="done">${l.read ? "✓ " + T("read") : T("gotIt")}</button></div>
       </div>`;
     $("#back").onclick = () => go(S.result ? "result" : "lessons");
+    const ta = $("#toggle-article"); if (ta) ta.onclick = () => { const box = $("#article"); box.hidden = !box.hidden; ta.textContent = box.hidden ? `${T("fullArticle")} · ${l.article.words} ${T("words")}` : T("hideArticle"); };
     $("#main").querySelectorAll(".term").forEach((s) => (s.onclick = () => {
       const t = l.terms.find((x) => x.term === s.dataset.term);
       $("#def").innerHTML = `<div class="def sunk"><span class="t">${esc(t.term)}</span>: ${esc(t.def)} <button class="btn ghost small" id="cd">${T("close")}</button></div>`;
