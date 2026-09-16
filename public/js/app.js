@@ -13,7 +13,7 @@
   const certUrl = (id) => (DEMO ? window.LocalAPI.certificateUrl(id) : `/api/certificate/${id}`);
   async function api(path, body, method) {
     if (DEMO) return window.LocalAPI.call(path, body, method);
-    const r = await fetch(path, { method: method || (body ? "POST" : "GET"), headers: body ? { "content-type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
+    const r = await fetch(path, { signal: AbortSignal.timeout(75000), method: method || (body ? "POST" : "GET"), headers: body ? { "content-type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw Object.assign(new Error(j.error || r.statusText), { code: j.error, data: j });
     return j;
@@ -52,7 +52,7 @@
     const app = $("#app");
     if (!S.user) { app.innerHTML = ""; app.className = ""; return; }
     app.className = "app";
-    const nav = [["home", "home"], ["course", "course"], ["news", "news"], ["progress", "progress"], ["calendar","calendar"], ["alerts","alerts"], ["privacy","privacy"]];
+    const nav = [["home", "home"], ["course", "course"], ["news", "news"], ["progress", "progress"], ["calendar","calendar"], ["hub","hub"], ["alerts","alerts"], ["privacy","privacy"]];
     if(S.user.role === "admin" || S.user.role === "teacher") nav.push(["people","people"]);
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
@@ -88,7 +88,7 @@
   async function go(view, opts = {}) {
     S.view = view; S.lastOpts = opts;
     if (S.intro) { S.intro.unmount(); S.intro=null; }
-    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people"].includes(view)) S.view = "placement";
+    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub"].includes(view)) S.view = "placement";
     if (!S.user) S.view = "auth";
     renderShell();
     const v = VIEWS[S.view];
@@ -469,6 +469,7 @@
   };
 
   Portal.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar});
+  LearningHub.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar});
 
   // ---------- boot ----------
   window.addEventListener("online", () => { S.online = true; go(S.view); });

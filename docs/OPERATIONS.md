@@ -45,3 +45,32 @@
 `npm test` covers role migration, authorization isolation, hostile chatbot requests, booking ownership/conflicts/transitions, calendar export, privacy access, deletion, same-origin protection, abuse limits, private-network URL blocking, placement, and quiz prerequisites/failure locks. Browser checks cover Arabic/English sign-in, install QR, admin pages, and responsive layout. Live SMTP/AI, live Render connectivity, microphone hardware, and biometric hardware need deployment/device verification.
 
 If release verification fails, restore the previous code commit and the matching pre-deployment database backup during a maintenance window. Do not overwrite the live database while a process is running. Keep a private copy of post-deployment data so new progress can be reconciled before rollback.
+
+
+## Learning Hub
+
+The HR reference inspired learning operations rather than payroll or employment records. Existing news, courses, exams, appointments, alerts and privacy pages remain available.
+
+- **Overview:** actual upcoming classes, attendance counts, pending absences and unread inbox messages. Empty states contain no fabricated students or attendance.
+- **Timetable:** teachers schedule assigned students; admins schedule any students. UAE time is explicit. A class lasts 15 minutes to 8 hours. Overlaps with another class or an approved appointment are rejected; appointment approval also checks classes. Staff may cancel their own classes; admins may cancel any class.
+- **Attendance:** students check in from 15 minutes before class until its end. Check-ins more than 15 minutes after the start are marked late. A student cannot overwrite a record. The host teacher or admin can correct records after the check-in window opens. Missing records are not automatically absence records. CSV exports respect the viewer's permissions and escape spreadsheet formulas.
+- **Absence requests:** people submit their own dates and an optional note. Assigned teachers or admins approve or decline; nobody approves their own request. Approval is separate from recording attendance. Requesters may cancel their own pending/approved requests.
+- **Inbox:** individual or multiple permitted recipients, normal/high/urgent priority, inbox/unread/important/sent filters, read status and in-app alerts. The feature does not send email or SMS. Students can contact their assigned teacher and admins, not other students. Teachers address their assigned students.
+- **Groups:** admins create named groups from students already assigned to the selected teacher. Assignment changes remove invalid memberships. Groups organize the visible student roster; they do not grant extra access.
+- **Resources:** users suggest HTTPS links; admins approve them before they appear to everyone. The server does not fetch user-submitted links. These links leave Rasid.
+- **Directory:** name/email search and role/activity filters retain existing course progress and role assignment controls.
+- Faris answers attendance, absence, timetable and inbox summary queries from server-filtered records. Account export includes the user's own hub records. Account deletion removes associated hub records from active storage.
+
+## Render diagnosis, 16 September 2026
+
+The dashboard and live site were reachable during verification. Logs showed successful `npm start`, port 10000 detection, and Live status. The service `rasid` was still building branch `main`, commit `b1616260350cdef1404b8862ae4ebb39a28a5d0d`; repeated manual deployments of that branch could not include PR #1. The free instance can sleep when idle, causing a slow first visit.
+
+For the manual deployment requested by the owner:
+
+1. Address the backup/persistent-storage steps above before redeploying an existing account database. The current Free instance has no durable disk.
+2. Merge reviewed PR #1 into `main`, or set the service's build branch to `rasid-platform-upgrade`. Do not deploy an old `main` commit and expect the new features. Changing settings or merging can trigger auto-deploy; check the service's Auto-Deploy setting first if deployment must remain manual.
+3. Use repository root, Node 24, build command `npm ci`, start command `npm start`, and health check `/healthz` **with this new release**. The old release uses `/api/status`; do not switch health checks before the new code is available.
+4. Confirm `PUBLIC_ORIGIN=https://rasid-txh4.onrender.com` and persistent `RASID_DATA_DIR` where provisioned, then choose Manual Deploy → Deploy latest commit. The blueprint includes the new build/health-check settings, but verify actual dashboard values after sync.
+5. Wait for Live status, then open `/healthz` and the sign-in page. Hard refresh once if an older installed app shell remains. Check registration, roles, course progress, class scheduling and booking approvals with test accounts.
+
+This release binds explicitly to `0.0.0.0`, serves a lightweight health endpoint, adds a visible bilingual initial loading/retry screen, bounds API waits, and refreshes the public shell cache. An application change cannot disable the hosting provider's free-instance sleep policy. No paid plan was purchased and no production deployment was triggered.

@@ -1,6 +1,12 @@
 // Shared bilingual portal views. API permissions are enforced again on the server.
 (function () {
   const dictionary = {
+    time_conflict: ["This time overlaps an existing class, booking, or absence.","يتعارض الوقت مع حصة أو حجز أو طلب غياب موجود."],
+    checkin_closed: ["Attendance is not open for this class yet, or the check-in window has ended.","لم يفتح تسجيل الحضور لهذه الحصة أو انتهت فترة التسجيل."],
+    already_recorded: ["Attendance is already recorded. Ask your teacher to correct it.","تم تسجيل الحضور. اطلب من معلمك تصحيحه."],
+    invalid_request: ["Check the required fields, dates, and assigned students.","تحقق من الحقول المطلوبة والتواريخ والطلاب المسندين."],
+    invalid_transition: ["This request has already been reviewed.","تمت مراجعة هذا الطلب بالفعل."],
+
     previousMonth: ["Previous month", "الشهر السابق"],
     nextMonth: ["Next month", "الشهر التالي"],
     showAll: ["Show all dates", "عرض كل المواعيد"],
@@ -557,11 +563,11 @@
       }
       main.innerHTML =
         topbar(L("people"), L("peopleSub")) +
-        `<div class="portal-stats"><div class="card"><b>${r.users.filter((u) => u.role === "student").length}</b><span>${L("student")}</span></div><div class="card"><b>${r.users.filter((u) => u.online).length}</b><span>${L("active")}</span></div></div><label class="portal-field"><span>${L("search")}</span><input type="search" id="people-search"></label><div id="people-list" class="stack"></div>`;
+        `<div class="portal-stats"><div class="card"><b>${r.users.filter((u) => u.role === "student").length}</b><span>${L("student")}</span></div><div class="card"><b>${r.users.filter((u) => u.online).length}</b><span>${L("active")}</span></div></div><label class="portal-field"><span>${L("search")}</span><input type="search" id="people-search"></label><div class="portal-row"><label class="portal-field"><span>${L("role")}</span><select id="people-role"><option value="">${L("all")}</option>${["student","teacher","admin"].map(k=>`<option value="${k}">${L(k)}</option>`).join("")}</select></label><label class="portal-field"><span>${L("active")}</span><select id="people-active"><option value="">${L("all")}</option><option value="yes">${L("active")}</option><option value="no">${L("inactive")}</option></select></label></div><div id="people-list" class="stack"></div>`;
       const render = () => {
         const q = $("#people-search").value.toLowerCase(),
           users = r.users.filter((u) =>
-            (u.name + " " + u.email).toLowerCase().includes(q),
+            (u.name + " " + u.email).toLowerCase().includes(q) && (!$("#people-role").value || u.role === $("#people-role").value) && (!$("#people-active").value || u.online === ($("#people-active").value === "yes")),
           );
         $("#people-list").innerHTML = users.length
           ? users
@@ -626,6 +632,8 @@
       };
       render();
       $("#people-search").oninput = render;
+      $("#people-role").onchange = render;
+      $("#people-active").onchange = render;
     };
     VIEWS.alerts = async () => {
       const main = $("#main");

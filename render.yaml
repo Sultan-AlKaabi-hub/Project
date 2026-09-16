@@ -5,9 +5,9 @@ services:
     name: rasid
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: npm start
-    healthCheckPath: /api/status
+    healthCheckPath: /healthz
     envVars:
       - key: NODE_VERSION
         value: "24"

@@ -16,6 +16,7 @@ import { answer as farisAnswer } from "./faris.js";
 import * as course from "./curriculum.js";
 import QRCode from "qrcode";
 import {mailAvailable,sendReset} from "./mail.js";
+import { installOperations, eraseOperations } from "./operations.js";
 import { installPortal, migrateRoles, roleOf, privateAnswer } from "./portal.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -77,6 +78,7 @@ app.use('/api', (req,res,next) => {
   next();
 });
 installPortal(app,{db,save,requireUser});
+installOperations(app,{db,save,requireUser});
 app.get('/api/install', async (req,res) => {
   const url=process.env.PUBLIC_ORIGIN || req.protocol+'://'+req.get('host');
   res.json({url,qr:await QRCode.toDataURL(url,{width:240,margin:2}),apk:fs.existsSync(path.join(DATA_DIR,'rasid.apk'))});
@@ -192,6 +194,7 @@ app.delete("/api/account", requireUser, (req, res) => {
   db.audit=db.audit.filter(a=>a.actor!==email && a.subject!==email); delete db.challenges[email];
   for(const u of Object.values(db.users)) if(u.teacherEmail===email) u.teacherEmail='';
   readingContexts.delete(email);
+  eraseOperations(db,email);
   delete db.users[email];
   for (const [t, sess] of Object.entries(db.sessions)) if (sess.email === email) delete db.sessions[t];
   saveNow(); res.clearCookie("rasid"); res.json({ ok: true });
@@ -368,6 +371,8 @@ app.use((req,res,next)=>{
   next();
 });
 // ---------- static ----------
+app.get("/healthz", (req,res) => res.json({ok:true}));
+app.use((req,res,next)=>{if(req.path === "/" || req.path.endsWith(".html") || req.path === "/sw.js")res.setHeader("Cache-Control","no-cache");next();});
 app.get("/vendor/webauthn.js", (req, res) => res.sendFile(path.join(ROOT, "node_modules/@simplewebauthn/browser/dist/bundle/index.umd.min.js")));
 app.use(express.static(path.join(ROOT, "public"), { extensions: ["html"] }));
 app.get(/^\/(?!api\/).*/, (req, res) => res.sendFile(path.join(ROOT, "public", "index.html")));
@@ -385,7 +390,7 @@ function seedIfEmpty() {
 }
 
 seedIfEmpty();
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`Rasid running at http://localhost:${PORT}  (content engine: ${aiAvailable() ? "Claude" : "fallback, set ANTHROPIC_API_KEY for AI lessons"})`);
   if (process.env.RASID_NEWS_LESSONS) {
     const stale = !db.settings.lastUpdate || db.settings.lastUpdate.slice(0, 10) !== today();

@@ -1,3 +1,4 @@
+import { operationsFor } from "./operations.js";
 import crypto from "node:crypto";
 import { courseSummary } from "./curriculum.js";
 
@@ -131,6 +132,11 @@ export function installPortal(app, { db, save, requireUser }) {
           notify(b.requester, "cancelled", b);
         }
     }
+    for(const g of db.groups || []) {
+      if(g.teacher === u.email && role !== 'teacher') g.teacher = '';
+      g.members = g.members.filter(e => db.users[e]?.teacherEmail === g.teacher && roleOf(db.users[e]) === 'student');
+    }
+    if(role === 'student' && oldRole !== 'student') for(const s of db.classes || []) if(s.host === u.email && s.end > Date.now()) s.status = 'cancelled';
     audit(req.user.email, "role_and_assignment", u.email);
     save();
     res.json({ ok: true });
@@ -297,6 +303,7 @@ export function installPortal(app, { db, save, requireUser }) {
       )
     )
       return res.status(409).json({ error: "conflict" });
+    if(status === "approved" && (db.classes||[]).some(s=>s.status!=="cancelled" && overlap(s,b) && [s.host,...s.members].some(e=>e===b.host||e===b.requester))) return res.status(409).json({error:"conflict"});
     b.status = status;
     b.updated = Date.now();
     if (status === "approved")
@@ -363,6 +370,7 @@ export function installPortal(app, { db, save, requireUser }) {
         privacyAcceptedAt: u.privacyAcceptedAt,
       },
       progress: userSummary(u, u.lang),
+      learningHub: operationsFor(db,{...u,role:"student"}),
       certificates: u.certs || [],
       bookings: db.bookings.filter((b) => visibleBooking(u, b)),
       alerts: db.alerts.filter((a) => a.email === u.email),
@@ -428,6 +436,18 @@ export function installPortal(app, { db, save, requireUser }) {
 // Private records are filtered before answering. They never enter an external model context.
 export function privateAnswer(question, viewer, db) {
   const ar = viewer.lang !== "en";
+  if (/attendance|absence|timetable|inbox|my messages|حضور|غياب|جدول|رسائلي|بريدي/i.test(question)) {
+    const d=operationsFor(db,viewer);
+    const email=question.match(/[^\s<>]+@[^\s<>]+\.[a-z]{2,}/i)?.[0]?.replace(/[?.!,؛،]+$/, '').toLowerCase();
+    const own=/\b(my|me|myself)\b|حضوري|غيابي|رسائلي|جدولي|بريدي/i.test(question);
+    const records=d.attendance.filter(a=>(!email||a.email===email)&&(!own||a.email===viewer.email));
+    const absences=d.absences.filter(a=>(!email||a.email===email)&&(!own||a.email===viewer.email));
+    if(email && !Object.values(db.users).some(u=>u.email===email&&canView(viewer,u))) return {text:ar?'لا توجد سجلات متاحة ضمن صلاحياتك.':'No records are available within your permissions.'};
+    const unread=d.messages.filter(m=>m.recipients.includes(viewer.email)&&!m.readBy.includes(viewer.email)).length;
+    const upcoming=d.classes.filter(s=>s.status==='scheduled'&&s.end>Date.now()&&(!email||s.members.includes(email))&&(!own||s.host===viewer.email||s.members.includes(viewer.email))).length;
+    return {text:ar?`ضمن صلاحياتك: ${records.length} سجل حضور، ${absences.filter(a=>a.status==='pending').length} طلب غياب معلق، ${upcoming} حصص قادمة. لديك ${unread} رسائل غير مقروءة. افتح مركز التعلم للتفاصيل.`:`Within your permissions: ${records.length} attendance records, ${absences.filter(a=>a.status==='pending').length} pending absences, ${upcoming} upcoming classes. You have ${unread} unread messages. Open Learning hub for details.`};
+  }
+
   if (
     /\b(my|pending|upcoming)\b.*(booking|appointment|meeting)|حجوزاتي|مواعيدي|طلباتي|المواعيد القادمة/i.test(
       question,

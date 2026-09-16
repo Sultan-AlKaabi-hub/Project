@@ -1,6 +1,6 @@
 // Service worker: only public app-shell files are cached; personal data always needs the server.
-const SHELL = "rasid-shell-v5";
-const SHELL_FILES = ["./", "index.html", "css/app.css", "css/portal.css", "js/i18n.js", "js/sprite.js", "js/intro.js", "js/faris.js", "js/app.js", "js/portal.js", "vendor/webauthn.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"];
+const SHELL = "rasid-shell-v6";
+const SHELL_FILES = ["./", "index.html", "css/app.css", "css/portal.css", "css/hub.css", "js/hub.js", "js/i18n.js", "js/sprite.js", "js/intro.js", "js/faris.js", "js/app.js", "js/portal.js", "vendor/webauthn.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES).catch(() => {})).then(() => self.skipWaiting()));
