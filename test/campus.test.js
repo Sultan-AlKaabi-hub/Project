@@ -154,7 +154,7 @@ test("Only admin edits shifts, subject minimums and test access; owner stays adm
   assert.equal((await call("/api/admin/demo-access", student, {})).status, 403);
   const access = await call("/api/admin/demo-access", owner, {});
   assert.equal(access.status, 200);
-  assert.equal(access.data.credentials.length, 2);
+  assert.equal(access.data.credentials.length, 5);
   for (const c of access.data.credentials)
     assert.equal(checkPin(c.password, db.users[c.email].pinHash), true);
   const data = await call("/api/campus", teacher, null, "GET");

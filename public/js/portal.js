@@ -1,6 +1,7 @@
 // Shared bilingual portal views. API permissions are enforced again on the server.
 (function () {
   const dictionary = {
+    announcement:['Announcement','إعلان'],
     owner_protected:["The owner account must remain an administrator.","يجب أن يبقى حساب المالك مسؤولاً."],
     subject_restricted:["This content is restricted to the AI subject.","هذا المحتوى مخصص لمادة الذكاء الاصطناعي."],
     demo_unavailable:["Add the sample campus data first.","أضف بيانات المنصة التجريبية أولاً."],
@@ -427,7 +428,7 @@
                   .filter((s) => s.host !== S.user.email)
                   .map(
                     (s) =>
-                      `<option value="${s.id}">${esc(hostName(s.host))} · ${L(r.hosts.find((h) => h.email === s.host)?.role)} · ${date(s.start)} — ${date(s.end)}</option>`,
+                      `<option value="${s.id}">${s.isDemo ? (lang() === "ar" ? "[مثال] " : "[Sample] ") : ""}${esc(hostName(s.host))} · ${L(r.hosts.find((h) => h.email === s.host)?.role)} · ${date(s.start)} — ${date(s.end)}</option>`,
                   )
                   .join("")}</select>`,
               )}${field("topic", '<input id="topic" maxlength="160" required>')}<button class="btn primary">${L("request")}</button>`
@@ -453,7 +454,7 @@
           ? list
               .map(
                 (b) =>
-                  `<article class="booking-card"><div class="portal-row"><h3>${esc(b.topic)}</h3><span class="pill ${b.status === "approved" ? "good" : b.status === "pending" ? "amber" : "muted"}">${L(b.status)}</span></div><p>${date(b.start)} — ${date(b.end)}</p><p class="sub">${esc(hostName(b.host))} · ${esc(b.requester)}</p><div class="row">${b.status === "approved" ? `<a class="btn small" href="/api/bookings/${b.id}/calendar">${L("addCalendar")}</a>` : ""}${b.host === S.user.email && b.status === "pending" && b.start > Date.now() ? `<button class="btn primary small" data-id="${b.id}" data-status="approved">${L("approve")}</button><button class="btn small" data-id="${b.id}" data-status="declined">${L("decline")}</button>` : ""}${["pending", "approved"].includes(b.status) && b.start > Date.now() ? `<button class="btn small ghost" data-id="${b.id}" data-status="cancelled">${L("cancel")}</button>` : ""}</div></article>`,
+                  `<article class="booking-card"><div class="portal-row"><h3>${esc(b.topic)}${Portal.sampleTag(b)}</h3><span class="pill ${b.status === "approved" ? "good" : b.status === "pending" ? "amber" : "muted"}">${L(b.status)}</span></div><p>${date(b.start)} — ${date(b.end)}</p><p class="sub">${esc(hostName(b.host))} · ${esc(b.requester)}</p><div class="row">${b.status === "approved" ? `<a class="btn small" href="/api/bookings/${b.id}/calendar">${L("addCalendar")}</a>` : ""}${b.host === S.user.email && b.status === "pending" && b.start > Date.now() ? `<button class="btn primary small" data-id="${b.id}" data-status="approved">${L("approve")}</button><button class="btn small" data-id="${b.id}" data-status="declined">${L("decline")}</button>` : ""}${["pending", "approved"].includes(b.status) && b.start > Date.now() ? `<button class="btn small ghost" data-id="${b.id}" data-status="cancelled">${L("cancel")}</button>` : ""}</div></article>`,
               )
               .join("")
           : `<p class="sub">${L("empty")}</p>`;
@@ -648,7 +649,7 @@
             L("alertSub"),
             `<button class="btn small" id="read-alerts">${L("markRead")}</button>`,
           ) +
-          `<div class="stack">${r.alerts.map((a) => `<article class="card ${a.read ? "" : "unread-card"}"><div class="portal-row"><h3>${L(a.kind)}</h3>${a.read ? "" : `<span class="pill">${L("unread")}</span>`}</div><p>${esc(a.message || L(a.kind))}</p>${a.from ? `<p>${esc(a.from)}</p>` : ""}<p class="sub">${date(a.at)}</p>${a.bookingId ? `<button class="btn small" data-open-calendar>${L("calendar")}</button>` : ""}</article>`).join("") || `<div class="card">${L("empty")}</div>`}</div>`;
+          `<div class="stack">${r.alerts.map((a) => `<article class="card ${a.read ? "" : "unread-card"}"><div class="portal-row"><h3>${L(a.kind)}${Portal.sampleTag(a)}</h3>${a.read ? "" : `<span class="pill">${L("unread")}</span>`}</div><p>${esc(a.message || L(a.kind))}</p>${a.from ? `<p>${esc(a.from)}</p>` : ""}<p class="sub">${date(a.at)}</p>${a.bookingId ? `<button class="btn small" data-open-calendar>${L("calendar")}</button>` : ""}</article>`).join("") || `<div class="card">${L("empty")}</div>`}</div>`;
         $("#read-alerts").onclick = (e) =>
           action(e.currentTarget, async () => {
             await api("/api/alerts/read", {});
@@ -708,5 +709,6 @@
       ctx.wireTopbar();
     };
   }
-  window.Portal = { register, L, authExtras, dialog, error };
+  const sampleTag=r=>r?.isDemo?`<span class="sample-label">${lang()==='ar'?'مثال تجريبي':'Sample'}</span>`:'';
+  window.Portal = { register, L, authExtras, dialog, error, sampleTag };
 })();

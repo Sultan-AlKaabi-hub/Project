@@ -49,6 +49,7 @@
   const BRAND_DOTS = '<svg class="dots" viewBox="0 0 22 22"><g fill="#7C5CE6"><circle cx="11" cy="4" r="2.4"/><circle cx="4" cy="11" r="2.4"/><circle cx="18" cy="11" r="2.4"/><circle cx="11" cy="18" r="2.4"/><circle cx="11" cy="11" r="2.4" opacity=".5"/></g></svg>';
 
   function renderShell() {
+    S.renderVersion=(S.renderVersion||0)+1; S.mainObserver?.disconnect(); S.lessonObserver?.disconnect(); window.Lab?.cleanup(); if(S.quizGuard){window.removeEventListener("beforeunload",S.quizGuard);S.quizGuard=null;}
     const app = $("#app");
     if (!S.user) { app.innerHTML = ""; app.className = ""; return; }
     app.className = "app";
@@ -56,6 +57,7 @@
     if(S.user.role !== "student") nav.push(["administration","administration"],["staff","staff"]);
     if(S.user.role === "admin" || (S.user.role === "teacher" && S.user.hasAI !== false)) nav.push(["people","people"]);
     nav.push(["messages","messages"]);
+    if(S.user.hasAI !== false)nav.splice(2,0,["lab","lab"]);
     if(S.user.hasAI === false)nav=nav.filter(([v])=>!["course","news","progress","administration"].includes(v));
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
@@ -74,12 +76,14 @@
       <main class="main" id="main"></main>`;
     app.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => { go(b.dataset.view); closeMenu(); }));
     $("#scrim").onclick = closeMenu;
+    const brand=app.querySelector(".brand");brand.setAttribute("role","button");brand.tabIndex=0;brand.setAttribute("aria-label",S.lang==="ar"?"العودة إلى المقدمة":"Open intro");brand.onclick=()=>go("intro");brand.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go("intro");}};
+    S.mainObserver=new MutationObserver(()=>{wireTopbar();window.RasidMotion?.enhance();});S.mainObserver.observe($("#main"),{childList:true});
     api('/api/alerts').then(r=>{const label=app.querySelector('[data-view="alerts"] span');if(label){const count=r.alerts.filter(a=>!a.read).length;label.textContent=T('alerts')+(count?' ('+count+')':'');}}).catch(()=>{});
   }
   function renderLangPill() {
     let p = $("#lang-pill"); if (!p) { p = h('<button id="lang-pill" class="lang-pill" aria-label="language"></button>'); document.body.appendChild(p); }
     p.innerHTML = `<span class="${S.lang === "en" ? "on" : ""}">EN</span><span class="sep">|</span><span class="${S.lang === "ar" ? "on" : ""}">ع</span>`;
-    p.onclick = async () => { S.lang = S.lang === "ar" ? "en" : "ar"; applyLang(); if (S.user) { try { await api("/api/settings", { lang: S.lang }); } catch {} } S.course = null; if (S.view === "module" && S.module) return openModule(S.module.id); if (["lesson", "quiz", "article"].includes(S.view)) return go("course"); go(S.view, S.lastOpts || {}); };
+    p.onclick = async () => { S.lang = S.lang === "ar" ? "en" : "ar"; applyLang(); Faris.say(T("farisHello"),{open:false}); if (S.user) { try { await api("/api/settings", { lang: S.lang }); } catch {} } S.course = null; if (S.view === "module" && S.module) return openModule(S.module.id); if (["lesson", "quiz", "article"].includes(S.view)) return go("course"); go(S.view, S.lastOpts || {}); };
   }
   function closeMenu() { $("#sidebar")?.classList.remove("open"); const s = $("#scrim"); if (s) s.hidden = true; }
   function topbar(title, sub, right = "") {
@@ -89,17 +93,19 @@
   function wireTopbar() { const b = $("#menu-btn"); if (b) b.onclick = () => { $("#sidebar").classList.add("open"); $("#scrim").hidden = false; }; }
 
   async function go(view, opts = {}) {
+    window.Lab?.cleanup();
     S.view = view; S.lastOpts = opts;
     if (S.intro) { S.intro.unmount(); S.intro=null; }
-    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes"].includes(view)) S.view = "placement";
+    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab"].includes(view)) S.view = "placement";
     if (!S.user && view !== "intro") S.view = "auth";
-    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article"].includes(S.view)) S.view="home";
+    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab"].includes(S.view)) S.view="home";
     if(S.view === "intro")Faris.hide();else if(S.user)Faris.show();
     renderShell();
     const v = VIEWS[S.view];
     if (v) { try { await v(opts); } catch(e) { toast(Portal.error(e)); } }
     renderLangPill();
     wireTopbar();
+    window.RasidMotion?.enhance();
     document.querySelectorAll(".brand,.logo").forEach(el=>{el.setAttribute("role","button");el.tabIndex=0;el.setAttribute("aria-label",S.lang === "ar" ? "العودة إلى المقدمة" : "Open intro");el.onclick=()=>go("intro");el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go("intro");}};});
     window.scrollTo(0, 0);
   }
@@ -227,7 +233,8 @@
   }
   async function refresh() {
     if(S.user?.hasAI === false){S.course=null;return;}
-    try { const r = await api("/api/course"); S.course = r.course; S.user = r.user; S.online = true; }
+    const email=S.user?.email;
+    try { const r = await api("/api/course"); if(S.user?.email!==email)return; S.course = r.course; S.user = r.user; S.online = true; }
     catch (e) { if (e.message === "Failed to fetch") S.online = false; }
   }
 
@@ -289,7 +296,7 @@
 
   // ---------- live news ----------
   VIEWS.news = async (opts) => {
-    await refresh();
+    const version=S.renderVersion; await refresh(); if(version!==S.renderVersion)return;
     const c = { categories: ["civilian", "us_military", "russia_military", "china_military", "other"].map((id) => ({ id, label: T("cat_" + id) })) }; S.newsTab = S.newsTab || "civilian";
     const m = $("#main");
     m.innerHTML = topbar(`<span class="live"><span class="dot good"></span>${T("news")}</span>`, "", `<button class="btn small" id="fresh">${T("refresh")}</button>`) +
@@ -297,7 +304,7 @@
     m.querySelectorAll("[data-t]").forEach((b) => (b.onclick = () => { S.newsTab = b.dataset.t; go("news"); }));
     $("#fresh").onclick = () => go("news", { fresh: true });
     let r; try { r = await api(`/api/news?category=${S.newsTab}${opts.fresh ? "&fresh=1" : ""}`); } catch { r = { items: [] }; }
-    const list = $("#news"); if (!list) return;
+    const list = $("#news"); if (!list || version!==S.renderVersion) return;
     const fmt = (d) => { const ms = Date.now() - new Date(d).getTime(), h = Math.floor(ms / 3600000); return h < 1 ? (S.lang === "ar" ? "قبل دقائق" : "minutes ago") : h < 24 ? (S.lang === "ar" ? `قبل ${h} س` : `${h}h ago`) : (S.lang === "ar" ? `قبل ${Math.floor(h / 24)} ي` : `${Math.floor(h / 24)}d ago`); };
     list.innerHTML = r.items.length ? r.items.map((it) => `
       <div class="card news-item"><div>
@@ -313,10 +320,11 @@
 
   // In-app reader for any headline: the site is fetched and its text shown here (Arabic by translation).
   async function openArticle(url) {
-    S.view = "article"; renderShell();
+    S.view = "article"; renderShell(); const version=S.renderVersion;
     $("#main").innerHTML = topbar("…", "", `<button class="btn small" id="back">${T("back")}</button>`) + `<div class="card reader"><p class="sub">${T("farisThinking")}</p></div>`;
     $("#back").onclick = () => go("news");
     let r; try { r = await api(`/api/article?url=${encodeURIComponent(url)}`); } catch (ex) { r = null; }
+    if(version!==S.renderVersion)return;
     if (!r) { $("#main").innerHTML = topbar(T("news"), "", `<button class="btn small" id="back">${T("back")}</button>`) + `<div class="card reader"><p>${T("noText")}</p><a class="btn small" href="${esc(url)}" target="_blank" rel="noopener">${T("readOriginal")}</a></div>`; $("#back").onclick = () => go("news"); return; }
     $("#main").innerHTML = topbar(esc(r.title), `${r.icon ? `<img class="favicon" src="${esc(r.icon)}" alt="">` : ""}${esc(r.site)} · ${r.words} ${T("words")}`, `<button class="btn small" id="back">${T("back")}</button>`) + `
       <div class="card reader">${r.image ? `<img class="hero-img" src="${esc(r.image)}" alt="" onerror="this.remove()">` : ""}
@@ -329,7 +337,7 @@
   // ---------- lessons ----------
   // ---------- course: levels and module cards ----------
   VIEWS.course = async () => {
-    await refresh();
+    const version=S.renderVersion; await refresh(); if(version!==S.renderVersion)return;
     const c = S.course;
     $("#main").innerHTML = topbar(T("course"), T("courseSub")) + c.levels.map((lv) => `
       <section class="level-section ${lv.locked ? "locked" : ""}">
@@ -351,15 +359,16 @@
   };
 
   async function openModule(id) {
-    S.view = "module"; renderShell();
+    S.view = "module"; renderShell(); const version=S.renderVersion;
     const m = await api(`/api/course/module/${id}`);
+    if(version!==S.renderVersion)return;
     S.module = m;
     $("#main").innerHTML = topbar(`${m.icon} ${esc(m.title)}`, `${T(m.level)} · ${m.read} / ${m.lessons} ${T("lessons")}`, `<button class="btn small" id="back">${T("back")}</button>`) + `
       <div class="card"><p>${esc(m.desc)}</p><div class="chips">${m.skills.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</div></div>
       <div class="lesson-list" style="margin-top:16px">${m.lessonList.map((l, i) => `
         <button class="card lesson ${l.read ? "done" : ""}" data-id="${l.id}"><div><div class="meta"><span class="pill muted">${T("lesson")} ${i + 1}</span>${l.read ? `<span class="pill good">✓ ${T("read")}</span>` : ""}</div><p class="title">${esc(l.title)}</p></div><span class="check ${l.read ? "on" : ""}">✓</span></button>`).join("")}</div>
       <div class="card" style="margin-top:16px"><h3>${T("moduleQuiz")}</h3><p class="sub">${T("quizIntro")}</p>
-        ${m.passed ? `<span class="pill good">✓ ${T("passedPill")}</span> <a class="btn small" href="${certUrl(m.certId)}" target="_blank" rel="noopener">🎓 ${T("viewCertificate")}</a> ` : m.status === "failed" ? `<div class="banner fail">✗ ${T("failedTitle")} · ${T("lastScore")}: ${m.lastScore}/5 · ${T("rereadHint")}</div>` : ""}
+        ${m.passed ? `<span class="pill good">✓ ${T("passedPill")}</span> ${m.certId ? `<a class="btn small" href="${certUrl(m.certId)}" target="_blank" rel="noopener">🎓 ${T("viewCertificate")}</a>` : ""} ` : m.status === "failed" ? `<div class="banner fail">✗ ${T("failedTitle")} · ${T("lastScore")}: ${m.lastScore}/5 · ${T("rereadHint")}</div>` : ""}
         <button class="btn primary" id="quiz" ${m.quizReady || m.passed ? "" : "disabled"}>${m.passed ? T("retakeQuiz") : m.needsReread ? T("quizBlocked") : m.quizReady ? T("takeQuiz") : T("quizLocked")}</button></div>`;
     $("#back").onclick = () => go("course");
     $("#main").querySelectorAll("[data-id]").forEach((b) => (b.onclick = () => openLesson(b.dataset.id)));
@@ -367,8 +376,8 @@
   }
 
   async function openLesson(id) {
-    S.view = "lesson"; renderShell();
-    const l = await api(`/api/course/lesson/${id}`);
+    S.view = "lesson"; renderShell(); const version=S.renderVersion;
+    const l = await api(`/api/course/lesson/${id}`); if(version!==S.renderVersion)return;
     $("#main").innerHTML = topbar(esc(l.title), `${l.icon} ${esc(l.moduleTitle)} · ${T("lesson")} ${l.index} / ${l.count}`, `<button class="btn small" id="back">${T("back")}</button>`) + `
       <div class="card reader"><div class="body">${paras(l.body)}</div>
         ${S.lang === "ar" ? `<details class="en-twin"><summary>English version</summary><div class="article-text ltr">${paras(l.bodyEn)}</div></details>` : ""}
@@ -376,8 +385,8 @@
         <div id="gotit" hidden style="margin-top:14px"><button class="btn primary big" id="done">${l.read ? "✓ " + T("read") + (l.nextId ? " · " + T("nextLesson") : "") : T("gotIt")}</button></div>
       </div>`;
     $("#back").onclick = () => openModule(l.moduleId);
-    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { $("#gotit").hidden = false; io.disconnect(); } });
-    io.observe($(".endmark"));
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { if($("#gotit"))$("#gotit").hidden = false; io.disconnect(); } });
+    S.lessonObserver=io;io.observe($(".endmark"));
     $("#done").onclick = async () => {
       const r = await api(`/api/course/lesson/${id}/done`, {});
       S.course = r.course;
@@ -389,12 +398,13 @@
   window.App = { openLesson: (id) => openLesson(id), getContext: () => ({useArticle:S.view==="article"}) };
 
   async function startQuiz(moduleId) {
-    S.view = "quiz"; renderShell();
+    S.view = "quiz"; renderShell(); const version=S.renderVersion;
     let q; try { q = await api(`/api/course/quiz/${moduleId}`); } catch { return openModule(moduleId); }
+    if(version!==S.renderVersion)return;
     $("#main").innerHTML = topbar(T("quiz"), esc(q.title)) + `<div class="card q-card" id="qz"></div>`;
     Faris.say(T("farisQuiz"), { open: false, pulse: true });
     const guard = (e) => { e.preventDefault(); e.returnValue = ""; };
-    window.addEventListener("beforeunload", guard);
+    S.quizGuard=guard;window.addEventListener("beforeunload", guard);
     runQuestions($("#qz"), q.questions, async (answers) => {
       window.removeEventListener("beforeunload", guard);
       const r = await api("/api/course/quiz", { answers });
@@ -422,7 +432,7 @@
   };
 
   VIEWS.progress = async () => {
-    await refresh();
+    const version=S.renderVersion; await refresh(); if(version!==S.renderVersion)return;
     const c = S.course;
     $("#main").innerHTML = topbar(T("progress")) + `<div class="grid">${c.levels.map((lv) => `
       <div class="card"><div class="level-badge"><span class="icon">${LEVEL_ICON[lv.id]}</span>${T(lv.id)}</div>
@@ -435,8 +445,10 @@
 
 
   VIEWS.settings = async () => {
+    const version=S.renderVersion;
     const u = S.user;
     let status = null; try { status = await api("/api/status"); } catch {}
+    if(version!==S.renderVersion)return;
     const installable = Boolean(window.deferredInstall);
     const demoNote = DEMO ? `<div class="banner">ℹ ${T("demoSettings")}</div>` : "";
     $("#main").innerHTML = topbar(T("settings"), u.email) + demoNote + `
@@ -486,6 +498,7 @@
   Portal.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar});
   LearningHub.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar});
   Campus.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar,openModule});
+  Lab.register({S,VIEWS,api,topbar,$,toast});
 
   // ---------- boot ----------
   window.addEventListener("online", () => { S.online = true; go(S.view); });

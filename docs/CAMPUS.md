@@ -16,7 +16,7 @@ Production starts with 18 fictional Emirati-named students and six teachers acro
 
 Set `RASID_SEED_DEMO=0` to disable automatic seeding before initial startup. Local development can enable it with `RASID_SEED_DEMO=1`. Administrators can also use **Create sample accounts** in the directory.
 
-As an administrator, click **Generate test sign-ins** in the directory to issue random passwords for `khalid.ai@demo.rasid.test` and `student01@demo.rasid.test`. Copy them from the one-time dialog. Repeating the action replaces those two passwords and ends their sessions. There are no public default passwords; other sample accounts cannot sign in until an administrator explicitly provisions access. Local preview passwords do not apply to Render.
+As an administrator, click **Generate test sign-ins** in the directory to issue random passwords for the AI teacher, beginner/intermediate/expert students, and mathematics teacher. Copy them from the one-time dialog. Repeating the action replaces those five passwords and ends their sessions. There are no public default passwords; other sample accounts cannot sign in until an administrator explicitly provisions access. Local preview passwords do not apply to Render.
 
 ## Scheduling and coverage
 

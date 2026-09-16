@@ -1,4 +1,5 @@
 import {subjectOf} from "./subjects.js";
+import {localize} from './experience.js';
 import crypto from "node:crypto";
 import { canView, roleOf } from "./portal.js";
 
@@ -11,15 +12,15 @@ export function operationsFor(db, u) {
   );
   return {
     classes: sessions.map((s) => ({
-      ...s,
+      ...localize(s,u.lang),
       members: s.members.filter(visible),
     })),
     attendance: (db.attendance || []).filter((a) => visible(a.email)),
-    absences: (db.absences || []).filter((a) => visible(a.email)),
+    absences: (db.absences || []).filter((a) => visible(a.email)).map(a=>localize(a,u.lang)),
     messages: (db.messages || [])
       .filter((m) => m.sender === u.email || m.recipients.includes(u.email))
       .map((m) => ({
-        ...m,
+        ...localize(m,u.lang),
         recipients: m.sender === u.email ? m.recipients : [u.email],
         readBy: m.sender === u.email ? m.readBy : m.readBy.filter((e) => e === u.email),
       })),
@@ -30,7 +31,7 @@ export function operationsFor(db, u) {
           g.teacher === u.email ||
           g.members.includes(u.email),
       )
-      .map((g) => ({ ...g, members: g.members.filter(visible) })),
+      .map((g) => ({ ...localize(g,u.lang), members: g.members.filter(visible) })),
     resources: (db.resources || []).filter(
       (r) =>
         (r.status === "approved" && (r.subject || "ai") === subjectOf(u)) || r.owner === u.email || roleOf(u) === "admin",
@@ -101,11 +102,14 @@ export function installOperations(app, { db, save, requireUser }) {
     db.audit = db.audit.slice(-2000);
   };
   const notify = (email, title, body) => {
+    const systemWords=['New class / حصة جديدة','Class cancelled / إلغاء حصة','Absence request / طلب غياب','Absence update / تحديث طلب الغياب','Approved / تمت الموافقة','Declined / مرفوض','New inbox message / رسالة جديدة'];
+    const part=(text,lang)=>systemWords.includes(text)?text.split(' / ')[lang==='ar'?1:0]:text;
     db.alerts.push({
       id: crypto.randomUUID(),
       email,
       kind: "message",
       message: title + " — " + body,
+      translations:{en:{message:part(title,'en')+' — '+part(body,'en')},ar:{message:part(title,'ar')+' — '+part(body,'ar')}},
       from: "Rasid",
       at: Date.now(),
       read: false,

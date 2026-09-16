@@ -1,4 +1,5 @@
 import {subjectOf,hasAI} from "./subjects.js";
+import {localize} from './experience.js';
 import { operationsFor } from "./operations.js";
 import crypto from "node:crypto";
 import { courseSummary } from "./curriculum.js";
@@ -35,6 +36,7 @@ export function userSummary(u, lang = "en") {
     role: roleOf(u),
     teacherEmail: u.teacherEmail || "",
     level: u.level,
+    labPractice:{attempts:(u.labAttempts||[]).length,bestScore:Math.max(0,...(u.labAttempts||[]).map(a=>a.score)),total:5},
     subject: subjectOf(u), isDemo:Boolean(u.isDemo), created:u.created,
     lastSeen: u.lastSeen || null,
     online: Boolean(u.lastSeen && Date.now() - u.lastSeen < 5 * 60 * 1000),
@@ -166,6 +168,7 @@ export function installPortal(app, { db, save, requireUser }) {
       ),
       bookings: db.bookings
         .filter((b) => visibleBooking(req.user, b))
+        .map(b=>localize(b,req.user.lang))
         .sort((a, b) => a.start - b.start),
     }),
   );
@@ -268,6 +271,7 @@ export function installPortal(app, { db, save, requireUser }) {
       end: s.end,
       topic,
       status: "pending",
+      isDemo:Boolean(s.isDemo),
       created: Date.now(),
     };
     db.bookings.push(b);
@@ -332,6 +336,7 @@ export function installPortal(app, { db, save, requireUser }) {
     res.json({
       alerts: db.alerts
         .filter((a) => a.email === req.user.email)
+        .map(a=>localize(a,req.user.lang))
         .slice(-100)
         .reverse(),
     }),
