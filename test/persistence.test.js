@@ -11,3 +11,5 @@ test('Durable storage rejects stale revisions and hides upstream error details',
  const store=createSupabaseStore(env,async()=>({ok:false,status:409,json:async()=>({secret:'private data'})}));await assert.rejects(store.read(),{message:'Durable storage unavailable (409)'});
  const invalid=createSupabaseStore(env,async()=>({ok:true,json:async()=>99}));await assert.rejects(invalid.write({users:{}}),/Invalid durable state revision/);
 });
+
+test('Pasted key whitespace is normalized and network exceptions never expose credentials',async()=>{let actual;const store=createSupabaseStore({...env,SUPABASE_SERVICE_ROLE_KEY:' sb_secret_\nexample \r\n'},async(url,opts)=>{actual=opts.headers.apikey;throw new TypeError('secret in raw HTTP error');});await assert.rejects(store.read(),{message:'Durable storage connection failed; check server configuration and network'});assert.equal(actual,'sb_secret_example');});
