@@ -22,3 +22,9 @@ const {build}=await import("esbuild");
 await build({entryPoints:[path.join(root,"scripts/local-tutor-worker.js")],outfile:path.join(root,"public/vendor/local-tutor-worker.js"),bundle:true,format:"esm",platform:"browser",minify:true});
 
 await import("./build-guide.js");
+
+await build({entryPoints:[path.join(root,"scripts/book-vision.js")],outfile:path.join(root,"public/vendor/book-vision.js"),bundle:true,format:"esm",platform:"browser",minify:true});
+const ocrDir=path.join(root,"public/vendor/tesseract");fs.mkdirSync(ocrDir,{recursive:true});
+fs.copyFileSync(path.join(root,"node_modules/tesseract.js/dist/worker.min.js"),path.join(ocrDir,"worker.min.js"));
+const coreDir=path.join(ocrDir,"core");fs.mkdirSync(coreDir,{recursive:true});
+for(const name of fs.readdirSync(path.join(root,"node_modules/tesseract.js-core"))){if(/\.(wasm|js)$/.test(name)&&name.startsWith("tesseract-core"))fs.copyFileSync(path.join(root,"node_modules/tesseract.js-core",name),path.join(coreDir,name));}
