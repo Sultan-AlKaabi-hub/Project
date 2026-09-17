@@ -1,3 +1,4 @@
+import {DIAGNOSTICS} from '../../data/knowledge/diagnostics.js';
 import {moduleById} from '../curriculum.js';
 import {allowedLesson,tokens} from './knowledge.js';
 import {initialize,evidence,masteryView,id,now} from './memory.js';
@@ -16,9 +17,23 @@ export function createPractice(db,user,lessonId,lang){
  a.attempts[user.email].push(record);a.attempts[user.email]=a.attempts[user.email].slice(-100);
  return {type:'quiz',id:record.id,title:lang==='ar'?'اختبر فهمك':'Test your understanding',question:q.q[lang],choices:short?[]:q.choices[lang],answerType:record.type,difficulty,lessonId};
 }
+export function createConceptPractice(db,user,conceptId,lang){
+ const bank=DIAGNOSTICS.filter(q=>q.concept===conceptId);if(!bank.length)return null;
+ const a=initialize(db);a.attempts[user.email]||=[];const prior=a.attempts[user.email].filter(q=>q.conceptId===conceptId);
+ const q=bank[prior.length%bank.length],i=lang==='ar'?1:0,record={id:id(),diagnosticId:q.id,conceptId,lang,type:q.type,createdAt:now(),gradedAt:null};a.attempts[user.email].push(record);a.attempts[user.email]=a.attempts[user.email].slice(-100);
+ return {type:'quiz',id:record.id,title:i?'تحقق من المفهوم':'Concept check',question:q.q[i],choices:q.choices?.[i]||[],answerType:q.type==='choice'?'choice':'short',difficulty:prior.length?'challenge':'foundation'};
+}
+function gradeDiagnostic(db,user,attempt,answer){
+ const q=DIAGNOSTICS.find(q=>q.id===attempt.diagnosticId),i=attempt.lang==='ar'?1:0;
+ if(q.type==='choice'&&(!Number.isInteger(answer)||answer<0||answer>=q.choices[i].length)||q.type==='order'&&(typeof answer!=='string'||answer.length>40))throw Error('invalid_answer');
+ const correct=q.type==='choice'?answer===q.answer:answer.toUpperCase().replace(/[\s,،→\-]/g,'')===q.expected;
+ const mastery=evidence(db,user,q.concept,correct,q.id);
+ const result={type:'feedback',correct,title:correct?(i?'أحسنت — إليك السبب':'Good work — here is why'):(i?'راجع هذا القرار':'Revisit this decision'),text:q.why[i]+(!correct&&q.misconceptions?' '+q.misconceptions[i]:''),grading:'curated_diagnostic',rubricNote:i?'تدريب مفاهيمي منفصل عن الاختبار الرسمي.':'Concept practice, separate from your formal exam.',mastery,next:correct?(i?'طبّق الفكرة في حالة جديدة.':'Apply the concept to a new case.'):(i?'راجع الدليل ثم حاول سؤالاً آخر.':'Review the evidence, then try a different question.')};attempt.gradedAt=now();attempt.result=result;return result;
+}
 export function gradePractice(db,user,attemptId,answer){
  const a=initialize(db),attempt=a.attempts[user.email]?.find(x=>x.id===attemptId);if(!attempt)throw new Error('attempt_not_found');if(attempt.gradedAt)return attempt.result;
  if(Date.now()-Date.parse(attempt.createdAt)>3600000)throw new Error('attempt_expired');
+ if(attempt.diagnosticId)return gradeDiagnostic(db,user,attempt,answer);
  const module=moduleById(attempt.moduleId),q=attempt.generated||module.quiz[attempt.index],lang=attempt.lang;
  let correct=false;
  if(attempt.type==='choice'){if(!Number.isInteger(answer)||answer<0||answer>=q.choices[lang].length)throw new Error('invalid_answer');correct=answer===q.answer;}

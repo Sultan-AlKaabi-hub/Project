@@ -58,7 +58,7 @@
     if(S.user.role !== "student") nav.push(["administration","administration"],["staff","staff"]);
     if(S.user.role === "admin" || (S.user.role === "teacher" && S.user.hasAI !== false)) nav.push(["people","people"]);
     nav.push(["messages","messages"],["guide","guide"]);
-    if(S.user.hasAI !== false)nav.splice(2,0,["coach","coach"],["lab","lab"],["vision","vision"],["experiments","experiments"],["agentlab","agentlab"]);
+    if(S.user.hasAI !== false)nav.splice(2,0,["coach","coach"],["workshops","workshops"]);
     if(S.user.hasAI === false)nav=nav.filter(([v])=>!["course","news","progress","administration"].includes(v));
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
@@ -98,9 +98,9 @@
     window.Lab?.cleanup();window.VisionLab?.cleanup();window.ExperimentStudio?.cleanup();
     S.view = view; S.lastOpts = opts;
     if (S.intro) { S.intro.unmount(); S.intro=null; }
-    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab", "vision", "experiments", "agentlab", "guide", "coach"].includes(view)) S.view = "placement";
+    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab", "vision", "experiments", "agentlab", "workshops", "agentdebug", "knowledge", "guide", "coach"].includes(view)) S.view = "placement";
     if (!S.user && view !== "intro") S.view = "auth";
-    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab","vision","experiments","agentlab","coach"].includes(S.view)) S.view="home";
+    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab","vision","experiments","agentlab","workshops","agentdebug","knowledge","coach"].includes(S.view)) S.view="home";
     if(S.view === "intro")Faris.hide();else if(S.user)Faris.show();
     renderShell();
     const v = VIEWS[S.view], requestedView=S.view;
@@ -166,6 +166,7 @@
           <button class="btn ghost" id="switch">${signup ? T("haveAccount") : T("noAccount")}</button>
         </div>`);
       Portal.authExtras(body,signup);
+      const offlineLink=document.createElement("a");offlineLink.href="/offline.html";offlineLink.className="btn ghost";offlineLink.textContent=S.lang==="ar"?"جرّب الورشة دون اتصال":"Try the offline workshop";body.append(offlineLink);
       const hint=document.createElement("p");hint.className="sub credential-hint";hint.textContent=Portal.L("credentialHint");if(signup)$("#pin").after(hint);
       const f = $("#f"), err = $("#err");err.setAttribute("role","alert");
       $("#email").oninput = (e) => { $("#email-ok").textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value) ? "✓" : ""; };
@@ -231,7 +232,7 @@
     await refresh();
     if (!user.placed && user.role === "student") { go("home"); Faris.say(T("farisHello"), { actions: [{ label: T("start"), run: () => Faris.say(T("farisPlacement")) }] }); }
     else { go("home"); Faris.say(T("farisHello"), { open: false, pulse: true }); }
-    if(!DEMO&&isNew)Passkeys.offer(api,r=>S.user.passkeys=r.passkeys);
+    if(!DEMO&&isNew)SecurityUI.offerEnrollment(api,()=>{S.user.totpEnabled=true;},()=>Passkeys.offer(api,r=>S.user.passkeys=r.passkeys));
   }
   async function refresh() {
     if(S.user?.hasAI === false){S.course=null;return;}
@@ -508,6 +509,7 @@
   VisionLab.register({S,VIEWS,api,topbar,$,toast});
   ExperimentStudio.register({S,VIEWS,api,topbar,$,toast});
   AgentLab.register({S,VIEWS,api,topbar,$,toast});
+  Workshops.register({S,VIEWS,api,topbar,$,go});
   SiteGuide.register({S,VIEWS,api,topbar,$});
 
   // ---------- boot ----------
@@ -527,7 +529,7 @@
     applyLang();
     Faris.mount(); Faris.hide();
     try { const { user } = await api("/api/me"); if (user) { S.user = user; S.lang = user.lang || S.lang; applyLang(); Faris.show(); await refresh(); return go("home"); } }
-    catch { S.online = false; }
+    catch { S.online = false; if(!navigator.onLine){location.replace("/offline.html");return;} }
     go("auth");
   })();
 })();

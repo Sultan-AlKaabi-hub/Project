@@ -17,6 +17,7 @@
     course: ["AI learning path", "مسار الذكاء الاصطناعي"],
     experiments: ["Book scanner & experiments", "ماسح الكتب والتجارب"],
     agentlab: ["Agent laboratory", "مختبر الوكلاء"],
+    workshops: ["AI Workshop", "ورشة الذكاء الاصطناعي"],
     lab: ["AI discovery lab", "مختبر اكتشاف الذكاء الاصطناعي"],
     news: ["Live news", "الأخبار المباشرة"],
     exams: ["Exams & results", "الاختبارات والنتائج"],
@@ -424,6 +425,7 @@
       );
     }
     const icons = {
+      workshops: "⌘",
       experiments: "▤",
       agentlab: "✧",
       coach: "✧",
@@ -441,6 +443,7 @@
       lab: "⌘",
     };
     const descriptions = {
+      workshops: ["Agents, computer vision, book scanning, robotics and neural networks in one place.","الوكلاء والرؤية ومسح الكتب والروبوتات والشبكات العصبية في مكان واحد."],
       coach: ["Your tutor, practice and project workshop.", "معلمك وتدريباتك وورشة مشاريعك."],
       agentlab: ["Review code, plan learning, simulate a pitch and build an agent.","راجع الكود وخطط للتعلم وحاكِ عرضاً وابنِ وكيلاً."],
       experiments: ["Scan books, program robot routes and train a neural network.","امسح الكتب وبرمج مسارات الروبوت ودرّب شبكة عصبية."],
@@ -515,9 +518,7 @@
             ? [
                 ["coach", "coach"],
                 ["course", "course"],
-                ["lab", "lab"],
-                ["experiments", "experiments"],
-                ["agentlab", "agentlab"],
+                ["workshops", "workshops"],
                 ["news", "news"],
                 ["exams", "exams"],
               ]

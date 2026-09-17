@@ -5,10 +5,10 @@ export class AIProvider {
  constructor(){this.model=process.env.RASID_AGENT_MODEL||process.env.RASID_MODEL||'claude-opus-5';this.enabled=process.env.RASID_AGENT_PROVIDER==='anthropic'&&Boolean(process.env.ANTHROPIC_API_KEY);}
  async embed(text){return embedCourse(text);}
  async toolCall(name,args,tools){if(!Object.hasOwn(tools,name))throw new Error('tool_not_allowed');return tools[name](args);}
- async generate(system,input,{signal,onText}={}){
+ async generate(system,input,{signal,onText,task='tutor'}={}){
   if(!this.enabled)return null;
   const client=new Anthropic({timeout:40000,maxRetries:0});
-  const stream=client.messages.stream({model:this.model,max_tokens:1000,system,messages:[{role:'user',content:JSON.stringify(input)}]},{signal});
+  const stream=client.messages.stream({model:this.model,max_tokens:task==='router'?120:task==='review'?1600:1000,system,messages:[{role:'user',content:JSON.stringify(input)}]},{signal});
   if(onText)stream.on('text',text=>onText(text));
   const message=await stream.finalMessage();
   if(message.stop_reason==='refusal')return null;
