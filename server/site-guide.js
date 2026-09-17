@@ -5,7 +5,7 @@ export const guideRevision=crypto.createHash('sha256').update(JSON.stringify(SIT
 export const visibleGuide=u=>SITE_GUIDE.filter(d=>d.roles.includes(u.role||'student')&&(!d.ai||hasAI(u)));
 const normalize=s=>String(s).toLowerCase().replace(/[أإآ]/g,'ا').replace(/[\u064b-\u065f]/g,'');
 export function answerSite(question,u,lang='en'){
- if(!/(?:where|open|navigate|take me|which agents|what agents|face.?id|fingerprint|passkey|guide|booking|calendar|privacy|sign.?up|sign.?in|log.?in|settings|install|اين|أين|افتح|انتقل|الوكلاء|بصمة|مفتاح مرور|دليل|حجز|تقويم|خصوصية|تسجيل|إعدادات)/i.test(question))return null;
+ if(!/(?:where|open|navigate|take me|which agents|what agents|face.?id|fingerprint|passkey|guide|booking|calendar|privacy|sign.?up|sign.?in|log.?in|settings|install|tour|walkthrough|password|جولة|كلمة مرور|اين|أين|افتح|انتقل|الوكلاء|بصمة|مفتاح مرور|دليل|حجز|تقويم|خصوصية|تسجيل|إعدادات)/i.test(question))return null;
  const q=normalize(question),words=q.match(/[\p{L}\p{N}]+/gu)||[];
  const ranked=visibleGuide(u).map(d=>{const keys=normalize(d.keywords).split(' ');return{d,n:words.filter(w=>w.length>2&&keys.includes(w)).length};}).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
  const top=ranked[0]?.d;if(!top)return null;

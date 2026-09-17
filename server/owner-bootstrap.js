@@ -11,7 +11,7 @@ export function provisionOwner(db,env=process.env){
  if(db.settings.ownerCredentialRevision!==revision){
   // A deployment-controlled credential proves ownership. Never trust an email-only signup.
   if(u.role!=='admin'){u.passkeys=[];delete u.totp;}
-  u.pinHash=hash;for(const [k,s]of Object.entries(db.sessions))if(s.email===OWNER_EMAIL)delete db.sessions[k];
+  u.pinHash=hash;u.passwordSet=false;delete u.quickPinHash;for(const [k,s]of Object.entries(db.sessions))if(s.email===OWNER_EMAIL)delete db.sessions[k];
   delete u.resetCode;db.settings.ownerCredentialRevision=revision;changed=true;
  }
  if(u.role!=='admin'||u.subject!=='ai'){u.role='admin';u.subject='ai';delete u.teacherEmail;changed=true;}

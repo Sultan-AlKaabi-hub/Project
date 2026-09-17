@@ -1,4 +1,4 @@
-// Sign-in: email + 6-digit PIN, optional Google Authenticator (TOTP), optional passkey (fingerprint / Face ID).
+// Sign-in: required password, optional quick PIN, TOTP and device passkeys. Legacy credentials upgrade through Settings.
 import crypto from "node:crypto";
 import QRCode from "qrcode";
 import {
@@ -22,7 +22,10 @@ export function checkPin(pin, stored) {
   return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(test, "hex"));
 }
 export const validPin = (p) => typeof p === "string" && /^\d{6}$/.test(p);
-export const validCredential = p => validPin(p) || (typeof p === "string" && p.length >= 12 && p.length <= 128 && !/^\d+$/.test(p));
+export const validPassword = p => typeof p === 'string' && p.length >= 8 && p.length <= 128 && /[A-Z]/.test(p) && /[a-z]/.test(p) && /[0-9]/.test(p) && /[^\p{L}\p{N}\s]/u.test(p) && !/[\x00-\x1f\x7f]/.test(p) && !/^(password|qwerty|letmein|welcome|admin)[\d\W]*$/i.test(p);
+// Old credentials remain usable until their owner explicitly upgrades them.
+export const validCredential = p => typeof p === 'string' && p.length >= 6 && p.length <= 128;
+export const checkLogin = (p,u) => validCredential(p) && (checkPin(p,u.pinHash) || (u.passwordSet === true && validPin(p) && checkPin(p,u.quickPinHash)));
 export const validEmail = (e) => typeof e === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && e.length < 200;
 
 // ---------- Sessions ----------

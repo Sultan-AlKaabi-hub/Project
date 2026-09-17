@@ -66,15 +66,15 @@ test('Actual authentication routes require PIN for enrollment and a fresh factor
  t.after(async()=>{child.kill();await new Promise(r=>child.exitCode!==null?r():child.once('exit',r));if(path.dirname(dir)===root&&path.basename(dir).startsWith('.test-security-'))fs.rmSync(dir,{recursive:true,force:true});});
  for(let i=0;i<80;i++){try{if((await fetch(base+'/api/status')).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
  let cookie='';const call=(url,body)=>fetch(base+url,{method:'POST',headers:{'content-type':'application/json',cookie},body:JSON.stringify(body)});
- const signup=await call('/api/auth/signup',{email:'security@example.test',pin:'829314',privacyAccepted:true,lang:'en'});assert.equal(signup.status,200);cookie=signup.headers.get('set-cookie').split(';')[0];
+ const signup=await call('/api/auth/signup',{email:'security@example.test',password:'Secure-lab-2026!',privacyAccepted:true,lang:'en'});assert.equal(signup.status,200);cookie=signup.headers.get('set-cookie').split(';')[0];
  assert.equal((await call('/api/security/totp/setup',{})).status,401);
- const setup=await (await call('/api/security/totp/setup',{pin:'829314'})).json();assert.ok(setup.secret);
+ const setup=await (await call('/api/security/totp/setup',{pin:'Secure-lab-2026!'})).json();assert.ok(setup.secret);
  assert.equal((await call('/api/security/totp/confirm',{code:totp(setup.secret,Math.floor(Date.now()/30000)-1)})).status,200);
- assert.equal((await call('/api/security/totp/setup',{pin:'829314'})).status,409);
+ assert.equal((await call('/api/security/totp/setup',{pin:'Secure-lab-2026!'})).status,409);
  assert.equal((await call('/api/security/totp/disable',{})).status,401);
- const login=await (await call('/api/auth/login',{email:'security@example.test',pin:'829314'})).json();assert.equal(login.needTotp,true);
+ const login=await (await call('/api/auth/login',{email:'security@example.test',pin:'Secure-lab-2026!'})).json();assert.equal(login.needTotp,true);
  assert.equal((await call('/api/auth/totp',{ticket:login.ticket,code:totp(setup.secret)})).status,200);
- assert.equal((await call('/api/security/totp/disable',{pin:'829314',code:totp(setup.secret)})).status,401);
- assert.equal((await call('/api/security/totp/disable',{pin:'829314',code:totp(setup.secret,Math.floor(Date.now()/30000)+1)})).status,200);
- const final=await (await call('/api/auth/login',{email:'security@example.test',pin:'829314'})).json();assert.equal(final.user.email,'security@example.test');
+ assert.equal((await call('/api/security/totp/disable',{pin:'Secure-lab-2026!',code:totp(setup.secret)})).status,401);
+ assert.equal((await call('/api/security/totp/disable',{pin:'Secure-lab-2026!',code:totp(setup.secret,Math.floor(Date.now()/30000)+1)})).status,200);
+ const final=await (await call('/api/auth/login',{email:'security@example.test',pin:'Secure-lab-2026!'})).json();assert.equal(final.user.email,'security@example.test');
 });
