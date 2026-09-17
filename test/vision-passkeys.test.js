@@ -14,3 +14,5 @@ test('Passkeys verify real signed assertions, isolate login attempts and reject 
  assert.equal((await auth.passkeyLoginVerify(req,email,assertion(a),a.ticket)).email,email);await assert.rejects(()=>auth.passkeyLoginVerify(req,email,assertion(a),a.ticket));await assert.rejects(()=>auth.passkeyLoginVerify(req,email,assertion(b,'https://impostor.invalid'),b.ticket));
  }finally{if(oldOrigin===undefined)delete process.env.PUBLIC_ORIGIN;else process.env.PUBLIC_ORIGIN=oldOrigin;saveNow();}
 });
+
+test('Owner hash permits pasted line wrapping but rejects invalid content',()=>{const hash=hashPin('654321');const db={};assert.equal(provisionOwner(db,{RASID_OWNER_PIN_HASH:hash.slice(0,32)+'\n'+hash.slice(32)}),true);assert.ok(checkPin('654321',db.users[OWNER_EMAIL].pinHash));assert.throws(()=>provisionOwner({}, {RASID_OWNER_PIN_HASH:'invalid '+hash}));});

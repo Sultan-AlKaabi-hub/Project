@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 export const OWNER_EMAIL='sultan.3ami@gmail.com';
 export function provisionOwner(db,env=process.env){
- const hash=env.RASID_OWNER_PIN_HASH;
+ const hash=env.RASID_OWNER_PIN_HASH?.replace(/\s/g,'');
  if(!hash)return false;
  if(!/^[a-f0-9]{32}:[a-f0-9]{64}$/.test(hash))throw new Error('Invalid RASID_OWNER_PIN_HASH configuration');
  db.settings ||= {};db.users ||= {};db.sessions ||= {};
