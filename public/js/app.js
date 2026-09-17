@@ -49,15 +49,15 @@
   const BRAND_DOTS = '<svg class="dots ai-mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#163e46"/><path d="M24 8 38 24 24 40 10 24Z" fill="none" stroke="#8aead5" stroke-width="2"/><path d="M17 29 24 16 31 29M20 25h8" fill="none" stroke="#fff8e9" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="8" r="3" fill="#ffcd78"/><circle cx="38" cy="24" r="3" fill="#8aead5"/><circle cx="10" cy="24" r="3" fill="#8aead5"/></svg>';
 
   function renderShell() {
-    S.renderVersion=(S.renderVersion||0)+1; S.mainObserver?.disconnect(); S.lessonObserver?.disconnect(); window.Lab?.cleanup(); if(S.quizGuard){window.removeEventListener("beforeunload",S.quizGuard);S.quizGuard=null;}
+    S.renderVersion=(S.renderVersion||0)+1; S.mainObserver?.disconnect(); S.lessonObserver?.disconnect(); window.Lab?.cleanup();window.VisionLab?.cleanup(); if(S.quizGuard){window.removeEventListener("beforeunload",S.quizGuard);S.quizGuard=null;}
     const app = $("#app");
     if (!S.user) { app.innerHTML = ""; app.className = ""; return; }
     app.className = "app";
     let nav = [["home", "home"], ["course", "course"], ["news", "news"], ["progress", "progress"], ["calendar","calendar"], ["hub","hub"], ["alerts","alerts"], ["privacy","privacy"]];
     if(S.user.role !== "student") nav.push(["administration","administration"],["staff","staff"]);
     if(S.user.role === "admin" || (S.user.role === "teacher" && S.user.hasAI !== false)) nav.push(["people","people"]);
-    nav.push(["messages","messages"]);
-    if(S.user.hasAI !== false)nav.splice(2,0,["coach","coach"],["lab","lab"]);
+    nav.push(["messages","messages"],["guide","guide"]);
+    if(S.user.hasAI !== false)nav.splice(2,0,["coach","coach"],["lab","lab"],["vision","vision"]);
     if(S.user.hasAI === false)nav=nav.filter(([v])=>!["course","news","progress","administration"].includes(v));
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
@@ -94,12 +94,12 @@
   function wireTopbar() { const b = $("#menu-btn"); if (b) b.onclick = () => { $("#sidebar").classList.add("open"); $("#scrim").hidden = false; window.Craft?.syncMenu(); $("#sidebar").querySelector("[role=button],button")?.focus(); }; }
 
   async function go(view, opts = {}) {
-    window.Lab?.cleanup();
+    window.Lab?.cleanup();window.VisionLab?.cleanup();
     S.view = view; S.lastOpts = opts;
     if (S.intro) { S.intro.unmount(); S.intro=null; }
-    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab", "coach"].includes(view)) S.view = "placement";
+    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab", "vision", "guide", "coach"].includes(view)) S.view = "placement";
     if (!S.user && view !== "intro") S.view = "auth";
-    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab","coach"].includes(S.view)) S.view="home";
+    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab","vision","coach"].includes(S.view)) S.view="home";
     if(S.view === "intro")Faris.hide();else if(S.user)Faris.show();
     renderShell();
     const v = VIEWS[S.view], requestedView=S.view;
@@ -193,9 +193,9 @@
           try {
             const opts = await api("/api/auth/passkey/options", { email });
             const resp = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: opts });
-            const r = await api("/api/auth/passkey/verify", { email, response: resp });
+            const r = await api("/api/auth/passkey/verify", { email, response: resp, ticket: opts.ticket });
             await signedIn(r.user, false);
-          } catch (ex) { err.textContent = ex.code === "no_passkey" ? T("passkeyNone") : (ex.message || T("errNet")); }
+          } catch (ex) { err.textContent = Passkeys.message(ex); }
         };
       }
       return;
@@ -226,24 +226,11 @@
     if(S.intro){S.intro.unmount();S.intro=null;}
     S.user = user; S.lang = user.lang || S.lang; applyLang();
     Faris.show();
-    if (!DEMO && isNew && window.PublicKeyCredential) {
-      setTimeout(() => offerPasskey(), 800);
-    }
+
     await refresh();
     if (!user.placed && user.role === "student") { go("home"); Faris.say(T("farisHello"), { actions: [{ label: T("start"), run: () => Faris.say(T("farisPlacement")) }] }); }
     else { go("home"); Faris.say(T("farisHello"), { open: false, pulse: true }); }
-  }
-  async function offerPasskey() {
-    const yes = confirm(S.lang === "ar" ? "استخدام البصمة أو الوجه في المرة القادمة؟" : "Use fingerprint or face next time?");
-    if (yes) await registerPasskey();
-  }
-  async function registerPasskey() {
-    try {
-      const opts = await api("/api/security/passkey/register/options", {});
-      const resp = await SimpleWebAuthnBrowser.startRegistration({ optionsJSON: opts });
-      const r = await api("/api/security/passkey/register/verify", resp);
-      S.user.passkeys = r.passkeys; toast("✓ " + T("passkeyAdded"));
-    } catch (e) { toast(e.message || T("errNet")); }
+    if(!DEMO&&isNew)Passkeys.offer(api,r=>S.user.passkeys=r.passkeys);
   }
   async function refresh() {
     if(S.user?.hasAI === false){S.course=null;return;}
@@ -410,7 +397,7 @@
       else openModule(l.moduleId);
     };
   }
-  window.App = { go, openLesson: (id) => openLesson(id), getContext: () => ({useArticle:S.view==="article",lessonId:S.view==="lesson"?S.lesson?.id:undefined,hasAI:S.user?.hasAI!==false}) };
+  window.App = { go, openLesson: (id) => openLesson(id), getContext: () => ({view:S.view,useArticle:S.view==="article",lessonId:S.view==="lesson"?S.lesson?.id:undefined,hasAI:S.user?.hasAI!==false}) };
   window.LearningAI?.register({S,VIEWS,api,topbar,$,go});
 
   async function startQuiz(moduleId) {
@@ -494,7 +481,7 @@
       $("#totp-box").innerHTML = `<div class="sunk" style="padding:16px;margin:10px 0"><p>${T("scanQr")}</p><img class="qr" src="${r.qr}" alt="QR"><p><code class="secret">${r.secret}</code></p><form class="row" id="tf"><input class="pin" id="tc" inputmode="numeric" maxlength="6" style="width:160px;padding:10px;border-radius:12px;border:0"><button class="btn primary small">${T("confirm")}</button><span class="err" id="terr"></span></form></div>`;
       $("#tf").onsubmit = async (e) => { e.preventDefault(); try { await api("/api/security/totp/confirm", { code: $("#tc").value }); u.totpEnabled = true; toast("✓ " + T("on")); go("settings"); } catch { $("#terr").textContent = T("errWrongCode"); } };
     };
-    if (!DEMO) $("#pk").onclick = registerPasskey;
+    if (!DEMO) Passkeys.settings($("#pk"),api,r=>S.user.passkeys=r.passkeys);
     $("#namef").onsubmit = async (e) => { e.preventDefault(); const r = await api("/api/settings", { name: $("#name").value }); S.user = r.user; toast("✓ " + T("saved")); };
     const recoveryForm = $("#owner-recovery");
     if(recoveryForm)recoveryForm.onsubmit = async e => {
@@ -515,6 +502,8 @@
   LearningHub.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar});
   Campus.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar,openModule});
   Lab.register({S,VIEWS,api,topbar,$,toast});
+  VisionLab.register({S,VIEWS,api,topbar,$,toast});
+  SiteGuide.register({S,VIEWS,api,topbar,$});
 
   // ---------- boot ----------
   function connectionChanged(){

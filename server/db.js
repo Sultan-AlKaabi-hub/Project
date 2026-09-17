@@ -1,3 +1,4 @@
+import {createSupabaseStore} from "./persistence.js";
 // Tiny JSON-file database. One file, atomic writes, in-memory cache.
 import fs from "node:fs";
 import path from "node:path";
@@ -18,6 +19,17 @@ const EMPTY = {
 };
 
 let cache = null;
+let remote=null, dirty=false, pendingWrite=null, storageError=null;
+export async function initializeStorage(){remote=createSupabaseStore();if(remote){const payload=await remote.read();if(payload)cache={...structuredClone(EMPTY),...payload};else load();}}
+export function storageStatus(){return {mode:remote?"supabase":"local-file",healthy:!storageError};}
+export async function flush(){
+ if(!remote)return;
+ if(storageError)throw storageError;
+ if(pendingWrite){await pendingWrite;return flush();}
+ pendingWrite=(async()=>{while(dirty){dirty=false;const snapshot=structuredClone(cache);try{await remote.write(snapshot);}catch{storageError=new Error("Durable storage write failed; restart after resolving configuration or writer conflict");throw storageError;}}})();
+ try{await pendingWrite;}finally{pendingWrite=null;}
+}
+
 
 export function load() {
   if (cache) return cache;
@@ -47,6 +59,7 @@ function writeAtomic() {
   }
 }
 export function save() {
+  if(remote){dirty=true;return;}
   // Debounced atomic write.
   if (writeTimer) return;
   writeTimer = setTimeout(() => {
@@ -56,9 +69,13 @@ export function save() {
 }
 
 export function saveNow() {
+  if(remote){dirty=true;return;}
   if (writeTimer) { clearTimeout(writeTimer); writeTimer = null; }
   fs.mkdirSync(DATA_DIR, { recursive: true });
   writeAtomic();
 }
 
 export const today = () => new Date().toISOString().slice(0, 10);
+
+// Background changes use the same serialized writer. No secrets or payloads in logs.
+setInterval(()=>{if(remote&&dirty)flush().catch(()=>console.error("Durable storage unavailable"));},1000).unref();

@@ -1,3 +1,6 @@
+import {installGuide,answerSite} from "./site-guide.js";
+import {installVision} from "./vision.js";
+import {provisionOwner} from "./owner-bootstrap.js";
 import {installAgents} from "./agents/index.js";
 import {eraseLearner} from "./agents/memory.js";
 import {initializeCampus, seedCampusDemo, installCampus, notifyCoverage} from "./campus.js";
@@ -13,7 +16,7 @@ import path from "node:path";
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { load, save, saveNow, today, DATA_DIR } from "./db.js";
+import { load, save, saveNow, today, DATA_DIR, initializeStorage, flush, storageStatus } from "./db.js";
 import * as auth from "./auth.js";
 import { runUpdate, currentRequired } from "./pipeline/run.js";
 import { CATEGORIES, fetchCategory, sourceList } from "./pipeline/fetchNews.js";
@@ -42,11 +45,13 @@ const readingContexts = new Map();
 setInterval(() => {
   for (const [email, context] of readingContexts) if (context.at < Date.now() - 3600000) readingContexts.delete(email);
 }, 60000).unref();
+await initializeStorage();
 const db = load();
-migrateRoles(db); initializeCampus(db);
+migrateRoles(db); provisionOwner(db); initializeCampus(db);
 if(process.env.RASID_SEED_DEMO === "1" || (process.env.NODE_ENV === "production" && process.env.RASID_SEED_DEMO !== "0"))seedCampusDemo(db);
 enrichDemo(db);
 save();
+await flush();
 const publicUser = (u) => ({
   email: u.email, name: u.name || u.email.split("@")[0], lang: u.lang || "ar", level: u.level || null, placed: Boolean(u.level),
   totpEnabled: Boolean(u.totp?.enabled), passkeys: (u.passkeys || []).length,
@@ -63,6 +68,9 @@ function requireUser(req, res, next) {
   if(ensureOwnerExamples(db,u))save();
   req.user = u; next();
 }
+
+// A successful JSON mutation response waits for durable storage when configured.
+app.use("/api",(req,res,next)=>{if(req.method!=="GET"){if(!storageStatus().healthy)return res.status(503).json({error:"storage_unavailable"});const original=res.json.bind(res);res.json=body=>{flush().then(()=>original(body)).catch(()=>{if(!res.headersSent){res.status(503);original({error:"storage_unavailable"});}});return res;};}next();});
 
 // Same-origin writes, private response caching, and bounded abuse protection.
 app.use((req,res,next) => {
@@ -93,7 +101,10 @@ installPortal(app,{db,save,requireUser});
 installOperations(app,{db,save:()=>{notifyCoverage(db);save();},requireUser});
 installCampus(app,{db,save,requireUser});
 installOwnerRecovery(app,{db,saveNow,requireUser,publicUser});
+installGuide(app,{requireUser});
 installLab(app,{db,save,requireUser});
+installVision(app,{db,save,requireUser});
+app.get("/sandbox/vision.html",(req,res)=>{res.set({"X-Frame-Options":"SAMEORIGIN","Content-Security-Policy":"default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; frame-ancestors 'self'; form-action 'none'; base-uri 'none'","Cache-Control":"no-store"});res.sendFile(path.join(ROOT,"public/sandbox/vision.html"));});
 installAgents(app,{db,save,requireUser,getArticle:u=>{const c=readingContexts.get(u.email);return c&&c.at>Date.now()-3600000?c:null;}});
 app.get('/api/install', async (req,res) => {
   const url=process.env.PUBLIC_ORIGIN || req.protocol+'://'+req.get('host');
@@ -114,10 +125,15 @@ app.post("/api/auth/signup", (req, res) => {
   res.json({ user: publicUser(db.users[email]) });
 });
 
+const loginFailures=new Map();
 app.post("/api/auth/login", (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
+  const now=Date.now();for(const [k,v]of loginFailures)if(v.until<now)loginFailures.delete(k);
+  const fail=loginFailures.get(email)||{n:0,until:now+15*60000};
+  if(fail.n>=10){res.set("Retry-After",String(Math.ceil((fail.until-now)/1000)));return res.status(429).json({error:"rate_limited"});}
   const u = db.users[email];
-  if (!u || !auth.validCredential(req.body.pin) || !auth.checkPin(req.body.pin, u.pinHash)) return res.status(401).json({ error: "wrong" });
+  if (!u || !auth.validCredential(req.body.pin) || !auth.checkPin(req.body.pin, u.pinHash)){fail.n++;if(loginFailures.size<10000)loginFailures.set(email,fail);return res.status(401).json({ error: "wrong" });}
+  loginFailures.delete(email);
   if (u.totp?.enabled) return res.json({ needTotp: true, ticket: auth.createPending(email) });
   setCookie(res, auth.createSession(email));
   res.json({ user: publicUser(u) });
@@ -167,15 +183,15 @@ app.post("/api/auth/passkey/options", async (req, res) => {
 app.post("/api/auth/passkey/verify", async (req, res) => {
   try {
     const email = String(req.body.email || "").trim().toLowerCase();
-    const u = await auth.passkeyLoginVerify(req, email, req.body.response);
+    const u = await auth.passkeyLoginVerify(req, email, req.body.response, req.body.ticket);
     setCookie(res, auth.createSession(email));
     res.json({ user: publicUser(u) });
-  } catch (e) { res.status(401).json({ error: e.message }); }
+  } catch (e) { res.status(401).json({ error: "passkey_failed" }); }
 });
 app.post("/api/security/passkey/register/options", requireUser, async (req, res) => res.json(await auth.passkeyRegisterOptions(req, req.user)));
 app.post("/api/security/passkey/register/verify", requireUser, async (req, res) => {
   try { await auth.passkeyRegisterVerify(req, req.user, req.body); res.json({ ok: true, passkeys: req.user.passkeys.length }); }
-  catch (e) { res.status(400).json({ error: e.message }); }
+  catch (e) { res.status(400).json({ error: "passkey_failed" }); }
 });
 
 // Google Authenticator
@@ -349,9 +365,12 @@ app.post("/api/faris/ask", requireUser, async (req, res) => {
   const question = String(req.body.question || "").slice(0, 300);
   if (!question.trim()) return res.status(400).json({ error: "empty" });
   const lang = /[\u0600-\u06ff]/u.test(question) ? "ar" : /[a-z]/i.test(question) ? "en" : (req.body.lang === "en" ? "en" : "ar");
+  const guideAnswer=answerSite(question,req.user,lang);
+  if(guideAnswer&&!hasAI(req.user))return res.json(guideAnswer);
   if(!hasAI(req.user))return res.json({text:lang === "en" ? "Your workspace covers your subject schedule, leave requests, inbox and bookings. AI course records are restricted to AI teachers and administrators." : "تضم مساحتك مناوبات مادتك وطلبات الإجازة والبريد والحجوزات. سجلات الذكاء الاصطناعي متاحة لمعلمي المادة والمسؤولين فقط."});
   const privateResult = privateAnswer(question, { ...req.user, lang }, db);
   if(privateResult) return res.json(privateResult);
+  if(guideAnswer)return res.json(guideAnswer);
   const r = await farisAnswer(question, { level: req.user.level || "beginner", lang, article: req.body.useArticle && readingContexts.get(req.user.email)?.at>Date.now()-3600000 ? readingContexts.get(req.user.email) : null });
   res.json(r);
 });
@@ -392,7 +411,7 @@ app.use((req,res,next)=>{
   next();
 });
 // ---------- static ----------
-app.get("/healthz", (req,res) => res.json({ok:true}));
+app.get("/healthz", (req,res) => {const status=storageStatus();res.status(status.healthy?200:503).json({ok:status.healthy});});
 app.use((req,res,next)=>{if(req.path === "/" || req.path.endsWith(".html") || req.path === "/sw.js")res.setHeader("Cache-Control","no-cache");next();});
 app.get("/vendor/webauthn.js", (req, res) => res.sendFile(path.join(ROOT, "node_modules/@simplewebauthn/browser/dist/bundle/index.umd.min.js")));
 app.use(express.static(path.join(ROOT, "public"), { extensions: ["html"] }));

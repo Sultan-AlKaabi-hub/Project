@@ -7,3 +7,5 @@ data/*.apk
 .test-data-*/
 
 public/vendor/local-tutor-worker.js
+
+public/guides/
