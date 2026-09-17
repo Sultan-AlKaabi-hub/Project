@@ -1,10 +1,11 @@
 import {REFERENCE_NOTES} from '../../data/knowledge/reference-notes.js';
+import {LAB_NOTES} from '../../data/knowledge/lab-notes.js';
 import { Matrix, SingularValueDecomposition } from 'ml-matrix';
 import { COURSE, LEVELS, lessonById, levelIndex } from '../curriculum.js';
 const stop=new Set('the and for with that this from what how when why your are was not have into about does explain give example simply technically في من على إلى عن هذا هذه ماذا كيف التي الذي شرح اشرح مثال'.split(' '));
 export const tokens=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\u064b-\u065f]/g,'').match(/[\p{L}\p{N}]{2,}/gu)?.filter(x=>!stop.has(x))||[];
 export const documents=LEVELS.flatMap(level=>COURSE[level].modules.flatMap(m=>m.lessons.map(l=>({courseId:'ai',moduleId:m.id,lessonId:l.id,title:l.title,difficulty:level,topic:m.title,contentType:'lesson',body:l.body}))));
-documents.push(...REFERENCE_NOTES.map(d=>({...d,courseId:"ai",moduleId:"references",lessonId:null})));
+documents.push(...[...REFERENCE_NOTES,...LAB_NOTES].map(d=>({...d,courseId:"ai",moduleId:"references",lessonId:null})));
 let index;
 // Local latent semantic analysis: bilingual TF-IDF -> truncated SVD -> cosine vectors.
 // Public course text only. No student record or message is embedded in the index.
@@ -27,4 +28,4 @@ export function retrieve(question,user,{lessonId,lang='en',limit=3}={}){
  return documents.map((d,i)=>{const text=d.title[lang]+' '+d.body[lang],lexical=tokens(text).filter(x=>terms.has(x)).length;const semantic=idx.vectors[i].reduce((n,v,j)=>n+v*q[j],0);return {...d,score:Math.max(0,semantic)+Math.min(.25,lexical*.02)+(d.lessonId===lessonId?.toString()?1:0),lexical};})
  .filter(d=>levelIndex(d.difficulty)<=levelIndex(user.level||'beginner')&&(d.lessonId===lessonId||d.score>.22&&d.lexical>0)).sort((a,b)=>b.score-a.score).slice(0,limit);
 }
-export function source(d,lang){if(d.contentType==='reference')return {title:d.title[lang]+' � '+d.file+' � '+(lang==='ar'?'���� ':'page ')+d.pages.join(', '),view:d.view,contentType:d.contentType};return {lessonId:d.lessonId,moduleId:d.moduleId,courseId:d.courseId,title:d.title[lang],difficulty:d.difficulty,topic:d.topic[lang],contentType:d.contentType};}
+export function source(d,lang){if(d.contentType==='lab')return {title:d.title[lang],view:d.view,contentType:d.contentType};if(d.contentType==='reference')return {title:d.title[lang]+' · '+d.file+' · '+(lang==='ar'?'صفحة ':'page ')+d.pages.join(', '),view:d.view,contentType:d.contentType};return {lessonId:d.lessonId,moduleId:d.moduleId,courseId:d.courseId,title:d.title[lang],difficulty:d.difficulty,topic:d.topic[lang],contentType:d.contentType};}
