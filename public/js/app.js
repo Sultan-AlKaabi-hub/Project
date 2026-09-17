@@ -57,7 +57,7 @@
     if(S.user.role !== "student") nav.push(["administration","administration"],["staff","staff"]);
     if(S.user.role === "admin" || (S.user.role === "teacher" && S.user.hasAI !== false)) nav.push(["people","people"]);
     nav.push(["messages","messages"]);
-    if(S.user.hasAI !== false)nav.splice(2,0,["lab","lab"]);
+    if(S.user.hasAI !== false)nav.splice(2,0,["coach","coach"],["lab","lab"]);
     if(S.user.hasAI === false)nav=nav.filter(([v])=>!["course","news","progress","administration"].includes(v));
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
@@ -97,9 +97,9 @@
     window.Lab?.cleanup();
     S.view = view; S.lastOpts = opts;
     if (S.intro) { S.intro.unmount(); S.intro=null; }
-    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab"].includes(view)) S.view = "placement";
+    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab", "coach"].includes(view)) S.view = "placement";
     if (!S.user && view !== "intro") S.view = "auth";
-    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab"].includes(S.view)) S.view="home";
+    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab","coach"].includes(S.view)) S.view="home";
     if(S.view === "intro")Faris.hide();else if(S.user)Faris.show();
     renderShell();
     const v = VIEWS[S.view], requestedView=S.view;
@@ -391,13 +391,14 @@
 
   async function openLesson(id) {
     S.view = "lesson"; renderShell(); const version=S.renderVersion;
-    const l = await api(`/api/course/lesson/${id}`); if(version!==S.renderVersion)return;
+    const l = await api(`/api/course/lesson/${id}`); if(version!==S.renderVersion)return; S.lesson=l;
     $("#main").innerHTML = topbar(esc(l.title), `${l.icon} ${esc(l.moduleTitle)} · ${T("lesson")} ${l.index} / ${l.count}`, `<button class="btn small" id="back">${T("back")}</button>`) + `
       <div class="card reader"><div class="body">${paras(l.body)}</div>
         ${S.lang === "ar" ? `<details class="en-twin"><summary>English version</summary><div class="article-text ltr">${paras(l.bodyEn)}</div></details>` : ""}
         <p class="endmark">— ${T("endOfLesson")} —</p>
         <div id="gotit" hidden style="margin-top:14px"><button class="btn primary big" id="done">${l.read ? "✓ " + T("read") + (l.nextId ? " · " + T("nextLesson") : "") : T("gotIt")}</button></div>
       </div>`;
+    window.LearningAI?.attachLesson(l);
     $("#back").onclick = () => openModule(l.moduleId);
     const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { if($("#gotit"))$("#gotit").hidden = false; io.disconnect(); } });
     S.lessonObserver=io;io.observe($(".endmark"));
@@ -409,7 +410,8 @@
       else openModule(l.moduleId);
     };
   }
-  window.App = { openLesson: (id) => openLesson(id), getContext: () => ({useArticle:S.view==="article"}) };
+  window.App = { go, openLesson: (id) => openLesson(id), getContext: () => ({useArticle:S.view==="article",lessonId:S.view==="lesson"?S.lesson?.id:undefined,hasAI:S.user?.hasAI!==false}) };
+  window.LearningAI?.register({S,VIEWS,api,topbar,$,go});
 
   async function startQuiz(moduleId) {
     S.view = "quiz"; renderShell(); const version=S.renderVersion;

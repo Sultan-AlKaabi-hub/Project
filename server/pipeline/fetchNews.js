@@ -3,6 +3,7 @@
 //  2. Google News search feeds (aggregates Reuters, AP, Bloomberg, Defense One, SCMP, etc.).
 // No API key needed. Results are cached for 10 minutes for the live feed screen.
 import Parser from "rss-parser";
+import {newsApiArticles,newsApiStatus} from "./newsapi.js";
 
 export const CATEGORIES = [
   { id: "civilian", ar: "مدني", en: "Civilian",
@@ -92,7 +93,7 @@ const TTL = 10 * 60 * 1000;
 export async function fetchCategory(cat, limit = 8, { fresh = false } = {}) {
   const c = cache.get(cat.id);
   if (!fresh && c && Date.now() - c.at < TTL) return c.items;
-  const jobs = [googleNews(cat, limit).catch((e) => { console.warn(`[news] google/${cat.id}: ${e.message}`); return []; }),
+  const jobs = [newsApiArticles(cat.id),googleNews(cat, limit).catch((e) => { console.warn(`[news] google/${cat.id}: ${e.message}`); return []; }),
     ...cat.feeds.map((f) => directFeed(cat, f, 4).catch((e) => { console.warn(`[news] ${f.name}: ${e.message}`); return []; }))];
   const results = (await Promise.all(jobs)).flat();
   const seen = new Set();
@@ -115,5 +116,5 @@ export async function fetchAll(opts) {
 }
 
 export function sourceList() {
-  return CATEGORIES.map((c) => ({ id: c.id, ar: c.ar, en: c.en, sources: ["Google News (Reuters, AP, Bloomberg, and others)", ...c.feeds.map((f) => f.name)] }));
+  return CATEGORIES.map((c) => ({ id: c.id, ar: c.ar, en: c.en, sources: [...(c.id === "civilian" && newsApiStatus().enabled ? ["NewsAPI (publisher headlines)"] : []), "Google News (Reuters, AP, Bloomberg, and others)", ...c.feeds.map((f) => f.name)] }));
 }

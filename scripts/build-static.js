@@ -17,3 +17,6 @@ fs.copyFileSync(path.join(root, "node_modules/@simplewebauthn/browser/dist/bundl
 console.log("static build written:", path.relative(root, out), `(${Math.round(fs.statSync(out).size / 1024)} KB)`);
 
 fs.copyFileSync(path.join(root, "node_modules/gsap/dist/gsap.min.js"), path.join(root, "public/vendor/gsap.min.js"));
+
+const {build}=await import("esbuild");
+await build({entryPoints:[path.join(root,"scripts/local-tutor-worker.js")],outfile:path.join(root,"public/vendor/local-tutor-worker.js"),bundle:true,format:"esm",platform:"browser",minify:true});

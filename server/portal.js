@@ -382,6 +382,7 @@ export function installPortal(app, { db, save, requireUser }) {
       },
       progress: userSummary(u, u.lang),
       learningHub: operationsFor(db,{...u,role:"student"}),
+      aiLearning: db.aiLearning ? Object.fromEntries(["profiles","mastery","attempts","projects","conversations","activity"].map(key=>[key,db.aiLearning[key]?.[u.email]||null])) : null,
       certificates: u.certs || [],
       bookings: db.bookings.filter((b) => visibleBooking(u, b)),
       alerts: db.alerts.filter((a) => a.email === u.email),

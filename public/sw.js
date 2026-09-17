@@ -1,6 +1,6 @@
 // Service worker: only public app-shell files are cached; personal data always needs the server.
-const SHELL = "rasid-shell-v11";
-const SHELL_FILES = ["css/refinement.css", "js/card-nav.js", "vendor/gsap.min.js", "css/craft.css", "js/craft.js", "css/experience.css", "js/voice.js", "js/algorithm-model.js", "js/lab.js", "js/motion.js", "./", "index.html", "css/app.css", "css/portal.css", "css/hub.css", "css/campus.css", "js/campus.js", "art/valley.png", "js/hub.js", "js/i18n.js", "js/sprite.js", "js/intro.js", "js/faris.js", "js/app.js", "js/portal.js", "vendor/webauthn.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"];
+const SHELL = "rasid-shell-v13";
+const SHELL_FILES = ["js/local-tutor.js", "js/learning-ai.js", "css/learning-ai.css", "css/refinement.css", "js/card-nav.js", "vendor/gsap.min.js", "css/craft.css", "js/craft.js", "css/experience.css", "js/voice.js", "js/algorithm-model.js", "js/lab.js", "js/motion.js", "./", "index.html", "css/app.css", "css/portal.css", "css/hub.css", "css/campus.css", "js/campus.js", "art/valley.png", "js/hub.js", "js/i18n.js", "js/sprite.js", "js/intro.js", "js/faris.js", "js/app.js", "js/portal.js", "vendor/webauthn.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES).catch(() => {})).then(() => self.skipWaiting()));
