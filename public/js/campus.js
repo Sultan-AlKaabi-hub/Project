@@ -424,6 +424,8 @@
       );
     }
     const icons = {
+      experiments: "▤",
+      agentlab: "✧",
       coach: "✧",
       admin: "▥",
       directory: "◉",
