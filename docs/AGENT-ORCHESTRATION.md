@@ -48,7 +48,7 @@ No paid service was activated. Optional Qwen3-0.6B runs on compatible devices an
 | 5 Practice | RAG primers did not have focused practical assessment | Six curated diagnostics, including ordered steps; server-side answer keys and misconception feedback |
 | 6 Debugging | Metrics showed counts without the decision chain | Admin trace, sanitized opt-in content, tool outcomes, comparison UI, separate client-reported generation |
 | 7 References | Reading repositories alone does not help learners | Ten original bilingual attributed notes, pinned source URLs, two PDF-derived notes, knowledge-library UI |
-| 8 Navigation | Workshops were spread across multiple menu entries | One AI Workshop tab and home card; existing labs retained with cross-navigation; mobile overflow check |
+| 8 Navigation | Workshops were spread across multiple menu entries | One AI Workshop tab and home card; existing labs retained with cross-navigation; mobile overflow check; fixed open-menu stacking above the assistant so lower links remain clickable |
 | 9 Signup security | Authenticator setup was available only in Settings | Optional setup/skip after account creation; PIN reauthentication and live TOTP confirmation remain mandatory |
 | 10 Offline and release | Cached shell still depended on account APIs | Public offline lesson and actual local training; server-stopped reload test; fixed connection wording and consent toggle |
 

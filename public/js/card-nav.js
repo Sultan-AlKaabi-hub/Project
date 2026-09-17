@@ -22,7 +22,7 @@
   let open=false;
   const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
   function setOpen(value){
-   open=value;toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?L('Close menu','إغلاق القائمة'):L('Open menu','فتح القائمة'));nav.classList.toggle('open',open);
+   open=value;container.style.zIndex=open?'60':'';toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?L('Close menu','إغلاق القائمة'):L('Open menu','فتح القائمة'));nav.classList.toggle('open',open);
    window.gsap?.killTweensOf([nav,content,...content.children]);
    if(open){
     content.hidden=false;content.inert=false;
