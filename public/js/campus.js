@@ -13,6 +13,7 @@
     staff: ["Teachers & shifts", "المعلمون والمناوبات"],
     messages: ["Messages & alerts", "الرسائل والتنبيهات"],
     classes: ["Classes & calendar", "الحصص والتقويم"],
+    coach: ["AI learning studio", "استوديو التعلم الذكي"],
     course: ["AI learning path", "مسار الذكاء الاصطناعي"],
     lab: ["AI discovery lab", "مختبر اكتشاف الذكاء الاصطناعي"],
     news: ["Live news", "الأخبار المباشرة"],
@@ -421,6 +422,7 @@
       );
     }
     const icons = {
+      coach: "✧",
       admin: "▥",
       directory: "◉",
       staff: "◷",
@@ -435,6 +437,7 @@
       lab: "⌘",
     };
     const descriptions = {
+      coach: ["Your tutor, practice and project workshop.", "معلمك وتدريباتك وورشة مشاريعك."],
       lab: ["Animate search algorithms, test a model and practice your reasoning.","حرّك خوارزميات البحث واختبر نموذجاً وتدرّب على الاستدلال."],
       admin: [
         "Campus numbers, progress and attendance.",
@@ -504,6 +507,7 @@
           ["classes", "classes"],
           ...(ai
             ? [
+                ["coach", "coach"],
                 ["course", "course"],
                 ["lab", "lab"],
                 ["news", "news"],

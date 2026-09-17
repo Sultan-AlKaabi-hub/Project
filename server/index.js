@@ -1,3 +1,5 @@
+import {installAgents} from "./agents/index.js";
+import {eraseLearner} from "./agents/memory.js";
 import {initializeCampus, seedCampusDemo, installCampus, notifyCoverage} from "./campus.js";
 import {subjectOf,hasAI} from "./subjects.js";
 import {installOwnerRecovery,ownerRecoveryAvailable} from "./owner-recovery.js";
@@ -92,6 +94,7 @@ installOperations(app,{db,save:()=>{notifyCoverage(db);save();},requireUser});
 installCampus(app,{db,save,requireUser});
 installOwnerRecovery(app,{db,saveNow,requireUser,publicUser});
 installLab(app,{db,save,requireUser});
+installAgents(app,{db,save,requireUser,getArticle:u=>{const c=readingContexts.get(u.email);return c&&c.at>Date.now()-3600000?c:null;}});
 app.get('/api/install', async (req,res) => {
   const url=process.env.PUBLIC_ORIGIN || req.protocol+'://'+req.get('host');
   res.json({url,qr:await QRCode.toDataURL(url,{width:240,margin:2}),apk:fs.existsSync(path.join(DATA_DIR,'rasid.apk'))});
@@ -209,6 +212,7 @@ app.delete("/api/account", requireUser, (req, res) => {
   for(const u of Object.values(db.users)) if(u.teacherEmail===email) u.teacherEmail='';
   readingContexts.delete(email);
   eraseOperations(db,email);
+  eraseLearner(db,email);
   db.shifts=db.shifts.filter(s=>s.teacher!==email);
   delete db.users[email];
   for (const [t, sess] of Object.entries(db.sessions)) if (sess.email === email) delete db.sessions[t];
