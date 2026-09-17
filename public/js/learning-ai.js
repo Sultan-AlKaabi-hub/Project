@@ -2,7 +2,7 @@
 (function(){
  const L=(en,ar)=>document.documentElement.lang==='ar'?ar:en;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const names={tutor:['AI Tutor','معلم الذكاء الاصطناعي'],practice:['Practice Coach','مدرب التمارين'],project:['Project Coach','مدرب المشاريع'],progress:['Progress Coach','مدرب التقدم'],research:['Research Agent','وكيل البحث'],support:['Platform guide','مرشد المنصة']};
+ const names={review:['Code Reviewer','مراجع الكود'],path:['Learning Path','مسار التعلم'],simulation:['Simulation Coach','مدرب المحاكاة'],builder:['Agent Builder','منشئ الوكلاء'],tutor:['AI Tutor','معلم الذكاء الاصطناعي'],practice:['Practice Coach','مدرب التمارين'],project:['Project Coach','مدرب المشاريع'],progress:['Progress Coach','مدرب التقدم'],research:['Research Agent','وكيل البحث'],support:['Platform guide','مرشد المنصة']};
  const name=a=>names[a]?L(...names[a]):L('Ask AI','اسأل الذكاء الاصطناعي');
  let oneShot=null,preference='auto',mode='direct',projectId=null,milestoneId=null,selection='',lessonTimer;
  async function api(path,body){const r=await fetch('/api/agents'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw new Error(data.error);return data;}

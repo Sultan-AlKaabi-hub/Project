@@ -50,6 +50,7 @@ export function destroySession(token) {
 // Pending two-step: PIN passed, waiting for the 6-digit authenticator code.
 const pending = new Map(); // ticket -> { email, exp }
 export function createPending(email) {
+  for(const [key,value] of pending)if(value.exp<Date.now())pending.delete(key);
   const t = crypto.randomBytes(16).toString("hex");
   pending.set(t, { email, exp: Date.now() + 5 * 60 * 1000 });
   return t;
@@ -59,6 +60,11 @@ export function takePending(t) {
   if (!p || p.exp < Date.now()) { pending.delete(t); return null; }
   pending.delete(t);
   return p.email;
+}
+
+export function verifyPending(ticket,verify){
+ const p=pending.get(ticket);if(!p||p.exp<Date.now()||(p.attempts||0)>=5){pending.delete(ticket);return null;}
+ p.attempts=(p.attempts||0)+1;if(!verify(p.email)){if(p.attempts>=5)pending.delete(ticket);return null;}pending.delete(ticket);return p.email;
 }
 
 // ---------- TOTP (Google Authenticator) ----------

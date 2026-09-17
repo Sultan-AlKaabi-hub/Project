@@ -226,7 +226,7 @@ export function installOperations(app, { db, save, requireUser }) {
     if (
       !s ||
       s.status === "cancelled" ||
-      !s.members.includes(email) ||
+      !(s.members.includes(email) || isAdmin(req.user) && s.host===email) ||
       !allowed(req.user, email)
     )
       return fail(res, 403, "forbidden");

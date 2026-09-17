@@ -1,3 +1,5 @@
+import {adminInsights} from './attendance-insights.js';
+import {installAgentLab} from './laboratory.js';
 import {flush} from "../db.js";
 import {hasAI} from '../subjects.js';
 import {initialize,learner,summary,eraseLearner,now} from './memory.js';
@@ -19,12 +21,14 @@ export function installAgents(app,{db,save,requireUser,getArticle=()=>null}){
   const p=learner(db,req.user);Object.assign(p,{goals:body.goals,experience:body.experience,style:body.style,minutesPerWeek:body.minutesPerWeek,historyEnabled:body.historyEnabled,updatedAt:now()});if(!p.historyEnabled)delete db.aiLearning.conversations[req.user.email];save();res.json({profile:p});
  }));
  app.post('/api/agents/profile/reset',(req,res)=>{eraseLearner(db,req.user.email);save();res.json({ok:true});});
- app.get('/api/agents/export',(req,res)=>{const a=initialize(db),id=req.user.email;res.json({profile:a.profiles[id]||null,mastery:a.mastery[id]||{},practice:a.attempts[id]||[],projects:a.projects[id]||[],conversations:a.conversations[id]||[],activity:a.activity[id]||[]});});
+ app.get('/api/agents/export',(req,res)=>{const a=initialize(db),id=req.user.email;res.json({profile:a.profiles[id]||null,mastery:a.mastery[id]||{},practice:a.attempts[id]||[],projects:a.projects[id]||[],conversations:a.conversations[id]||[],activity:a.activity[id]||[],lab:a.labs?.[id]||null});});
  app.post('/api/agents/activity',wrap((req,res)=>{const {lessonId,seconds}=req.body;if(!allowedLesson(req.user,lessonId)||!Number.isInteger(seconds)||seconds<1||seconds>60)throw new Error('invalid_activity');const a=initialize(db);a.activity[req.user.email]||=[];const rows=a.activity[req.user.email],last=rows.at(-1);if(last&&Date.now()-Date.parse(last.createdAt)<seconds*800)throw new Error('activity_too_fast');rows.push({lessonId,seconds,createdAt:now()});a.activity[req.user.email]=rows.slice(-200);save();res.json({ok:true});}));
  app.post('/api/agents/practice/:id/answer',wrap((req,res)=>{const result=gradePractice(db,req.user,req.params.id,req.body.answer);save();res.json(result);}));
  app.post('/api/agents/projects',wrap((req,res)=>{const project=createProject(db,req.user,req.body.type,req.user.lang||'en');save();res.status(201).json({project});}));
  app.post('/api/agents/projects/:id/milestones/:mid',wrap((req,res)=>{const project=updateMilestone(db,req.user,req.params.id,req.params.mid,req.body.submission,req.body.completed);save();res.json({project});}));
  app.get('/api/agents/metrics',(req,res)=>{if(req.user.role!=='admin')return res.status(403).json({error:'admin_required'});res.json({events:initialize(db).telemetry});});
+ app.get('/api/agents/insights',(req,res)=>{if(req.user.role!=='admin')return res.status(403).json({error:'admin_required'});res.json({...adminInsights(db,req.user,req.user.lang||'en'),classes:(db.classes||[]).filter(c=>c.status!=='cancelled'&&c.start<Date.now()).slice(-100).map(c=>({id:c.id,title:c.title,host:c.host,start:c.start}))});});
+ installAgentLab(app,{db,save});
  app.post('/api/agents/chat',async(req,res)=>{
   const body=req.body;
   if(!body||typeof body!=='object'||Array.isArray(body))return res.status(400).json({error:'invalid_request'});

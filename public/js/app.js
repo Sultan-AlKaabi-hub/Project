@@ -13,6 +13,7 @@
   const certUrl = (id) => (DEMO ? window.LocalAPI.certificateUrl(id) : `/api/certificate/${id}`);
   async function api(path, body, method) {
     if (DEMO) return window.LocalAPI.call(path, body, method);
+    if(body&&["/api/auth/login","/api/auth/signup","/api/auth/pin/reset-request"].includes(path))body={...body,captchaToken:await SecurityUI.captcha()};
     const r = await fetch(path, { signal: AbortSignal.timeout(75000), method: method || (body ? "POST" : "GET"), headers: body ? { "content-type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw Object.assign(new Error(j.error || r.statusText), { code: j.error, data: j });
@@ -57,7 +58,7 @@
     if(S.user.role !== "student") nav.push(["administration","administration"],["staff","staff"]);
     if(S.user.role === "admin" || (S.user.role === "teacher" && S.user.hasAI !== false)) nav.push(["people","people"]);
     nav.push(["messages","messages"],["guide","guide"]);
-    if(S.user.hasAI !== false)nav.splice(2,0,["coach","coach"],["lab","lab"],["vision","vision"],["experiments","experiments"]);
+    if(S.user.hasAI !== false)nav.splice(2,0,["coach","coach"],["lab","lab"],["vision","vision"],["experiments","experiments"],["agentlab","agentlab"]);
     if(S.user.hasAI === false)nav=nav.filter(([v])=>!["course","news","progress","administration"].includes(v));
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
@@ -97,9 +98,9 @@
     window.Lab?.cleanup();window.VisionLab?.cleanup();window.ExperimentStudio?.cleanup();
     S.view = view; S.lastOpts = opts;
     if (S.intro) { S.intro.unmount(); S.intro=null; }
-    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab", "vision", "experiments", "guide", "coach"].includes(view)) S.view = "placement";
+    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab", "vision", "experiments", "agentlab", "guide", "coach"].includes(view)) S.view = "placement";
     if (!S.user && view !== "intro") S.view = "auth";
-    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab","vision","experiments","coach"].includes(S.view)) S.view="home";
+    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab","vision","experiments","agentlab","coach"].includes(S.view)) S.view="home";
     if(S.view === "intro")Faris.hide();else if(S.user)Faris.show();
     renderShell();
     const v = VIEWS[S.view], requestedView=S.view;
@@ -179,7 +180,7 @@
         const submit=f.querySelector('.btn.primary');f.dataset.pending='true';submit.disabled=true;submit.setAttribute('aria-busy','true');
         try {
           const r = await api(signup ? "/api/auth/signup" : "/api/auth/login", { email, pin, lang: S.lang, privacyAccepted: signup ? $("#privacy-consent").checked : undefined });
-          if (r.needTotp) return go("auth", { mode: "totp", ticket: r.ticket });
+          if (r.needTotp) return go("auth", { mode: "totp", ticket: r.ticket,delivery:r.delivery });
           await signedIn(r.user, signup);
         } catch (ex) { err.textContent = { bad_email: T("errBadEmail"), bad_pin: Portal.L("credentialHint"), exists: T("errExists"), wrong: T("errWrong") }[ex.code] || Portal.error(ex); }
         finally {delete f.dataset.pending;submit.disabled=false;submit.removeAttribute('aria-busy');}
@@ -201,7 +202,7 @@
       return;
     }
     if (mode === "totp") {
-      form(`<h2>${T("twoStepTitle")}</h2><p class="sub">${T("twoStepHint")}</p>
+      form(`<h2>${T("twoStepTitle")}</h2><p class="sub">${String(opts.ticket||"").startsWith("otp:")?(S.lang==="ar"?"أدخل الرمز المرسل إلى بريدك أو هاتفك. صالح لخمس دقائق.":"Enter the code sent to your email or phone. It expires in five minutes."):T("twoStepHint")}</p>
         <form class="stack" id="f"><div class="field"><input id="code" class="pin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required></div><div class="err" id="err"></div><button class="btn primary big">${T("confirm")}</button></form>
         <button class="btn ghost" id="back">${T("back")}</button>`);
       $("#back").onclick = () => go("auth", { mode: "login" });
@@ -475,12 +476,14 @@
         <div class="setting"><div><h3>${T("deleteAccount")}</h3><div class="d">${T("deleteAccountD")}</div></div><button class="btn small" id="delacc">${T("deleteAccount")}</button></div>
       </div>`;
     $("#main").querySelectorAll("[data-lang]").forEach((b) => (b.onclick = async () => { S.lang = b.dataset.lang; applyLang(); await api("/api/settings", { lang: S.lang }); go("settings"); }));
-    if (DEMO) { $("#totp").onclick = () => toast(T("demoOnly")); $("#pk").onclick = () => toast(T("demoOnly")); } else $("#totp").onclick = async () => {
-      if (u.totpEnabled) { await api("/api/security/totp/disable", {}); u.totpEnabled = false; return go("settings"); }
-      const r = await api("/api/security/totp/setup", {});
+    if (DEMO) { $("#totp").onclick = () => toast(T("demoOnly")); $("#pk").onclick = () => toast(T("demoOnly")); } else $("#totp").onclick = async () => {try{
+      const credentials=await SecurityUI.reauth();if(!credentials)return;
+      if (u.totpEnabled) { const factor=await SecurityUI.code();if(!factor)return;await api("/api/security/totp/disable", {...credentials,...factor}); u.totpEnabled = false; return go("settings"); }
+      const r = await api("/api/security/totp/setup", credentials);
       $("#totp-box").innerHTML = `<div class="sunk" style="padding:16px;margin:10px 0"><p>${T("scanQr")}</p><img class="qr" src="${r.qr}" alt="QR"><p><code class="secret">${r.secret}</code></p><form class="row" id="tf"><input class="pin" id="tc" inputmode="numeric" maxlength="6" style="width:160px;padding:10px;border-radius:12px;border:0"><button class="btn primary small">${T("confirm")}</button><span class="err" id="terr"></span></form></div>`;
       $("#tf").onsubmit = async (e) => { e.preventDefault(); try { await api("/api/security/totp/confirm", { code: $("#tc").value }); u.totpEnabled = true; toast("✓ " + T("on")); go("settings"); } catch { $("#terr").textContent = T("errWrongCode"); } };
-    };
+    }catch(error){toast(error.message==='factor_already_enabled'?(S.lang==='ar'?'يوجد تحقق إضافي مفعّل بالفعل.':'An additional verification method is already enabled.'):T('errWrongCode'));}};
+    if(!DEMO)SecurityUI.mount({api,toast});
     if (!DEMO) Passkeys.settings($("#pk"),api,r=>S.user.passkeys=r.passkeys);
     $("#namef").onsubmit = async (e) => { e.preventDefault(); const r = await api("/api/settings", { name: $("#name").value }); S.user = r.user; toast("✓ " + T("saved")); };
     const recoveryForm = $("#owner-recovery");
@@ -504,6 +507,7 @@
   Lab.register({S,VIEWS,api,topbar,$,toast});
   VisionLab.register({S,VIEWS,api,topbar,$,toast});
   ExperimentStudio.register({S,VIEWS,api,topbar,$,toast});
+  AgentLab.register({S,VIEWS,api,topbar,$,toast});
   SiteGuide.register({S,VIEWS,api,topbar,$});
 
   // ---------- boot ----------
