@@ -20,3 +20,5 @@ fs.copyFileSync(path.join(root, "node_modules/gsap/dist/gsap.min.js"), path.join
 
 const {build}=await import("esbuild");
 await build({entryPoints:[path.join(root,"scripts/local-tutor-worker.js")],outfile:path.join(root,"public/vendor/local-tutor-worker.js"),bundle:true,format:"esm",platform:"browser",minify:true});
+
+await import("./build-guide.js");

@@ -1,0 +1,15 @@
+<!doctype html><meta charset="utf-8"><title>Isolated vision runner</title><script>
+// This document is embedded without allow-same-origin. It cannot access account storage.
+let active;
+addEventListener('message',e=>{
+ if(e.source!==parent||e.data?.type!=='run'||typeof e.data.code!=='string'||e.data.code.length>10000||!Array.isArray(e.data.samples)||e.data.samples.length>12)return;
+ active?.terminate();
+ const id=e.data.id;
+ const code='onmessage=e=>{try{const fn=new Function("sample",e.data.code);const results=e.data.samples.map(s=>fn(Object.freeze(s)));postMessage({results});}catch{postMessage({error:"code_error"});}}';
+ const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));const worker=new Worker(url);URL.revokeObjectURL(url);active=worker;
+ const timer=setTimeout(()=>{worker.terminate();parent.postMessage({type:'vision-result',id,error:'timeout'},'*');},1200);
+ worker.onmessage=event=>{clearTimeout(timer);worker.terminate();const values=event.data.results;const valid=Array.isArray(values)&&values.length===e.data.samples.length&&values.every(v=>v==='allow'||v==='deny');parent.postMessage({type:'vision-result',id,...(valid?{results:values}:{error:'invalid_result'})},'*');};
+ worker.onerror=()=>{clearTimeout(timer);worker.terminate();parent.postMessage({type:'vision-result',id,error:'code_error'},'*');};
+ worker.postMessage({code:e.data.code,samples:e.data.samples});
+});
+</script>

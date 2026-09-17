@@ -1,3 +1,4 @@
+import {flush} from "../db.js";
 import {hasAI} from '../subjects.js';
 import {initialize,learner,summary,eraseLearner,now} from './memory.js';
 import {allowedLesson} from './knowledge.js';
@@ -34,7 +35,7 @@ export function installAgents(app,{db,save,requireUser,getArticle=()=>null}){
   if(streaming){res.set({'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache, no-store','X-Accel-Buffering':'no'});res.flushHeaders();}
   const send=(event,data)=>{if(streaming&&!res.destroyed)res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);};
   const timer=streaming?setInterval(()=>send('ping',{}),15000):null;
-  try{const result=await respond(db,req.user,body,{signal:controller.signal,article:body.useArticle?getArticle(req.user):null,onStatus:r=>send('route',r),onText:text=>send('delta',{text})});save();if(streaming){send('result',result);res.end();}else res.json(result);}
+  try{const result=await respond(db,req.user,body,{signal:controller.signal,article:body.useArticle?getArticle(req.user):null,onStatus:r=>send('route',r),onText:text=>send('delta',{text})});save();await flush();if(streaming){send('result',result);res.end();}else res.json(result);}
   catch{if(!controller.signal.aborted){if(streaming){send('error',{error:'assistant_unavailable'});res.end();}else res.status(503).json({error:'assistant_unavailable'});}}
   finally{clearInterval(timer);active.delete(req.user.email);}
  });

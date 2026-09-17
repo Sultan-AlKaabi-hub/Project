@@ -32,7 +32,7 @@
     bubble.querySelector('[data-chat-lang]').onclick=()=>{const draft=bubble.querySelector('#faris-q').value;chatLang=chatLang==='ar'?'en':'ar';render();bubble.querySelector('#faris-q').value=draft;};
     bubble.querySelector('[data-close]').onclick=()=>{requestVersion++;pending?.abort();pending=null;state.open=false;render();btn.focus();};
     wireVoice();
-    if(window.App?.getContext?.().hasAI !== false)window.LearningAI?.enhance(bubble,state.response,chatLang);
+    if(window.App?.getContext?.().hasAI !== false||state.response?.route?.intent==="site_guide")window.LearningAI?.enhance(bubble,state.response,chatLang);
     if(window.LearningAI){const message=bubble.querySelector(".msg");message.replaceChildren();window.LearningAI?.textBlock(message,state.msg);}
     bubble.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>{const input=bubble.querySelector('#faris-q');input.value=b.dataset.prompt==='bfs'?vl('Explain BFS and DFS with an example','اشرح البحث بالعرض والعمق مع مثال'):vl('How do I book tuition or a meeting?','كيف أحجز درساً خاصاً أو اجتماعاً؟');input.focus();});
     const actions = bubble.querySelector(".actions");
