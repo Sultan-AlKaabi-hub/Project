@@ -93,5 +93,5 @@
     document.body.appendChild(root);
   }
 
-  window.Faris = { mount, say, draw, ask: (question)=>{if(!state.open)chatLang=document.documentElement.lang;state.open=true;render();bubble.querySelector("#faris-q").value=question;bubble.querySelector(".ask").requestSubmit();}, hide: () => { requestVersion++;pending?.abort();pending=null;stopVoice(); state.msg="";state.response=null;state.link=null;state.open=false; if (root) root.hidden = true; }, show: () => { if (root) root.hidden = false; }, isOpen: () => state.open, rerender: render };
+  window.Faris = { mount, say, draw, close:()=>{stopVoice();state.open=false;render();}, ask: (question)=>{if(!state.open)chatLang=document.documentElement.lang;state.open=true;render();bubble.querySelector("#faris-q").value=question;bubble.querySelector(".ask").requestSubmit();}, hide: () => { requestVersion++;pending?.abort();pending=null;stopVoice(); state.msg="";state.response=null;state.link=null;state.open=false; if (root) root.hidden = true; }, show: () => { if (root) root.hidden = false; }, isOpen: () => state.open, rerender: render };
 })();
