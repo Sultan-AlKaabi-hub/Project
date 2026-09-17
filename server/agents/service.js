@@ -34,13 +34,13 @@ export async function respond(db,user,input,{signal,article=null,onText=()=>{},o
  if(input.selection&&current&&current.body[lang].includes(input.selection))context.selection=input.selection.slice(0,1000);
  try{
   if(routing.agent==='support'){
-   const answer=privateResult||await legacyAnswer(question,{lang});text=answer.text;cards=[card('explanation',ar?'مساعدة المنصة':'Platform help',text)];sources=[];
+   const answer=privateResult||siteResult||await legacyAnswer(question,{lang});text=answer.text;cards=answer.cards||[card('explanation',ar?'مساعدة المنصة':'Platform help',text)];sources=answer.sources||[];
   }else if(routing.agent==='practice'){
    const lessonId=current?.lessonId||next?.lessonId;if(!lessonId)text=ar?'اختر درساً لبدء التدريب.':'Open a lesson to start practicing.';
    else{cards=[await createAdaptivePractice(db,user,lessonId,lang,{signal})];const gen=db.aiLearning.attempts[user.email].find(a=>a.id===cards[0].id)?.generation;if(gen){model=gen.model;usage=gen.usage;}text=ar?'لنختبر فهمك. هذا تدريب منفصل عن اختبار الوحدة الرسمي.':'Let’s check your understanding. This practice is separate from your formal module exam.';}
   }else if(routing.agent==='progress'){
    text=ar?`قرأت ${progress.completedLessons.length} درساً. تقديرات الإتقان مبنية على إجابات التدريب، وليست مقياساً للذكاء.`:`You have read ${progress.completedLessons.length} lessons. Mastery estimates reflect practice evidence, not intelligence.`;
-   cards=[card('explanation',ar?'خطوتك التالية':'Your next step',text),...progress.concepts.map(c=>({type:'mastery',...c}))];sources=[];
+   cards=[card('explanation',ar?'خطوتك التالية':'Your next step',text),...progress.concepts.map(c=>({type:'mastery',...c}))];sources=answer.sources||[];
   }else if(routing.agent==='research'){
    onStatus({agent:'research',intent:'retrieving_sources'});
    const news=await fetchCategory(CATEGORIES[0],12);const words=tokens(question).filter(w=>!['latest','recent','news','developments','أخبار','اخبار','المستجدات'].includes(w));
@@ -66,7 +66,7 @@ export async function respond(db,user,input,{signal,article=null,onText=()=>{},o
    }
   }
   if(!cards.length)cards=[card('explanation',ar?'مرشدك':'Your guide',text)];
-  if(next&&routing.agent!=='research')cards.push({type:'next',title:ar?'الدرس المقترح':'Recommended lesson',text:next.title,lessonId:next.lessonId});
+  if(next&&!['research','support'].includes(routing.agent))cards.push({type:'next',title:ar?'الدرس المقترح':'Recommended lesson',text:next.title,lessonId:next.lessonId});
   if(signal?.aborted)throw new Error('aborted');remember(db,user,question,text);
   return {localContext: model==='course-guided'&&['tutor','project'].includes(routing.agent)&&refs.length?{system:SYSTEM,input:context}:null,route:routing,lang,text,cards,sources,mode:model==='course-guided'?'course-guided':'generative',notice:model==='course-guided'&&['tutor','project'].includes(routing.agent)?fallbackNote:null,model};
  }finally{
