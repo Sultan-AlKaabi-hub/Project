@@ -1,3 +1,4 @@
+import {installSecurity,acceptTotp,startOtp,finishOtp} from './security.js';
 import {installExperiments} from './experiments.js';
 import {installGuide,answerSite} from "./site-guide.js";
 import {installVision} from "./vision.js";
@@ -78,7 +79,7 @@ app.use((req,res,next) => {
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
   res.setHeader('X-Frame-Options','DENY');
-  res.setHeader('Permissions-Policy','camera=(), geolocation=(), microphone=(self)');
+  res.setHeader('Permissions-Policy','camera=(self), geolocation=(), microphone=(self)');
   if(req.path.startsWith('/api/')) res.setHeader('Cache-Control','no-store');
   if(!['GET','HEAD','OPTIONS'].includes(req.method)) {
     const expected=process.env.PUBLIC_ORIGIN || req.protocol+'://'+req.get('host');
@@ -113,6 +114,7 @@ app.get('/api/install', async (req,res) => {
   res.json({url,qr:await QRCode.toDataURL(url,{width:240,margin:2}),apk:fs.existsSync(path.join(DATA_DIR,'rasid.apk'))});
 });
 app.get('/api/privacy', (req,res) => res.json({contact:process.env.PRIVACY_CONTACT || null,operator:process.env.PRIVACY_OPERATOR || null,hostingRegion:process.env.HOSTING_REGION || null}));
+installSecurity(app,{requireUser,save});
 // ---------- auth ----------
 app.post("/api/auth/signup", (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
@@ -128,7 +130,7 @@ app.post("/api/auth/signup", (req, res) => {
 });
 
 const loginFailures=new Map();
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
   const now=Date.now();for(const [k,v]of loginFailures)if(v.until<now)loginFailures.delete(k);
   const fail=loginFailures.get(email)||{n:0,until:now+15*60000};
@@ -137,15 +139,17 @@ app.post("/api/auth/login", (req, res) => {
   if (!u || !auth.validCredential(req.body.pin) || !auth.checkPin(req.body.pin, u.pinHash)){fail.n++;if(loginFailures.size<10000)loginFailures.set(email,fail);return res.status(401).json({ error: "wrong" });}
   loginFailures.delete(email);
   if (u.totp?.enabled) return res.json({ needTotp: true, ticket: auth.createPending(email) });
+  if(u.otp){try{return res.json({needTotp:true,ticket:"otp:"+await startOtp(u,u.otp.method,u.otp.destination,"login"),delivery:u.otp.method});}catch{return res.status(503).json({error:"delivery_unavailable"});}}
   setCookie(res, auth.createSession(email));
   res.json({ user: publicUser(u) });
 });
 
-app.post("/api/auth/totp", (req, res) => {
-  const email = auth.takePending(req.body.ticket);
+app.post("/api/auth/totp", async (req, res) => {
+  if(String(req.body.ticket||"").startsWith("otp:")){try{const t=await finishOtp(req.body.ticket.slice(4),req.body.code,"login");if(!t)return res.status(401).json({error:"wrong_code"});setCookie(res,auth.createSession(t.email));return res.json({user:publicUser(db.users[t.email])});}catch{return res.status(503).json({error:"delivery_unavailable"});}}
+  const email = auth.verifyPending(req.body.ticket,email=>acceptTotp(db.users[email]?.totp,req.body.code));
   const u = email && db.users[email];
-  if (!u || !auth.verifyTotp(u.totp.secret, req.body.code)) return res.status(401).json({ error: "wrong_code" });
-  setCookie(res, auth.createSession(email));
+  if (!u) return res.status(401).json({ error: "wrong_code" });
+  save();setCookie(res, auth.createSession(email));
   res.json({ user: publicUser(u) });
 });
 
@@ -163,7 +167,7 @@ app.post("/api/auth/pin/reset-request", async (req, res) => {
   }
   res.json({ sent: true });
 });
-app.post("/api/auth/pin/reset", (req, res) => {
+app.post("/api/auth/pin/reset", async (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
   const u = db.users[email];
   if (!u || !u.resetCode || u.resetCode.exp < Date.now() || u.resetCode.code !== String(req.body.code)) return res.status(401).json({ error: "bad_code" });
@@ -172,6 +176,7 @@ app.post("/api/auth/pin/reset", (req, res) => {
   for(const [token,session] of Object.entries(db.sessions)) if(session.email===email) delete db.sessions[token];
   save();
   if(u.totp?.enabled) return res.json({needTotp:true,ticket:auth.createPending(email)});
+  if(u.otp){try{return res.json({needTotp:true,ticket:"otp:"+await startOtp(u,u.otp.method,u.otp.destination,"login")});}catch{return res.status(503).json({error:"delivery_unavailable"});}}
   setCookie(res, auth.createSession(email));
   res.json({ user: publicUser(u) });
 });
@@ -198,16 +203,18 @@ app.post("/api/security/passkey/register/verify", requireUser, async (req, res) 
 
 // Google Authenticator
 app.post("/api/security/totp/setup", requireUser, async (req, res) => {
+  if(!auth.checkPin(req.body.pin,req.user.pinHash))return res.status(401).json({error:"wrong"});
+  if(req.user.totp?.enabled||req.user.otp)return res.status(409).json({error:"factor_already_enabled"});
   const { secret, qr } = await auth.totpSetup(req.user.email);
-  req.user.totp = { secret, enabled: false }; save();
+  req.user.totpPending = { secret, expires:Date.now()+600000 }; save();
   res.json({ qr, secret });
 });
 app.post("/api/security/totp/confirm", requireUser, (req, res) => {
-  const t = req.user.totp;
-  if (!t || !auth.verifyTotp(t.secret, req.body.code)) return res.status(400).json({ error: "wrong_code" });
-  t.enabled = true; save(); res.json({ ok: true });
+  const t = req.user.totpPending;
+  if (!t || t.expires<Date.now() || req.user.totp?.enabled || req.user.otp || !acceptTotp(t, req.body.code)) return res.status(400).json({ error: "wrong_code" });
+  req.user.totp={secret:t.secret,enabled:true,lastStep:t.lastStep};delete req.user.totpPending; save(); res.json({ ok: true });
 });
-app.post("/api/security/totp/disable", requireUser, (req, res) => { delete req.user.totp; save(); res.json({ ok: true }); });
+app.post("/api/security/totp/disable", requireUser, (req, res) => { if(!auth.checkPin(req.body.pin,req.user.pinHash)||!acceptTotp(req.user.totp,req.body.code))return res.status(401).json({error:"wrong_code"});delete req.user.totp; save(); res.json({ ok: true }); });
 
 // ---------- me / settings ----------
 app.get("/api/me", (req, res) => {

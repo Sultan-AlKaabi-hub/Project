@@ -10,7 +10,7 @@
   container.innerHTML=`<nav class="card-nav" aria-label="${L('Main navigation','التنقل الرئيسي')}"><div class="card-nav-top"><button class="hamburger-menu" type="button" aria-expanded="false" aria-controls="card-nav-content" aria-label="${L('Open menu','فتح القائمة')}"><span></span><span></span></button><button class="card-nav-brand" type="button" aria-label="${L('Open intro','فتح المقدمة')}"><img src="icons/icon.svg" alt=""><strong>RASID AI</strong></button><button class="card-nav-cta" type="button">${L('My space','مساحتي')} ↗</button></div><div class="card-nav-content" id="card-nav-content" hidden inert></div></nav>`;
   app.prepend(container);app.classList.add('has-card-nav');
   const nav=container.querySelector('nav'),toggle=container.querySelector('.hamburger-menu'),content=container.querySelector('.card-nav-content');
-  const groups=[{title:L('Discover','اكتشف'),keys:['home','coach','course','lab','vision','experiments','guide','news','hub']},{title:L('Your campus','مساحتك الدراسية'),keys:['progress','calendar','alerts','messages']},{title:L('Manage','الإدارة'),keys:['administration','staff','people','privacy','settings']}];
+  const groups=[{title:L('Discover','اكتشف'),keys:['home','coach','course','lab','vision','experiments','agentlab','guide','news','hub']},{title:L('Your campus','مساحتك الدراسية'),keys:['progress','calendar','alerts','messages']},{title:L('Manage','الإدارة'),keys:['administration','staff','people','privacy','settings']}];
   for(const [i,group] of groups.entries()){
    const card=document.createElement('section');card.className='nav-card nav-card-'+i;
    const title=document.createElement('h2');title.textContent=group.title;card.append(title);

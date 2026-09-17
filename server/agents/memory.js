@@ -3,7 +3,7 @@ import {documents,allowedLesson} from './knowledge.js';
 export const now=()=>new Date().toISOString();
 export function initialize(db){db.aiLearning ||= {version:1,profiles:{},mastery:{},attempts:{},projects:{},conversations:{},activity:{},telemetry:[]};return db.aiLearning;}
 export function learner(db,user){const a=initialize(db),id=user.email;if(!Object.hasOwn(a.profiles,id))a.profiles[id]={goals:'',experience:'beginner',profession:'',minutesPerWeek:90,style:'simple',historyEnabled:false,createdAt:now(),updatedAt:now()};return a.profiles[id];}
-export function eraseLearner(db,email){const a=initialize(db);for(const key of ['profiles','mastery','attempts','projects','conversations','activity'])delete a[key][email];}
+export function eraseLearner(db,email){const a=initialize(db);for(const key of ['profiles','mastery','attempts','projects','conversations','activity','labs'])if(a[key])delete a[key][email];}
 export function completed(user){return Object.values(user.course?.modules||{}).flatMap(m=>m.read||[]);}
 export function history(db,user){const a=initialize(db),p=learner(db,user);if(!p.historyEnabled){delete a.conversations[user.email];return [];}
  const rows=(a.conversations[user.email]||[]).filter(r=>Date.now()-Date.parse(r.createdAt)<86400000).slice(-6);a.conversations[user.email]=rows;return rows;
