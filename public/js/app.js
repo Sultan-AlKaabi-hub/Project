@@ -77,6 +77,7 @@
     app.querySelectorAll("[data-view]").forEach((b) => (b.onclick = () => { go(b.dataset.view); closeMenu(); }));
     $("#scrim").onclick = closeMenu;
     const brand=app.querySelector(".brand");brand.setAttribute("role","button");brand.tabIndex=0;brand.setAttribute("aria-label",S.lang==="ar"?"العودة إلى المقدمة":"Open intro");brand.onclick=()=>go("intro");brand.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go("intro");}};
+    window.CardNav?.mount(app);
     S.mainObserver=new MutationObserver(()=>{wireTopbar();window.RasidMotion?.enhance();window.Craft?.enhance();});S.mainObserver.observe($("#main"),{childList:true});
     api('/api/alerts').then(r=>{const label=app.querySelector('[data-view="alerts"] span');if(label){const count=r.alerts.filter(a=>!a.read).length;label.textContent=T('alerts')+(count?' ('+count+')':'');}}).catch(()=>{});
   }
@@ -160,11 +161,11 @@
           <button class="btn primary big" type="submit">${signup ? T("continueBtn") : T("signIn")}</button>
         </form>
         <div class="stack">
-          ${signup ? "" : `${DEMO ? "" : `<button class="btn" id="passkey">${T("usePasskey")}</button>`}<button class="btn ghost" id="forgot">${T("forgotPin")}</button>`}
+          ${signup ? "" : `<details class="signin-options"><summary>${S.lang === "ar" ? "خيارات تسجيل الدخول والمساعدة" : "Sign-in options & help"}</summary>${DEMO ? "" : `<button class="btn" id="passkey">${T("usePasskey")}</button>`}<button class="btn ghost" id="forgot">${T("forgotPin")}</button><p class="sub">${Portal.L("biometric")}</p></details>`}
           <button class="btn ghost" id="switch">${signup ? T("haveAccount") : T("noAccount")}</button>
         </div>`);
       Portal.authExtras(body,signup);
-      const hint=document.createElement("p");hint.className="sub credential-hint";hint.textContent=Portal.L("credentialHint");$("#pin").after(hint);
+      const hint=document.createElement("p");hint.className="sub credential-hint";hint.textContent=Portal.L("credentialHint");if(signup)$("#pin").after(hint);
       const f = $("#f"), err = $("#err");err.setAttribute("role","alert");
       $("#email").oninput = (e) => { $("#email-ok").textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value) ? "✓" : ""; };
       if (signup) $("#pin2").oninput = () => { $("#pin-ok").textContent = $("#pin").value.length >= 6 && $("#pin").value === $("#pin2").value ? "✓ " + T("pinMatch") : ""; };

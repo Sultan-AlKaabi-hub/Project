@@ -381,7 +381,7 @@
   function authExtras(body, signup) {
     const bar = document.createElement("div");
     bar.className = "auth-extras";
-    bar.innerHTML = `<div class="row"><button class="btn small" data-dialog="install">↗ ${L("install")}</button><button class="btn small ghost" data-dialog="privacy">${L("notice")}</button></div><p class="sub">${L("biometric")}</p>`;
+    bar.innerHTML = `<div class="row"><button class="btn small" data-dialog="install">↗ ${L("install")}</button><button class="btn small ghost" data-dialog="privacy">${L("notice")}</button></div>${signup ? `<p class="sub">${L("biometric")}</p>` : ""}`;
     body.append(bar);
     bar
       .querySelectorAll("[data-dialog]")

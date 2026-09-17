@@ -1,0 +1,81 @@
+/* Compact, translucent sign-in panel leaves a dedicated foreground lane. */
+.auth-wrap {padding-top:70px!important;padding-bottom:250px!important;}
+.auth-heading {display:none;}
+.auth-wrap .auth {background:rgba(255,253,246,.84);backdrop-filter:blur(9px);padding:20px 26px;width:min(420px,100%);gap:5px;}
+.auth h2 {margin:8px 0;font-size:21px;}
+.auth .stack {gap:8px;}
+.auth .field {gap:4px;}
+.auth .btn {min-height:44px;padding-block:8px;}
+.auth-extras p {font-size:11px;line-height:1.5;margin:8px 0 0;}
+.auth-extras {margin-top:8px!important;padding-top:8px!important;}
+.auth .credential-hint {font-size:11px!important;}
+.intro-text {background:#fffdf1cc;backdrop-filter:blur(6px);padding:22px 28px;gap:6px;}
+.intro-text h1 {font-size:clamp(28px,4vw,44px);margin-block:12px 8px;}
+.intro-text .sub {margin-bottom:10px;}
+/* CardNav: the same groups and links in both directions and at every width. */
+.app.has-card-nav {display:block;padding-top:104px;}
+.has-card-nav > .sidebar,.has-card-nav #menu-btn {display:none!important;}
+.has-card-nav > .main {margin-inline:auto;max-width:1280px;}
+.card-nav-container {position:fixed;top:18px;inset-inline:20px;max-width:1120px;margin-inline:auto;z-index:35;}
+.card-nav {background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:0 12px 32px #143f3820;overflow:hidden;}
+.card-nav-top {display:flex;align-items:center;justify-content:space-between;height:64px;padding:8px 14px;gap:12px;}
+.card-nav button {font:inherit;cursor:pointer;}
+.hamburger-menu {width:44px;height:44px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:7px;border:0;background:transparent;color:var(--ink);}
+.hamburger-menu span {width:25px;height:2px;background:currentColor;transition:transform .25s;}
+.open .hamburger-menu span:first-child {transform:translateY(4.5px) rotate(45deg);}
+.open .hamburger-menu span:last-child {transform:translateY(-4.5px) rotate(-45deg);}
+.card-nav-brand {display:flex;align-items:center;gap:10px;border:0;background:none;color:var(--ink);min-height:44px;}
+.card-nav-brand img {width:32px;height:32px;}
+.card-nav-cta {border:0;border-radius:12px;background:#184b49;color:#fff;padding:10px 16px;min-height:44px;}
+.card-nav-content {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0 10px 10px;max-height:calc(100dvh - 116px);overflow:auto;}
+.card-nav-content[hidden] {display:none;}
+.nav-card {padding:18px;border-radius:13px;color:#fff;background:#173f43;min-width:0;}
+.nav-card-1 {background:#344765;}.nav-card-2 {background:#534767;}
+.nav-card h2 {font-size:20px;font-weight:500;margin:0 0 12px;}
+.nav-card-link {display:block;text-align:start;width:100%;border:0;background:transparent;color:inherit;min-height:44px;padding:8px;border-radius:8px;font-size:14px!important;}
+.nav-card-link:hover,.nav-card-link[aria-current] {background:#ffffff20;}
+.card-nav :focus-visible {outline:3px solid #e4b951;outline-offset:2px;}
+.has-card-nav ~ .lang-pill {bottom:18px;top:auto;}
+/* A quiet conversation, with advanced controls behind the gear. */
+.faris .bubble {width:min(420px,calc(100vw - 28px));max-height:calc(100dvh - 112px);padding:0;gap:0;background:var(--surface);border:1px solid var(--line);box-shadow:0 16px 64px #123d3830;overflow:auto;}
+.faris-head {display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1;}
+.faris-head strong {margin-inline-end:auto;}
+.faris-icon {min-width:44px;height:44px;border:0;border-radius:50%;background:var(--sunk);color:var(--ink);font:inherit;cursor:pointer;display:inline-grid;place-items:center;}
+.faris-icon svg {width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;}
+.faris .msg {margin:18px 14px;padding:14px;background:var(--accent-soft);border-radius:16px;max-height:36dvh;overflow:auto;font-size:15px;min-height:70px;}
+.faris .actions {padding-inline:14px;}
+.faris .actions:empty {display:none;}
+.faris .ask {padding:14px;box-sizing:border-box;align-items:center;}
+.faris .ask input {border:1px solid var(--line);border-radius:22px;min-height:46px;font-size:16px;}
+.faris .ask .link {min-width:44px;border-radius:50%;background:#1c625a;color:#fff;}
+.faris-voice {padding:0!important;margin:0!important;border:0!important;}
+.faris-settings {padding:14px;border-bottom:1px solid var(--line);}
+.faris-settings[hidden] {display:none;}
+.faris-settings .voice-options {display:flex;flex-direction:column;align-items:stretch;gap:12px;}
+.faris-settings select {max-width:100%;min-width:0;}
+.faris-settings p {font-size:12px;color:var(--muted);}
+.faris .voice-status {font-size:12px;margin:0;padding:0 14px 10px;}
+.faris .voice-status:empty {display:none;}
+.faris-btn {width:58px;height:64px;border-radius:20px;}
+.faris-btn canvas {max-width:40px;max-height:54px;object-fit:contain;}
+@media(max-width:600px){.card-nav-container{inset-inline:12px;top:12px}.card-nav-content{grid-template-columns:1fr}.nav-card{padding:12px 16px}.nav-card h2{margin-bottom:4px}.card-nav-cta{font-size:12px!important;padding-inline:10px}.card-nav-brand{gap:6px;font-size:13px!important}.app.has-card-nav{padding-top:94px}.auth-wrap{padding-inline:14px!important;padding-bottom:240px!important}.auth-wrap .auth{padding:18px}.faris{bottom:12px;right:14px}html[dir=rtl] .faris{left:14px}.faris-head{gap:4px;padding-inline:10px}.intro-text{top:74px;padding:18px}.intro-text .sub{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.hamburger-menu span{transition:none}}
+.has-card-nav ~ .lang-pill {inset-inline-start:18px;inset-inline-end:auto;}
+html[dir=ltr] .has-card-nav ~ .lang-pill {left:18px;right:auto;}
+html[dir=rtl] .has-card-nav ~ .lang-pill {right:18px;left:auto;}
+.signin-options {font-size:13px;margin-top:10px;}
+.signin-options summary {cursor:pointer;min-height:36px;padding:8px 0;color:#235c59;}
+.signin-options .sub {font-size:12px;}
+.auth-wrap .auth .logo .word {font-size:23px;}
+.auth-wrap .auth .logo svg.ai-mark {width:36px;height:36px;}
+.auth-wrap .auth > p.sub {margin-block:0 6px;}
+.auth-wrap #switch {font-size:13px;}
+.auth-extras .row {gap:6px;}
+.auth-extras .btn {font-size:12px;}
+.auth #err:empty,.auth #email-ok:empty {display:none;}
+.auth-wrap .auth > p.sub {display:none;}
+.auth-wrap .auth .logo {min-height:36px;height:36px;}
+.auth-wrap .field label {font-size:13px;line-height:20px;}
+.auth-wrap .field input {min-height:44px;padding:8px 12px;}
+.auth-wrap .auth .btn.big {min-height:44px;padding:8px 16px;}
+.auth-wrap .signin-options summary {min-height:36px;padding:6px 0;}
