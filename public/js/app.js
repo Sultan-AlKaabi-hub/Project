@@ -79,6 +79,7 @@
     $("#scrim").onclick = closeMenu;
     const brand=app.querySelector(".brand");brand.setAttribute("role","button");brand.tabIndex=0;brand.setAttribute("aria-label",S.lang==="ar"?"العودة إلى المقدمة":"Open intro");brand.onclick=()=>go("intro");brand.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go("intro");}};
     window.CardNav?.mount(app);
+    if(!DEMO && !S.user.passwordSet){const banner=document.createElement("div");banner.className="banner password-upgrade";const b=document.createElement("button");b.className="btn small";b.textContent=AccountUX.L("Set your required password in Settings","عيّن كلمة المرور المطلوبة في الإعدادات");b.onclick=()=>go("settings");banner.append(b);$("#main").before(banner);}
     S.mainObserver=new MutationObserver(()=>{wireTopbar();window.RasidMotion?.enhance();window.Craft?.enhance();});S.mainObserver.observe($("#main"),{childList:true});
     api('/api/alerts').then(r=>{const label=app.querySelector('[data-view="alerts"] span');if(label){const count=r.alerts.filter(a=>!a.read).length;label.textContent=T('alerts')+(count?' ('+count+')':'');}}).catch(()=>{});
   }
@@ -156,8 +157,8 @@
       form(`${DEMO ? `<div class="banner">ℹ ${T("demoAuth")}</div>` : ""}<h2>${signup ? T("createAccount") : T("signIn")}</h2>
         <form class="stack" id="f">
           <div class="field"><label for="email">${T("email")}</label><input id="email" type="email" inputmode="email" autocomplete="email" required><span class="ok" id="email-ok"></span></div>
-          <div class="field"><label for="pin">${Portal.L("credential")}</label><input id="pin" type="password" minlength="6" maxlength="128" autocomplete="${signup ? "new-password" : "current-password"}" required></div>
-          ${signup ? `<div class="field"><label for="pin2">${Portal.L("confirmCredential")}</label><input id="pin2" type="password" maxlength="128" autocomplete="new-password" required><span class="ok" id="pin-ok"></span></div>` : ""}
+          <div class="field"><label for="pin">${signup ? AccountUX.L("Password (required)","كلمة المرور (مطلوبة)") : Portal.L("credential")}</label><input id="pin" type="password" minlength="${signup ? 8 : 6}" maxlength="128" autocomplete="${signup ? "new-password" : "current-password"}" required></div>
+          ${signup ? `<div class="field"><label for="pin2">${AccountUX.L("Confirm password","تأكيد كلمة المرور")}</label><input id="pin2" type="password" maxlength="128" autocomplete="new-password" required><span class="ok" id="pin-ok"></span></div>` : ""}
           <div class="err" id="err"></div>
           <button class="btn primary big" type="submit">${signup ? T("continueBtn") : T("signIn")}</button>
         </form>
@@ -168,22 +169,23 @@
       Portal.authExtras(body,signup);
       const offlineLink=document.createElement("a");offlineLink.href="/offline.html";offlineLink.className="btn ghost";offlineLink.textContent=S.lang==="ar"?"جرّب الورشة دون اتصال":"Try the offline workshop";body.append(offlineLink);
       const hint=document.createElement("p");hint.className="sub credential-hint";hint.textContent=Portal.L("credentialHint");if(signup)$("#pin").after(hint);
+      if(signup)AccountUX.signup(body);
       const f = $("#f"), err = $("#err");err.setAttribute("role","alert");
       $("#email").oninput = (e) => { $("#email-ok").textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value) ? "✓" : ""; };
-      if (signup) $("#pin2").oninput = () => { $("#pin-ok").textContent = $("#pin").value.length >= 6 && $("#pin").value === $("#pin2").value ? "✓ " + T("pinMatch") : ""; };
+      if (signup) $("#pin2").oninput = () => { $("#pin-ok").textContent = AccountUX.validPassword($("#pin").value) && $("#pin").value === $("#pin2").value ? "✓ " + T("pinMatch") : ""; };
       $("#switch").onclick = () => go("auth", { mode: signup ? "login" : "signup" });
       f.onsubmit = async (e) => {
         e.preventDefault(); err.textContent = "";
         if(f.dataset.pending)return;
         const email = $("#email").value.trim(), pin = $("#pin").value;
-        if (!/^\d{6}$/.test(pin) && !(pin.length>=12 && pin.length<=128 && /\D/.test(pin))) return (err.textContent = Portal.L("credentialHint"));
-        if (signup && pin !== $("#pin2").value) return (err.textContent = S.lang === 'ar' ? 'الرمزان أو كلمتا المرور غير متطابقتين.' : 'The PINs or passwords do not match.');
+        if (signup && !AccountUX.validPassword(pin)) return (err.textContent = Portal.L("credentialHint"));
+        if (signup && pin !== $("#pin2").value) return (err.textContent = S.lang === 'ar' ? 'كلمتا المرور غير متطابقتين.' : 'The passwords do not match.');
         const submit=f.querySelector('.btn.primary');f.dataset.pending='true';submit.disabled=true;submit.setAttribute('aria-busy','true');
         try {
-          const r = await api(signup ? "/api/auth/signup" : "/api/auth/login", { email, pin, lang: S.lang, privacyAccepted: signup ? $("#privacy-consent").checked : undefined });
+          const r = await api(signup ? "/api/auth/signup" : "/api/auth/login", { email, ...(signup ? {password:pin,optionalPin:$("#optional-pin").value} : {pin}), lang: S.lang, privacyAccepted: signup ? $("#privacy-consent").checked : undefined });
           if (r.needTotp) return go("auth", { mode: "totp", ticket: r.ticket,delivery:r.delivery });
           await signedIn(r.user, signup);
-        } catch (ex) { err.textContent = { bad_email: T("errBadEmail"), bad_pin: Portal.L("credentialHint"), exists: T("errExists"), wrong: T("errWrong") }[ex.code] || Portal.error(ex); }
+        } catch (ex) { err.textContent = { bad_email: T("errBadEmail"), bad_password: Portal.L("credentialHint"), bad_pin: AccountUX.L("The optional PIN must contain exactly six digits.","يجب أن يتكون الرمز الاختياري من ستة أرقام."), exists: T("errExists"), wrong: T("errWrong") }[ex.code] || Portal.error(ex); }
         finally {delete f.dataset.pending;submit.disabled=false;submit.removeAttribute('aria-busy');}
       };
       if (!signup) {
@@ -215,12 +217,12 @@
         <form class="stack" id="f1"><div class="field"><label>${T("email")}</label><input id="email" type="email" value="${esc(opts.email || "")}" required></div><button class="btn primary big">${T("continueBtn")}</button></form>
         <form class="stack" id="f2" hidden><p class="sub">${T("codeSentTitle")}</p>
           <div class="field"><label>${T("codeField")}</label><input id="code" class="pin" inputmode="numeric" maxlength="6" required></div>
-          <div class="field"><label>${Portal.L("credential")}</label><input id="pin" type="password" minlength="6" maxlength="128" autocomplete="new-password" required></div>
+          <div class="field"><label>${AccountUX.L("New password","كلمة المرور الجديدة")}</label><p class="sub">${Portal.L("credentialHint")}</p><input id="pin" type="password" minlength="8" maxlength="128" autocomplete="new-password" required></div>
           <div class="err" id="err"></div><button class="btn primary big">${T("resetPin")}</button></form>
         <button class="btn ghost" id="back">${T("back")}</button>`);
       $("#back").onclick = () => go("auth", { mode: "login" });
       $("#f1").onsubmit = async (e) => { e.preventDefault(); try { await api("/api/auth/pin/reset-request", { email: $("#email").value.trim() }); $("#f1").hidden = true; $("#f2").hidden = false; } catch(ex) { toast(Portal.error(ex)); } };
-      $("#f2").onsubmit = async (e) => { e.preventDefault(); try { const r = await api("/api/auth/pin/reset", { email: $("#email").value.trim(), code: $("#code").value, pin: $("#pin").value }); if(r.needTotp) return go("auth", {mode:"totp",ticket:r.ticket}); await signedIn(r.user, false); } catch (ex) { $("#err").textContent = ex.code === "bad_pin" ? T("errBadPin") : T("errWrongCode"); } };
+      $("#f2").onsubmit = async (e) => { e.preventDefault(); try { const r = await api("/api/auth/pin/reset", { email: $("#email").value.trim(), code: $("#code").value, password: $("#pin").value }); if(r.needTotp) return go("auth", {mode:"totp",ticket:r.ticket}); await signedIn(r.user, false); } catch (ex) { $("#err").textContent = ex.code === "bad_password" ? Portal.L("credentialHint") : T("errWrongCode"); } };
     }
   };
 
@@ -485,6 +487,7 @@
       $("#tf").onsubmit = async (e) => { e.preventDefault(); try { await api("/api/security/totp/confirm", { code: $("#tc").value }); u.totpEnabled = true; toast("✓ " + T("on")); go("settings"); } catch { $("#terr").textContent = T("errWrongCode"); } };
     }catch(error){toast(error.message==='factor_already_enabled'?(S.lang==='ar'?'يوجد تحقق إضافي مفعّل بالفعل.':'An additional verification method is already enabled.'):T('errWrongCode'));}};
     if(!DEMO)SecurityUI.mount({api,toast});
+    AccountUX.settings({S,api,go,toast});
     if (!DEMO) Passkeys.settings($("#pk"),api,r=>S.user.passkeys=r.passkeys);
     $("#namef").onsubmit = async (e) => { e.preventDefault(); const r = await api("/api/settings", { name: $("#name").value }); S.user = r.user; toast("✓ " + T("saved")); };
     const recoveryForm = $("#owner-recovery");

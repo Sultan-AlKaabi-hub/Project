@@ -1,96 +1,156 @@
-# راصد · Rasid
+# Rasid AI · راصد
 
-Arabic-first Progressive Web App that turns each day's AI news into short lessons at three levels
-(Beginner, Intermediate, Expert), with a level-up quiz and **Faris (فارس)**, a pixel-wizard guide.
-Nothing is written by hand: news, Arabic text, definitions and quiz questions are generated automatically.
+**Turn curiosity into capability.** A bilingual AI learning campus: learn, ask, practise, build, receive feedback and improve.
 
-## Run it
+[Open the live platform](https://rasid-904v.onrender.com/) · [Agent architecture](docs/AGENT-ORCHESTRATION.md) · [Operations](docs/OPERATIONS.md) · [Screenshot gallery](docs/screenshots/README.md)
+
+![Rasid pixel-art introduction with a rider transporting computing equipment](docs/screenshots/intro.png)
+
+راصد منصة تعليمية بالعربية والإنجليزية تجمع الدروس والوكلاء التعليميين والتجارب التفاعلية وإدارة الحضور والتقدم. افتح **الإعدادات ← جولة إرشادية** لاستكشاف المنصة، أو امسح رمز التثبيت لإضافتها إلى شاشة هاتفك.
+
+## Present the platform in five minutes
+
+1. **Introduction:** animated pixel landscape, moving computer cart, language switch and motion controls.
+2. **Settings → Take a guided tour:** automatic, role-aware walkthrough with pause, back, next and close. It opens pages without changing records.
+3. **AI learning studio:** explain a concept, request practice, inspect feedback and choose the next learning step.
+4. **AI Workshop:** scan a book, compare robot routes, train a network, or configure a learning agent.
+5. **Administration:** demonstrate charts with **Test accounts only** selected. Fictional UAE-named examples are marked and do not represent real student activity.
+
+Keep passwords, authenticator secrets and private learner records off presentation screens. The public installation QR is separate from the private authenticator QR.
+
+## Features
+
+| Area | Working features |
+|---|---|
+| Learning | Bilingual curriculum, placement, three levels, lesson progress, module quizzes, feedback, certificates and learning profile |
+| AI assistant | Contextual routing, course retrieval, learner-aware guidance, structured response cards, English/Arabic speech and optional device generation |
+| AI Workshop | BFS/DFS visualization, mixed exercises, agent laboratory, computer vision, book scanning, robotics and neural networks |
+| Computer vision | Local-image grayscale/threshold/Sobel filters; synthetic office-entry decisions; editable policy code in a bounded no-network browser sandbox |
+| Book vision | Camera/photo ISBN scanning; English/Arabic title OCR; editable extraction; free Open Library lookup |
+| Robotics | Editable weighted maps, BFS/Dijkstra/A*, bounded robot commands, saved maps and reflections |
+| Neural networks | Actual 2–4–1 XOR network, forward pass, gradients, training, predictions and loss chart |
+| Campus | Role-filtered directory, classes, bookings, calendars, alerts, messages/read receipts, shifts, leave and subject coverage |
+| Administration | Progress and attendance charts/tables, test-data filtering and cautious attendance trend recommendations |
+| Account | Mandatory password, optional quick PIN, optional authenticator, device passkeys, privacy controls, guided tour and installation QR |
+| Offline | Cached public lesson, local XOR training and optional device notebook after an online visit; public assets refresh on reconnect |
+
+![Unified AI Workshop](docs/screenshots/ai-workshop.png)
+
+## AI agents: strengths and limits
+
+These are specialized modes behind one contextual assistant, not ten independent frontier models. The default deployment works without a paid model key.
+
+| Agent / mode | Strength | Current limitation |
+|---|---|---|
+| AI Tutor | Retrieves permitted passages; adapts explanations and examples to learner level and evidence | Free fallback is strongest on supported course topics; small device models have variable reasoning and Arabic quality |
+| Practice Coach | Adaptive practice, concept diagnostics and explanations of mistakes | Short-answer rubrics are approximate; practice is separate from formal exam grading |
+| Project Coach | Hints, milestones, attempts and saved project progress | Completion is self-reported; no arbitrary server execution |
+| Code Reviewer | Static risk patterns, affected lines, Problem / Why / Fix / Example / Concept feedback | Not a compiler or comprehensive security audit |
+| Learning Path | Recommendations using goals, weaknesses and study time | Rule-based roadmap, not a guarantee of learning outcomes |
+| Socratic Tutor | Guided questions and prerequisite checks | Teaching mode within Tutor |
+| Research | Approved current news sources with citations | Bounded retrieval; no unrestricted autonomous browsing |
+| Progress Coach | Concept evidence, next steps and authorized administrative insights | Attendance extrapolations are uncertain scenarios, never decisions about people |
+| Simulation | Guided CTO role-play and structured debrief | Bounded scenarios and pattern-based local feedback |
+| Agent Builder | Save role/instructions and permitted course-search tools; test an agent | No unrestricted database, shell, browser or external API access |
+
+### Request pipeline
+
+```mermaid
+flowchart LR
+  Q[Question and page context] --> R[Intent router]
+  R --> C[Authorized learner context]
+  C --> K[Knowledge retrieval]
+  K --> A[Teaching strategy]
+  A --> P[Provider or grounded fallback]
+  P --> UI[Cards, sources and next step]
+  A --> T[Bounded developer trace]
+```
+
+Retrieval combines local bilingual TF-IDF/SVD semantic vectors with lexical, lesson, concept and level signals. This is a small statistical retrieval system, not a hosted frontier embedding service.
+
+**AI Workshop → Developer debug view** is administrator-only. It shows question, intent, agent, chunks, mastery evidence, tool results and response. Three-level comparison uses isolated learner states. These are operational decisions, not hidden chain-of-thought. Detailed sanitized debug text expires after 24 hours; raw chat is not retained indefinitely by default.
+
+Improve agents through bilingual evaluation sets, verified assessment rubrics, retrieval failure tests, latency budgets and human-reviewed feedback—not merely longer prompts. See [architecture and evaluation](docs/AGENT-ORCHESTRATION.md).
+
+## Run locally
+
+Requires **Node.js 22+** and npm.
 
 ```bash
-npm install
+npm ci
 npm start
 ```
 
-Open http://localhost:3000. New accounts are always students. On an existing database the legacy administrator is preserved once. On a fresh database, register the intended owner, stop the server, run `npm run admin -- owner@example.com`, then restart. See [deployment and operations](docs/OPERATIONS.md) before deploying to Render.
-
-## Platform upgrade (0.2)
-
-- Arabic/English sign-in in front of a coordinated pixel mountain valley, sun, and rider.
-- Six-digit PIN or password, device-verified passkeys, and a bilingual privacy notice.
-- Admin-managed roles and teacher assignments; role-filtered progress and scores in Faris.
-- Month calendar, host-approved tuition/admin appointments, collision checks, calendar downloads, and in-app alerts.
-- Optional voice dictation and read-aloud, plus QR installation instructions for iOS and Android.
-- Data export, privacy requests, account deletion, private API cache protection, and regression tests (`npm test`).
-
-The existing course, placement, quizzes, certificates, and live news remain. A signed Android APK must be supplied separately; home-screen installation is available without it.
-
-| Variable | Effect |
-|---|---|
-| `ANTHROPIC_API_KEY` | **Recommended.** Claude (`claude-opus-5`) reads each full article and writes the Arabic article, the three lesson levels, and real exam questions about the content. Without it the app runs in **fallback mode**: it still reads the full article, but summaries are extractive, questions are fill-in-the-blank and statement-match built from the text, and Arabic comes from free translation services that are rate limited (lessons show English with a "translation pending" note until the daily catch-up pass fills them in). |
-| `RASID_MODEL` | Override the Claude model id. |
-| `ADMIN_EMAIL` | Legacy administrator migration / explicit bootstrap default. Public registrations always remain students. |
-| `RASID_NO_UPDATE=1` | Skip the automatic update on start and the 06:00 daily job. |
-| `RASID_DATA_DIR` | Runtime database / APK directory. Use a persistent mount in production. |
-| `PUBLIC_ORIGIN` | Canonical HTTPS origin for passkeys, write protection, and installation QR. |
-| `PRIVACY_OPERATOR`, `PRIVACY_CONTACT`, `HOSTING_REGION` | Accurate details displayed in the privacy notice. |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, `SMTP_USER`, `SMTP_PASSWORD` | Email recovery delivery. Codes are never logged or returned by the API. |
-| `PORT` | Default 3000. |
-
-Manual content update from the terminal:
+Open `http://localhost:3000`. Installation builds browser bundles and the site-guide PDF. Configuration is optional for basic local use. If copying `.env.example`, change `NODE_ENV=development`, `PUBLIC_ORIGIN=http://localhost:3000` and use a writable `RASID_DATA_DIR`. Never commit secret values.
 
 ```bash
-npm run update
+npm test
+npm run build-static
+npm audit --omit=dev
 ```
 
-## What is in the box
+New registrations are always students. Provision administrators with the documented server-side bootstrap; public signup requests cannot choose their role. `RASID_SEED_DEMO=1` adds fictional examples; use `RASID_SEED_DEMO=0` to disable seeding for a clean deployment.
 
-| Path | Purpose |
+## Password, PIN and MFA
+
+- New accounts require **8–128 characters**, uppercase, lowercase, a number and a special character. Common patterns such as `Password1!` are rejected. Longer unique passwords are encouraged; paste and password managers remain supported.
+- A **six-digit PIN is optional**, separately hashed, and can be added or removed in Settings. The password remains required and is used for security changes. Enabled login MFA also applies to PIN sign-in.
+- Existing accounts keep access with their previous credential and receive a password-upgrade prompt. The owner chooses a new password; deployments do not invent or publish one.
+- Saving credentials signs out other sessions. Resetting a password removes the quick PIN. Server credentials use salted scrypt hashes.
+- Google Authenticator can be set up or skipped after signup. Device passkeys use local verification; Rasid does not receive raw face or fingerprint data.
+- Email recovery/OTP, SMS OTP and CAPTCHA require configured services; the UI reports availability. A short PIN is less resistant to guessing than a strong password; login attempts are throttled.
+
+These composition rules implement the requested product policy; they are not a compliance certification.
+
+## Configuration and deployment
+
+Render runs `npm start`. GitHub Pages cannot host the authenticated Node backend. Set secrets in **Render → Environment**. A missing local `.env` file is normal when Render supplies environment variables.
+
+| Variable | Purpose |
 |---|---|
-| `server/index.js` | Express API, static PWA, daily cron (06:00), admin update |
-| `server/auth.js` | Email + 6-digit PIN (scrypt), sessions, Google Authenticator (TOTP), passkeys (fingerprint / Face ID via WebAuthn) |
-| `server/pipeline/fetchNews.js` | Live headlines per category from Google News search feeds plus direct RSS (MIT Technology Review, The Verge, VentureBeat, Defense One, Breaking Defense, DefenseScoop, Moscow Times, SCMP, Euractiv, Al Jazeera, Arab News) |
-| `server/pipeline/article.js` | Decodes Google News links, fetches the real article page, extracts the main text and lead image, free English→Arabic translation with caching and back-off |
-| `server/pipeline/wikipedia.js` | One-line definitions, Arabic Wikipedia first, English fallback |
-| `server/pipeline/generate.js` | Claude structured-output generation of the three levels + questions; automatic fallback |
-| `server/pipeline/run.js` | Orchestrates an update and picks the 5 required lessons per level (one per category) |
-| `server/faris.js` | Faris (the wizard) answers only from today's lessons (Claude when available, keyword match otherwise) |
-| `data/db.json` | The JSON database (users, lessons, progress). Created on first run. |
-| `data/seed.json` | Five example lessons shown until the first live update succeeds |
-| `public/` | The PWA: `index.html`, `css/app.css`, `js/app.js`, `js/faris.js`, `js/i18n.js`, `sw.js`, `manifest.webmanifest`, icons |
+| `PORT`, `NODE_ENV`, `PUBLIC_ORIGIN` | Port, production mode, canonical HTTPS origin for passkeys, same-origin checks and installation QR |
+| `RASID_DATA_DIR` | Runtime data; use persistent storage for production |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Private server-side persistence; first run `migrations/001-supabase-state.sql`; never expose service keys in frontend code |
+| `RASID_OWNER_PIN_HASH` | Optional owner bootstrap hash; never commit its value |
+| `RASID_SEED_DEMO`, `RASID_NO_UPDATE` | Example data and scheduled update controls |
+| `RASID_AGENT_PROVIDER` | Default `local`; hosted generation requires explicit provider setup |
+| `ANTHROPIC_API_KEY`, `RASID_MODEL`, `RASID_AGENT_MODEL` | Optional provider credential and model IDs; not required for grounded fallback |
+| `NEWSAPI_KEY`, `NEWSAPI_PRODUCTION_ALLOWED` | Optional source; free Developer keys remain local-development-only; approved RSS feeds serve production |
+| `SMTP_*` | Email recovery and OTP delivery |
+| `TWILIO_*` | Optional SMS verification; service fees may apply |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | CAPTCHA enabled when both keys are configured |
+| `PRIVACY_OPERATOR`, `PRIVACY_CONTACT`, `HOSTING_REGION` | Actual operator information for the privacy notice |
 
-## The learning path
+Supabase stores a private application snapshot containing accounts and educational state. This is not a normalized multi-tenant schema. Without durable storage, an ephemeral host can lose data on redeployment. Use a single application writer for the snapshot design and follow [operations guidance](docs/OPERATIONS.md) for backups and scaling.
 
-The course lives in `data/curriculum/` (`beginner.js`, `intermediate.js`, `expert.js`), written in Arabic with an English twin, so lessons never depend on translation services. 20 modules, 60 lessons, 100 quiz questions.
+## Security boundaries
 
-| Level | Modules |
+Server-side role/subject checks restrict private records. Private APIs are excluded from shared service-worker caches; writes have origin checks and throttling. Agent tools are allowlisted, structured output is validated, and learner code never executes on the production Node server. The teaching sandbox is a restricted browser environment.
+
+User documents and external content are untrusted. Do not commit `.env`, runtime databases, API keys, authenticator secrets, private chat or screenshots of real learner records. Tests support, but do not replace, a professional deployment review.
+
+## Install and offline use
+
+**Settings → Install app** displays the public QR. Scan it on a phone, then use Android's browser menu or iPhone Safari → Share → Add to Home Screen. The browser controls prompt availability; the QR does not silently install software.
+
+Visit `/offline.html` online once to cache public lessons and XOR training. Optional notes stay on that device and do not become graded progress automatically. Accounts, bookings, news and server-backed agents need a connection. Speech voices, microphone recognition and device AI depend on browser and hardware support.
+
+## Repository map
+
+| Path | Responsibility |
 |---|---|
-| Beginner | What is AI · Where AI is used (civilian and military) · Data and algorithms · Machine learning · Chatbots (ChatGPT, Claude, Gemini) · Safety and ethics |
-| Intermediate | Neural networks · Computer vision · Large language models · Prompt engineering · Python for AI · Networks and APIs · BRD and SRS |
-| Expert | Deep learning architectures (CNN, RNN, transformers) · AI agents · Robotics and autonomy · Math behind AI (discrete math, probability, linear algebra) · Algorithms, complexity and recursion · Military AI (US, Russia, China) · Evaluation, alignment and deployment |
+| `server/index.js`, `auth.js`, `security.js` | API, sessions, password/PIN, MFA, passkeys and origin checks |
+| `server/agents/` | Router, context, retrieval, teaching, providers, memory and traces |
+| `server/db.js`, `migrations/` | Persistent state and private storage |
+| `server/campus.js`, `operations.js`, `portal.js` | Roles, classes, bookings, attendance, messaging and shifts |
+| `data/curriculum/`, `data/knowledge/` | Bilingual curriculum, reviewed source notes, diagnostics and site guide |
+| `public/js/`, `public/css/`, `public/art/` | Modular vanilla-JavaScript UI, assistant, labs, tour and responsive visual system |
+| `public/sw.js`, `public/offline.html` | Public offline experience and cache lifecycle |
+| `test/` | Auth, persistence, authorization, learning, retrieval, sandbox and algorithm regressions |
+| `docs/screenshots/` | Actual browser captures with fictional records for product review |
 
-1. **Placement.** Six questions drawn from all three levels, or "Start as Beginner". Levels below the placed level count as passed.
-2. **Modules.** Each module has three lessons and a five-question quiz. Reading all three lessons unlocks the quiz; pass mark is 4 of 5.
-3. **Fail.** The quiz locks until the module's lessons are reread. Unlimited attempts, new question draw each time.
-4. **Level-up.** Passing every module in a level unlocks the next level. Expert completion ends the required quizzes.
+## Verification and attribution
 
-The **Live News** screen is separate: real headlines from named sources with an in-app reader (Arabic by machine translation when the free services are available, English otherwise). Set `RASID_NEWS_LESSONS=1` to also generate news-based lessons daily (needs `ANTHROPIC_API_KEY` for good results).
+The September 2026 account/tour release passed **84 automated tests**, static build and desktop/mobile browser review. See [release checks](docs/ACCOUNT-TOUR-REVIEW.md) for scope. Optional provider delivery and real biometric/microphone hardware need device-specific acceptance checks.
 
-## Install on a phone
-
-- **Android:** Chrome shows an install prompt (Settings → Install). To ship an APK, build one with [PWABuilder](https://www.pwabuilder.com) from the deployed HTTPS URL and save it as `data/rasid.apk`; the app then serves it at `/apk`.
-- **iPhone:** Safari → Share → Add to Home Screen.
-- Passkeys (fingerprint / Face ID) require HTTPS in production; `localhost` works for development.
-
-## Deploy the live app
-
-GitHub Pages cannot host this app: it only serves static files, and Rasid has a Node server (accounts, database, live news reader, Faris). Deploy the server to a Node host instead. The fastest free option is Render:
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Sultan-AlKaabi-hub/Project)
-
-1. Click the button (or in Render: **New → Blueprint** and pick this repository). `render.yaml` already describes the service.
-2. Add the environment variable `ANTHROPIC_API_KEY` (recommended) and, optionally, `ADMIN_EMAIL`.
-3. Deploy. The app comes up at `https://rasid-904v.onrender.com` (Render adds a suffix if the name is taken). The GitHub Pages page at `sultan-alkaabi-hub.github.io/Project` redirects there.
-
-Free-tier notes: the service sleeps after 15 minutes without traffic (first load takes about a minute), and there is no persistent disk, so `data/db.json` (accounts and progress) resets on each deploy. For real users pick a paid plan with a disk (see the comment in `render.yaml`), or any host with a volume: the `Dockerfile` works on Railway, Fly.io or a VPS with `docker run -p 3000:3000 -v rasid-data:/app/data rasid`.
-
-Passkeys (fingerprint / Face ID) need HTTPS, which every host above provides.
+Third-party dependencies retain their licenses. See [React Bits attribution](docs/REACT-BITS-LICENSE.md), [artwork notes](docs/ARTWORK.md) and cited knowledge-library sources. Reviewed excerpts retain citations; public availability does not transfer ownership of all source material.

@@ -56,7 +56,7 @@ save();
 await flush();
 const publicUser = (u) => ({
   email: u.email, name: u.name || u.email.split("@")[0], lang: u.lang || "ar", level: u.level || null, placed: Boolean(u.level),
-  totpEnabled: Boolean(u.totp?.enabled), passkeys: (u.passkeys || []).length,
+  totpEnabled: Boolean(u.totp?.enabled), passkeys: (u.passkeys || []).length, passwordSet: u.passwordSet === true, pinEnabled: Boolean(u.quickPinHash),
   badges: u.badges || [], expertDone: Boolean(u.expertDone), isAdmin: isAdmin(u), role: roleOf(u), subject:subjectOf(u), hasAI:hasAI(u), isDemo:Boolean(u.isDemo), ownerRecoveryAvailable:ownerRecoveryAvailable(db,u)
 });
 function isAdmin(u) { return roleOf(u) === "admin"; }
@@ -118,12 +118,14 @@ installSecurity(app,{requireUser,save});
 // ---------- auth ----------
 app.post("/api/auth/signup", (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
-  const { pin } = req.body;
+  const password = req.body.password;
+  const pin = req.body.optionalPin;
   if (!auth.validEmail(email)) return res.status(400).json({ error: "bad_email" });
-  if (!auth.validCredential(pin)) return res.status(400).json({ error: "bad_pin" });
+  if (!auth.validPassword(password)) return res.status(400).json({ error: "bad_password" });
+  if (pin && !auth.validPin(pin)) return res.status(400).json({ error: "bad_pin" });
   if (req.body.privacyAccepted !== true) return res.status(400).json({error:"privacy_required"});
   if (db.users[email]) return res.status(409).json({ error: "exists" });
-  db.users[email] = { email, role: "student", subject:"ai", privacyAcceptedAt: Date.now(), privacyVersion: "2026-09-16", pinHash: auth.hashPin(pin), created: Date.now(), lang: req.body.lang === "en" ? "en" : "ar", level: null, read: {}, badges: [], passkeys: [] };
+  db.users[email] = { email, role: "student", subject:"ai", privacyAcceptedAt: Date.now(), privacyVersion: "2026-09-16", pinHash: auth.hashPin(password), passwordSet:true, ...(pin ? {quickPinHash:auth.hashPin(pin)} : {}), created: Date.now(), lang: req.body.lang === "en" ? "en" : "ar", level: null, read: {}, badges: [], passkeys: [] };
   save();
   setCookie(res, auth.createSession(email));
   res.json({ user: publicUser(db.users[email]) });
@@ -136,7 +138,7 @@ app.post("/api/auth/login", async (req, res) => {
   const fail=loginFailures.get(email)||{n:0,until:now+15*60000};
   if(fail.n>=10){res.set("Retry-After",String(Math.ceil((fail.until-now)/1000)));return res.status(429).json({error:"rate_limited"});}
   const u = db.users[email];
-  if (!u || !auth.validCredential(req.body.pin) || !auth.checkPin(req.body.pin, u.pinHash)){fail.n++;if(loginFailures.size<10000)loginFailures.set(email,fail);return res.status(401).json({ error: "wrong" });}
+  if (!u || !auth.checkLogin(req.body.password ?? req.body.pin, u)){fail.n++;if(loginFailures.size<10000)loginFailures.set(email,fail);return res.status(401).json({ error: "wrong" });}
   loginFailures.delete(email);
   if (u.totp?.enabled) return res.json({ needTotp: true, ticket: auth.createPending(email) });
   if(u.otp){try{return res.json({needTotp:true,ticket:"otp:"+await startOtp(u,u.otp.method,u.otp.destination,"login"),delivery:u.otp.method});}catch{return res.status(503).json({error:"delivery_unavailable"});}}
@@ -171,8 +173,8 @@ app.post("/api/auth/pin/reset", async (req, res) => {
   const email = String(req.body.email || "").trim().toLowerCase();
   const u = db.users[email];
   if (!u || !u.resetCode || u.resetCode.exp < Date.now() || u.resetCode.code !== String(req.body.code)) return res.status(401).json({ error: "bad_code" });
-  if (!auth.validCredential(req.body.pin)) return res.status(400).json({ error: "bad_pin" });
-  u.pinHash = auth.hashPin(req.body.pin); delete u.resetCode;
+  if (!auth.validPassword(req.body.password)) return res.status(400).json({ error: "bad_password" });
+  u.pinHash = auth.hashPin(req.body.password); u.passwordSet=true; delete u.quickPinHash; delete u.resetCode;
   for(const [token,session] of Object.entries(db.sessions)) if(session.email===email) delete db.sessions[token];
   save();
   if(u.totp?.enabled) return res.json({needTotp:true,ticket:auth.createPending(email)});
@@ -217,6 +219,22 @@ app.post("/api/security/totp/confirm", requireUser, (req, res) => {
 app.post("/api/security/totp/disable", requireUser, (req, res) => { if(!auth.checkPin(req.body.pin,req.user.pinHash)||!acceptTotp(req.user.totp,req.body.code))return res.status(401).json({error:"wrong_code"});delete req.user.totp; save(); res.json({ ok: true }); });
 
 // ---------- me / settings ----------
+const credentialFailures=new Map();
+app.post('/api/security/credentials', requireUser, (req,res)=>{
+  const u=req.user,now=Date.now();
+  for(const [k,v] of credentialFailures)if(v.until<now)credentialFailures.delete(k);
+  const fail=credentialFailures.get(u.email)||{count:0,until:now+900000};
+  if(fail.count>=5){res.set('Retry-After',String(Math.ceil((fail.until-now)/1000)));return res.status(429).json({error:'rate_limited'});}
+  if(!auth.validCredential(req.body.currentPassword) || !auth.checkPin(req.body.currentPassword,u.pinHash)){fail.count++;credentialFailures.set(u.email,fail);return res.status(401).json({error:'wrong'});}
+  if(u.totp?.enabled && !acceptTotp(u.totp,req.body.code)){fail.count++;credentialFailures.set(u.email,fail);return res.status(401).json({error:'wrong_code'});}
+  if(!auth.validPassword(req.body.password))return res.status(400).json({error:'bad_password'});
+  if(req.body.optionalPin && !auth.validPin(req.body.optionalPin))return res.status(400).json({error:'bad_pin'});
+  credentialFailures.delete(u.email);u.pinHash=auth.hashPin(req.body.password);u.passwordSet=true;
+  if(req.body.optionalPin)u.quickPinHash=auth.hashPin(req.body.optionalPin);else delete u.quickPinHash;
+  delete u.resetCode;
+  for(const [token,s] of Object.entries(db.sessions))if(s.email===u.email && token!==req.cookies.rasid)delete db.sessions[token];
+  save();res.json({user:publicUser(u)});
+});
 app.get("/api/me", (req, res) => {
   const u = auth.getSession(req.cookies.rasid);
   res.json({ user: u ? publicUser(u) : null });

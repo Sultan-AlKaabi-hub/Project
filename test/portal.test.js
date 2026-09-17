@@ -144,7 +144,7 @@ test("API permissions, booking lifecycle, privacy and course regression", async 
     other = await login("other@example.test");
   let r = await call("/api/auth/signup", {
     email: "student@example.test",
-    pin: "Long-password-2026",
+    password: "Long-password-2026",
     role: "admin",
     privacyAccepted: true,
     lang: "en",
@@ -154,7 +154,7 @@ test("API permissions, booking lifecycle, privacy and course regression", async 
   const student = r.cookie;
   r = await call("/api/auth/signup", {
     email: "second@example.test",
-    pin,
+    password: "Second-test-2026!",
     privacyAccepted: true,
     lang: "ar",
   });

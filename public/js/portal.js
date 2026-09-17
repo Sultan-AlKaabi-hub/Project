@@ -93,13 +93,13 @@
     install: ["Install app", "تثبيت التطبيق"],
     signin: ["Sign in", "تسجيل الدخول"],
     signup: ["Create account", "إنشاء حساب"],
-    credential: ["PIN or password", "رمز PIN أو كلمة مرور"],
+    credential: ["Password or optional PIN", "رمز PIN أو كلمة مرور"],
     credentialHint: [
-      "Use a 6-digit PIN, or a 12–128 character password with at least one non-digit.",
-      "استخدم رمزاً من ٦ أرقام، أو كلمة مرور من ١٢ إلى ١٢٨ حرفاً تحتوي على حرف واحد غير رقمي على الأقل.",
+      "Use 8–128 characters, uppercase and lowercase letters, a number and a special character. Avoid common passwords.",
+      "استخدم ٨–١٢٨ حرفاً مع حرف إنجليزي كبير وصغير ورقم ورمز خاص. تجنب كلمات المرور الشائعة.",
     ],
     confirmCredential: [
-      "Confirm PIN or password",
+      "Confirm Password or optional PIN",
       "تأكيد الرمز أو كلمة المرور",
     ],
     consent: [
