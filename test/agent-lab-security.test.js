@@ -22,6 +22,8 @@ test('Learning path respects level, history, goals and weekly time; simulations 
  const first=laboratoryAnswer(db,u,{agent:'simulation',question:'start'},'en');assert.match(first.text,/CTO/);
  const second=laboratoryAnswer(db,u,{agent:'simulation',question:'My proposed use case'},'en');assert.match(second.text,/baseline/);
  const other={...u,email:'other@example.test'};assert.match(laboratoryAnswer(db,other,{agent:'simulation',question:'start'},'en').text,/CTO/);
+ for(let i=0;i<4;i++)laboratoryAnswer(db,u,{agent:'simulation',question:'I need help'},'en');
+ const debrief=laboratoryAnswer(db,u,{agent:'simulation',question:'Done'},'en');assert.ok(debrief.cards.some(c=>c.text.includes('Improvement prompt')));
  eraseLearner(db,u.email);assert.equal(db.aiLearning.labs[u.email],undefined);
 });
 test('Attendance estimates handle numeric dates, duplicates, remote, exclusions and insufficient history',()=>{
