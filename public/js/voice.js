@@ -5,8 +5,9 @@
     readText = "",
     queue = [],
     generation = 0;
-  const L = (en, ar) => (document.documentElement.lang === "ar" ? ar : en);
-  const language = () => (document.documentElement.lang === "ar" ? "ar" : "en");
+  let chatLanguage="en";
+  const L = (en, ar) => (chatLanguage === "ar" ? ar : en);
+  const language = () => chatLanguage;
   let selected = "",
     rate = 1,
     auto = false;
@@ -65,18 +66,22 @@
       );
     next();
   }
-  function mount(container, text) {
+  function mount(container, text, lang) {
+    chatLanguage=lang==='ar'?'ar':'en';
     stop();
     cleanupListener?.();
     readText = text;
     const panel = document.createElement("section");
     panel.className = "faris-voice";
-    panel.innerHTML = `<div class="voice-controls"><button type="button" class="btn small" data-read>${L("Read aloud", "قراءة صوتية")}</button><button type="button" class="btn small" data-mic>${L("Dictate", "إملاء صوتي")}</button><button type="button" class="btn small" data-stop>${L("Stop", "إيقاف")}</button></div><div class="voice-options"><label>${L("Voice", "الصوت")}<select data-voice aria-label="${L("Reading voice", "صوت القراءة")}"></select></label><label>${L("Speed", "السرعة")}<select data-speed><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.2">1.2×</option></select></label><label><input type="checkbox" data-auto>${L("Read replies automatically", "قراءة الردود تلقائياً")}</label></div><p class="voice-status" role="status" data-status></p>`;
-    container.append(panel);
+    panel.innerHTML = `<div class="faris-settings" hidden><div class="voice-options"><label>${L("Voice", "الصوت")}<select data-voice aria-label="${L("Reading voice", "صوت القراءة")}"></select></label><label>${L("Speed", "السرعة")}<select data-speed><option value="0.8">0.8×</option><option value="1">1×</option><option value="1.2">1.2×</option></select></label><label><input type="checkbox" data-auto>${L("Read replies automatically", "قراءة الردود تلقائياً")}</label></div><p>${L("Type in English or Arabic. For dictation, choose EN or ع above. Review your words before sending. AI answers can be imperfect.","اكتب بالعربية أو الإنجليزية. للإملاء، اختر ع أو EN أعلاه. راجع كلماتك قبل الإرسال. قد تحتوي إجابات الذكاء الاصطناعي على أخطاء.")}</p></div><p class="voice-status" role="status" data-status></p>`;
+    container.querySelector('.faris-head').after(panel);
+    const settings=panel.querySelector('.faris-settings');
+    container.querySelector('[data-settings]').onclick=e=>{settings.hidden=!settings.hidden;e.currentTarget.setAttribute('aria-expanded',String(!settings.hidden));};
     statusElement = panel.querySelector("[data-status]");
     const select = panel.querySelector("[data-voice]"),
-      mic = panel.querySelector("[data-mic]"),
-      read = panel.querySelector("[data-read]");
+      mic = container.querySelector("[data-mic]"),
+      read = container.querySelector("[data-read]");
+    const micIcon=mic.innerHTML;
     function populate() {
       const voices =
         window.speechSynthesis
@@ -92,17 +97,8 @@
       if (voices.some((v) => v.voiceURI === selected)) select.value = selected;
       else selected = voices[0]?.voiceURI || "";
       select.disabled = !voices.length;
-      read.disabled = !voices.length;
-      if (!voices.length)
-        statusElement.textContent = L(
-          "This device has no English voice available yet. You can still type and read replies.",
-          "لا يتوفر صوت عربي على هذا الجهاز حالياً. يمكنك الكتابة وقراءة الردود.",
-        );
-      else if (!recognition)
-        statusElement.textContent = L(
-          "English voice ready. Dictation lets you review your words before sending.",
-          "الصوت العربي جاهز. يتيح الإملاء مراجعة كلماتك قبل الإرسال.",
-        );
+      read.disabled = false;
+      statusElement.textContent = "";
     }
     populate();
     window.speechSynthesis?.addEventListener("voiceschanged", populate);
@@ -120,12 +116,7 @@
     panel.querySelector("[data-auto]").onchange = (e) => {
       auto = e.target.checked;
     };
-    read.onclick = () => speak();
-    panel.querySelector("[data-stop]").onclick = () => {
-      stop();
-      mic.textContent = L("Dictate", "إملاء صوتي");
-      statusElement.textContent = L("Stopped.", "تم الإيقاف.");
-    };
+    read.onclick = () => {if(window.speechSynthesis?.speaking){stop();statusElement.textContent="";}else speak();};
     const Recognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     mic.disabled = !Recognition;
@@ -138,6 +129,7 @@
     mic.onclick = () => {
       if (recognition) {
         stop();
+        mic.innerHTML=micIcon;statusElement.textContent="";
         return;
       }
       if (!sessionStorage.getItem("rasid.voiceConsent")) {
@@ -158,7 +150,8 @@
       r.lang = language() === "ar" ? "ar-AE" : "en-GB";
       r.continuous = false;
       r.interimResults = true;
-      mic.textContent = L("Stop listening", "إيقاف الاستماع");
+      mic.innerHTML = "■";
+      mic.setAttribute("aria-label",L("Stop listening","إيقاف الاستماع"));
       statusElement.textContent = L("Listening…", "جارٍ الاستماع…");
       r.onresult = (e) => {
         const input = container.querySelector("#faris-q");
@@ -181,14 +174,17 @@
               );
       };
       r.onend = () => {
+        if(statusElement.textContent===L("Listening…", "جارٍ الاستماع…"))statusElement.textContent=L("Review your words, then send.","راجع كلماتك ثم أرسل.");
         if (recognition === r) recognition = null;
-        mic.textContent = L("Dictate", "إملاء صوتي");
+        mic.innerHTML = micIcon;
+        mic.setAttribute("aria-label",L("Dictate","إملاء صوتي"));
       };
       try {
         r.start();
       } catch {
         recognition = null;
-        mic.textContent = L("Dictate", "إملاء صوتي");
+        mic.innerHTML = micIcon;
+        mic.setAttribute("aria-label",L("Dictate","إملاء صوتي"));
         statusElement.textContent = L(
           "Could not start dictation.",
           "تعذر بدء الإملاء.",

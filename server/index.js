@@ -344,10 +344,11 @@ app.get("/api/sources", (req, res) => res.json({ sources: sourceList() }));
 app.post("/api/faris/ask", requireUser, async (req, res) => {
   const question = String(req.body.question || "").slice(0, 300);
   if (!question.trim()) return res.status(400).json({ error: "empty" });
-  if(!hasAI(req.user))return res.json({text:req.user.lang === "en" ? "Your workspace covers your subject schedule, leave requests, inbox and bookings. AI course records are restricted to AI teachers and administrators." : "تضم مساحتك مناوبات مادتك وطلبات الإجازة والبريد والحجوزات. سجلات الذكاء الاصطناعي متاحة لمعلمي المادة والمسؤولين فقط."});
-  const privateResult = privateAnswer(question, req.user, db);
+  const lang = /[\u0600-\u06ff]/u.test(question) ? "ar" : /[a-z]/i.test(question) ? "en" : (req.body.lang === "en" ? "en" : "ar");
+  if(!hasAI(req.user))return res.json({text:lang === "en" ? "Your workspace covers your subject schedule, leave requests, inbox and bookings. AI course records are restricted to AI teachers and administrators." : "تضم مساحتك مناوبات مادتك وطلبات الإجازة والبريد والحجوزات. سجلات الذكاء الاصطناعي متاحة لمعلمي المادة والمسؤولين فقط."});
+  const privateResult = privateAnswer(question, { ...req.user, lang }, db);
   if(privateResult) return res.json(privateResult);
-  const r = await farisAnswer(question, { level: req.user.level || "beginner", lang: req.user.lang || "ar", article: req.body.useArticle && readingContexts.get(req.user.email)?.at>Date.now()-3600000 ? readingContexts.get(req.user.email) : null });
+  const r = await farisAnswer(question, { level: req.user.level || "beginner", lang, article: req.body.useArticle && readingContexts.get(req.user.email)?.at>Date.now()-3600000 ? readingContexts.get(req.user.email) : null });
   res.json(r);
 });
 app.post("/api/faris/report", requireUser, (req, res) => {

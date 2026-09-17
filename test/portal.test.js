@@ -219,6 +219,11 @@ test("API permissions, booking lifecycle, privacy and course regression", async 
   assert.ok(!r.data.text.includes("second@example.test"));
   r = await call("/api/faris/ask", { question: "all user scores" }, admin);
   assert.ok(r.data.text.includes("second@example.test"));
+  // Question language wins over the account language; authorization remains server-owned.
+  r = await call('/api/faris/ask', { question: 'اشرح البحث بالعرض والعمق', lang: 'en' }, student);
+  assert.match(r.data.text, /البحث/);
+  r = await call('/api/faris/ask', { question: 'Explain BFS and DFS', lang: 'ar' }, student);
+  assert.match(r.data.text, /BFS uses a queue/);
   const start = new Date(Date.now() + 86400000).toISOString(),
     end = new Date(Date.now() + 90000000).toISOString();
   assert.equal(
