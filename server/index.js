@@ -1,3 +1,4 @@
+import {installExperiments} from './experiments.js';
 import {installGuide,answerSite} from "./site-guide.js";
 import {installVision} from "./vision.js";
 import {provisionOwner} from "./owner-bootstrap.js";
@@ -104,6 +105,7 @@ installOwnerRecovery(app,{db,saveNow,requireUser,publicUser});
 installGuide(app,{requireUser});
 installLab(app,{db,save,requireUser});
 installVision(app,{db,save,requireUser});
+installExperiments(app,{save,requireUser});
 app.get("/sandbox/vision.html",(req,res)=>{res.set({"X-Frame-Options":"SAMEORIGIN","Content-Security-Policy":"default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; frame-ancestors 'self'; form-action 'none'; base-uri 'none'","Cache-Control":"no-store"});res.sendFile(path.join(ROOT,"public/sandbox/vision.html"));});
 installAgents(app,{db,save,requireUser,getArticle:u=>{const c=readingContexts.get(u.email);return c&&c.at>Date.now()-3600000?c:null;}});
 app.get('/api/install', async (req,res) => {

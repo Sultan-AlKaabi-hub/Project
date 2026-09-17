@@ -10,7 +10,7 @@
   const language = () => chatLanguage;
   let selected = "",
     rate = 1,
-    auto = false;
+    auto = false, conversation = false;
   function stop() {
     generation++;
     recognition?.abort();
@@ -73,7 +73,7 @@
     readText = text;
     const panel = document.createElement("section");
     panel.className = "faris-voice";
-    panel.innerHTML = `<div class="faris-settings" hidden><div class="voice-options"><label>${L("Voice", "الصوت")}<select data-voice aria-label="${L("Reading voice", "صوت القراءة")}"></select></label><label>${L("Speed", "السرعة")}<select data-speed><option value="0.8">0.8×</option><option value="1">1×</option><option value="1.2">1.2×</option></select></label><label><input type="checkbox" data-auto>${L("Read replies automatically", "قراءة الردود تلقائياً")}</label></div><p>${L("Type in English or Arabic. For dictation, choose EN or ع above. Review your words before sending. AI answers can be imperfect.","اكتب بالعربية أو الإنجليزية. للإملاء، اختر ع أو EN أعلاه. راجع كلماتك قبل الإرسال. قد تحتوي إجابات الذكاء الاصطناعي على أخطاء.")}</p></div><p class="voice-status" role="status" data-status></p>`;
+    panel.innerHTML = `<div class="faris-settings" hidden><div class="voice-options"><label>${L("Voice", "الصوت")}<select data-voice aria-label="${L("Reading voice", "صوت القراءة")}"></select></label><label>${L("Speed", "السرعة")}<select data-speed><option value="0.8">0.8×</option><option value="1">1×</option><option value="1.2">1.2×</option></select></label><label><input type="checkbox" data-auto>${L("Read replies automatically", "قراءة الردود تلقائياً")}</label><label><input type="checkbox" data-conversation>${L("Conversation mode: send after I finish speaking and read the reply", "وضع المحادثة: أرسل بعد انتهائي من الكلام واقرأ الرد")}</label></div><p>${L("Type in English or Arabic. For dictation, choose EN or ع above. Review your words before sending. AI answers can be imperfect.","اكتب بالعربية أو الإنجليزية. للإملاء، اختر ع أو EN أعلاه. راجع كلماتك قبل الإرسال. قد تحتوي إجابات الذكاء الاصطناعي على أخطاء.")}</p></div><p class="voice-status" role="status" data-status></p>`;
     container.querySelector('.faris-head').after(panel);
     const settings=panel.querySelector('.faris-settings');
     container.querySelector('[data-settings]').onclick=e=>{settings.hidden=!settings.hidden;e.currentTarget.setAttribute('aria-expanded',String(!settings.hidden));};
@@ -116,6 +116,8 @@
     panel.querySelector("[data-auto]").onchange = (e) => {
       auto = e.target.checked;
     };
+    panel.querySelector('[data-conversation]').checked=conversation;
+    panel.querySelector('[data-conversation]').onchange=e=>{conversation=e.target.checked;if(conversation){auto=true;panel.querySelector('[data-auto]').checked=true;}};
     read.onclick = () => {if(window.speechSynthesis?.speaking){stop();statusElement.textContent="";}else speak();};
     const Recognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -146,6 +148,7 @@
       }
       stop();
       const r = new Recognition();
+      let finalSpeech=false,failed=false;
       recognition = r;
       r.lang = language() === "ar" ? "ar-AE" : "en-GB";
       r.continuous = false;
@@ -154,14 +157,16 @@
       mic.setAttribute("aria-label",L("Stop listening","إيقاف الاستماع"));
       statusElement.textContent = L("Listening…", "جارٍ الاستماع…");
       r.onresult = (e) => {
+        finalSpeech=Array.from(e.results).some(result=>result.isFinal);
         const input = container.querySelector("#faris-q");
         if (input)
           input.value = Array.from(e.results)
             .map((result) => result[0].transcript)
             .join(" ")
-            .slice(0, 300);
+            .slice(0, 4000);
       };
       r.onerror = (e) => {
+        failed=true;
         statusElement.textContent =
           e.error === "not-allowed"
             ? L(
@@ -174,8 +179,10 @@
               );
       };
       r.onend = () => {
+        const maySend=recognition===r&&conversation&&finalSpeech&&!failed&&container.isConnected;
         if(statusElement.textContent===L("Listening…", "جارٍ الاستماع…"))statusElement.textContent=L("Review your words, then send.","راجع كلماتك ثم أرسل.");
         if (recognition === r) recognition = null;
+        if(maySend&&container.querySelector("#faris-q")?.value.trim()&&!container.querySelector("button[type=submit]")?.disabled)container.querySelector("form.ask")?.requestSubmit();
         mic.innerHTML = micIcon;
         mic.setAttribute("aria-label",L("Dictate","إملاء صوتي"));
       };

@@ -15,6 +15,7 @@
     classes: ["Classes & calendar", "الحصص والتقويم"],
     coach: ["AI learning studio", "استوديو التعلم الذكي"],
     course: ["AI learning path", "مسار الذكاء الاصطناعي"],
+    experiments: ["Experiment studio", "استوديو التجارب"],
     lab: ["AI discovery lab", "مختبر اكتشاف الذكاء الاصطناعي"],
     news: ["Live news", "الأخبار المباشرة"],
     exams: ["Exams & results", "الاختبارات والنتائج"],
@@ -438,6 +439,7 @@
     };
     const descriptions = {
       coach: ["Your tutor, practice and project workshop.", "معلمك وتدريباتك وورشة مشاريعك."],
+      experiments: ["Scan books, program robot routes and train a neural network.","امسح الكتب وبرمج مسارات الروبوت ودرّب شبكة عصبية."],
       lab: ["Animate search algorithms, test a model and practice your reasoning.","حرّك خوارزميات البحث واختبر نموذجاً وتدرّب على الاستدلال."],
       admin: [
         "Campus numbers, progress and attendance.",
@@ -510,6 +512,7 @@
                 ["coach", "coach"],
                 ["course", "course"],
                 ["lab", "lab"],
+                ["experiments", "experiments"],
                 ["news", "news"],
                 ["exams", "exams"],
               ]

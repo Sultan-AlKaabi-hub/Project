@@ -49,7 +49,7 @@
   const BRAND_DOTS = '<svg class="dots ai-mark" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#163e46"/><path d="M24 8 38 24 24 40 10 24Z" fill="none" stroke="#8aead5" stroke-width="2"/><path d="M17 29 24 16 31 29M20 25h8" fill="none" stroke="#fff8e9" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="8" r="3" fill="#ffcd78"/><circle cx="38" cy="24" r="3" fill="#8aead5"/><circle cx="10" cy="24" r="3" fill="#8aead5"/></svg>';
 
   function renderShell() {
-    S.renderVersion=(S.renderVersion||0)+1; S.mainObserver?.disconnect(); S.lessonObserver?.disconnect(); window.Lab?.cleanup();window.VisionLab?.cleanup(); if(S.quizGuard){window.removeEventListener("beforeunload",S.quizGuard);S.quizGuard=null;}
+    S.renderVersion=(S.renderVersion||0)+1; S.mainObserver?.disconnect(); S.lessonObserver?.disconnect(); window.Lab?.cleanup();window.VisionLab?.cleanup();window.ExperimentStudio?.cleanup(); if(S.quizGuard){window.removeEventListener("beforeunload",S.quizGuard);S.quizGuard=null;}
     const app = $("#app");
     if (!S.user) { app.innerHTML = ""; app.className = ""; return; }
     app.className = "app";
@@ -57,7 +57,7 @@
     if(S.user.role !== "student") nav.push(["administration","administration"],["staff","staff"]);
     if(S.user.role === "admin" || (S.user.role === "teacher" && S.user.hasAI !== false)) nav.push(["people","people"]);
     nav.push(["messages","messages"],["guide","guide"]);
-    if(S.user.hasAI !== false)nav.splice(2,0,["coach","coach"],["lab","lab"],["vision","vision"]);
+    if(S.user.hasAI !== false)nav.splice(2,0,["coach","coach"],["lab","lab"],["vision","vision"],["experiments","experiments"]);
     if(S.user.hasAI === false)nav=nav.filter(([v])=>!["course","news","progress","administration"].includes(v));
     app.innerHTML = `
       <aside class="sidebar" id="sidebar">
@@ -94,12 +94,12 @@
   function wireTopbar() { const b = $("#menu-btn"); if (b) b.onclick = () => { $("#sidebar").classList.add("open"); $("#scrim").hidden = false; window.Craft?.syncMenu(); $("#sidebar").querySelector("[role=button],button")?.focus(); }; }
 
   async function go(view, opts = {}) {
-    window.Lab?.cleanup();window.VisionLab?.cleanup();
+    window.Lab?.cleanup();window.VisionLab?.cleanup();window.ExperimentStudio?.cleanup();
     S.view = view; S.lastOpts = opts;
     if (S.intro) { S.intro.unmount(); S.intro=null; }
-    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab", "vision", "guide", "coach"].includes(view)) S.view = "placement";
+    if (S.user && !S.user.placed && !["settings", "placement", "calendar", "alerts", "privacy", "people", "hub", "intro", "home", "administration", "staff", "messages", "classes", "lab", "vision", "experiments", "guide", "coach"].includes(view)) S.view = "placement";
     if (!S.user && view !== "intro") S.view = "auth";
-    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab","vision","coach"].includes(S.view)) S.view="home";
+    if(S.user?.hasAI === false && ["course","placement","news","progress","exams","module","quiz","article","lab","vision","experiments","coach"].includes(S.view)) S.view="home";
     if(S.view === "intro")Faris.hide();else if(S.user)Faris.show();
     renderShell();
     const v = VIEWS[S.view], requestedView=S.view;
@@ -503,6 +503,7 @@
   Campus.register({S,VIEWS,api,topbar,$,toast,go,wireTopbar,openModule});
   Lab.register({S,VIEWS,api,topbar,$,toast});
   VisionLab.register({S,VIEWS,api,topbar,$,toast});
+  ExperimentStudio.register({S,VIEWS,api,topbar,$,toast});
   SiteGuide.register({S,VIEWS,api,topbar,$});
 
   // ---------- boot ----------
