@@ -13,7 +13,7 @@
   const r=await fetch('/api/agents/chat',{method:'POST',headers:{'Content-Type':'application/json',Accept:'text/event-stream'},signal,body:JSON.stringify({...context,question,lang,agent:chosen,intent,conceptId:currentConcept,mode,projectId,milestoneId,selection})});
   if(!r.ok)throw new Error((await r.json()).error||'request_failed');
   const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='',result;
-  while(true){const {value,done}=await reader.read();buffer+=decoder.decode(value||new Uint8Array(),{stream:!done});let boundary;while((boundary=buffer.indexOf('\n\n'))>=0){const frame=buffer.slice(0,boundary);buffer=buffer.slice(boundary+2);const event=frame.match(/^event: (.+)$/m)?.[1],raw=frame.match(/^data: (.+)$/m)?.[1];if(!raw)continue;const data=JSON.parse(raw);if(event==='route')onRoute?.(name(data.agent));if(event==='delta')onDelta?.(data.text);if(event==='result')result=data;if(event==='error')throw new Error(data.error);}if(done)break;}
+  while(true){const {value,done}=await reader.read();buffer+=decoder.decode(value||new Uint8Array(),{stream:!done});let boundary;while((boundary=buffer.indexOf('\n\n'))>=0){const frame=buffer.slice(0,boundary);buffer=buffer.slice(boundary+2);const event=frame.match(/^event: (.+)$/m)?.[1],raw=frame.match(/^data: (.+)$/m)?.[1];if(!raw)continue;const data=JSON.parse(raw);if(event==='route')onRoute?.(data.intent==='student_progress'?L('Student progress','تقدم الطلاب'):name(data.agent));if(event==='delta')onDelta?.(data.text);if(event==='result')result=data;if(event==='error')throw new Error(data.error);}if(done)break;}
   if(!result)throw new Error('incomplete_response');currentConcept=result.learningContext?.conceptId||null;if(window.LocalTutor?.ready&&result.localContext){try{const text=await window.LocalTutor.generate(result.localContext,signal,onDelta);if(text){const old=result.text;result.text=text;for(const c of result.cards||[])if(c.text===old)c.text=text;result.notice=L('Generated on your device. Verify important details against the lesson.','تم التوليد على جهازك. تحقق من التفاصيل المهمة بالرجوع إلى الدرس.');result.model='Qwen3-0.6B';result.mode='generative';if(result.traceId)api('/traces/'+result.traceId+'/device',{text:text.slice(0,8000)}).catch(()=>{});}}catch(e){if(signal?.aborted)throw e;result.notice=L('Device model unavailable; showing course guidance.','نموذج الجهاز غير متاح؛ نعرض إرشادات المسار.');}}return result;
  }
  function textBlock(parent,text){
@@ -34,7 +34,7 @@
   container.querySelector('.ask').before(controls);
   if(!response)return;
   const content=document.createElement('div');content.className='ai-cards';
-  const tag=document.createElement('div');tag.className='ai-agent-tag';tag.textContent=name(response.route?.agent);container.querySelector('.msg').before(tag);
+  const tag=document.createElement('div');tag.className='ai-agent-tag';tag.textContent=response.route?.intent==='student_progress'?L('Student progress','تقدم الطلاب'):name(response.route?.agent);container.querySelector('.msg').before(tag);
   if(response.notice){const p=document.createElement('p');p.className='ai-disclosure';p.textContent=response.notice;content.append(p);}
   for(const c of response.cards||[]){
    if(c.type==='explanation'&&c.text===response.text)continue;
