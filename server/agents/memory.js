@@ -28,3 +28,7 @@ export function summary(db,user,lang='en'){
  return {profile:learner(db,user),completedLessons:read,concepts,projects:a.projects[user.email]||[],activity:(a.activity[user.email]||[]).slice(-20),activeSeconds:(a.activity[user.email]||[]).reduce((n,r)=>n+r.seconds,0),courseQuizAttempts:Object.values(user.course?.modules||{}).reduce((n,m)=>n+(m.attempts||0),0),next:next?{lessonId:next.lessonId,title:next.title[lang],reason:weak.length?'review':'continue'}:null};
 }
 export const id=()=>crypto.randomUUID();
+// Short-lived topic continuity. Holds only a concept id and a lesson title in memory, never the conversation itself.
+const sessionTopics=new Map();
+export function rememberTopic(user,{conceptId=null,title=null}={}){if(!conceptId&&!title)return;sessionTopics.set(user.email,{conceptId,title,at:Date.now()});if(sessionTopics.size>5000)sessionTopics.delete(sessionTopics.keys().next().value);}
+export function sessionTopic(user){const t=sessionTopics.get(user.email);if(!t)return null;if(Date.now()-t.at>900000){sessionTopics.delete(user.email);return null;}return t;}
