@@ -10,3 +10,5 @@
 .faris .bubble{overflow:hidden}.faris .chat-thread{overflow-y:auto;min-height:100px;flex:1 1 auto;overscroll-behavior:contain;padding-bottom:12px}.faris .chat-thread .msg{max-height:none;overflow:visible;min-height:0}.chat-turn{margin:12px 14px;padding:12px 14px;border-radius:16px;background:var(--accent-soft);font-size:14px;line-height:1.65;overflow-wrap:anywhere}.chat-turn strong{display:block;font-size:11px;margin-bottom:5px;color:var(--accent-ink)}.chat-turn.user{margin-inline-start:52px;background:var(--sunk);border:1px solid var(--line)}.chat-turn p{margin:0 0 8px}.faris .ask,.faris .faris-head{flex-shrink:0}.faris .ai-tools{max-height:28dvh;overflow:auto}
 
 .knowledge-search{width:100%;box-sizing:border-box;padding:14px;margin:16px 0;border:1px solid var(--line);border-radius:12px;font:inherit}.knowledge-slide{padding:12px;border-block-start:1px solid var(--line)}.knowledge-slide summary{cursor:pointer}.knowledge-entry[hidden]{display:none}
+
+.faris .msg h3,.chat-turn h3{font-size:16px;line-height:1.4;margin:14px 0 8px}

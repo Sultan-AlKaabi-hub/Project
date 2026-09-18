@@ -87,7 +87,8 @@ export async function respond(db,user,input,{signal,article=null,onText=()=>{},o
     sources=pipeline.context.retrievedKnowledge.map(c=>({title:c.title.replace(/ · (?:slides|الشرائح) [\d, ]+$/,'')+(c.file?' · '+c.file+' · '+(ar?'الشرائح ':'slides ')+(c.slides||[]).join(', '):''),lessonId:c.lessonId,view:c.view,url:c.url,deckId:c.deckId,file:c.file,slides:c.slides,contentType:c.sourceType,chunkId:c.id}));
    }
   }
-  sources=[...new Map(sources.map(s=>[s.deckId?s.deckId+':'+s.slides.join(','):s.url||s.lessonId||s.title,s])).values()];
+  const groupedSources=new Map();for(const s of sources){const key=s.deckId?s.deckId+':'+s.slides.join(','):s.url||s.lessonId||s.title;const existing=groupedSources.get(key);if(existing){if(s.chunkId)existing.chunkIds.push(s.chunkId);}else groupedSources.set(key,{...s,chunkIds:s.chunkId?[s.chunkId]:[]});}sources=[...groupedSources.values()];
+  const uncitedText=text;text=text.replace(/\[([\w-]+:(?:en|ar):\d+)\]/g,(match,id)=>{const n=sources.findIndex(s=>s.chunkIds.includes(id));return n>=0?'['+(n+1)+']':match;});for(const c of cards)if(c.text===uncitedText)c.text=text;
   if(!cards.length)cards=[card('explanation',ar?'مرشدك':'Your guide',text)];
   if(next&&!['research','support'].includes(routing.agent))cards.push({type:'next',title:ar?'الدرس المقترح':'Recommended lesson',text:next.title,lessonId:next.lessonId});
   if(signal?.aborted)throw new Error('aborted');remember(db,user,question,text);rememberTopic(user,{conceptId:pipeline.plan.conceptId,title:current?.title?.[lang]||null});
