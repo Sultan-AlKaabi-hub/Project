@@ -1,0 +1,928 @@
+[
+  {
+    "file": "اليوم-14-لوحة-البيانات.pptx",
+    "sha256": "297ed503c7de117b06624ff481beb9acb5a1aef5ab2f4a6c30d9c1489d3fa1d9",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "دورة تدريبية متخصصة\nVibe Coding\nمن الصفر إلى بناء منتجات رقمية بالذكاء الاصطناعي\nاليوم الرابع عشر · الجزء الثاني\nلوحة البيانات\nودمج المشروع في منصة واحدة\n٣ ساعات تدريبية   ·   المؤشّرات  ·  الرسوم  ·  التصفية  ·  الدمج\nأكاديمية Vibe Coding  ·  معهد الخبراء العرب"
+      },
+      {
+        "slide": 2,
+        "text": "نقطة الانطلاق\nالجسر: من بيانات مبعثرة إلى قرار\nبياناتك الآن\nصفوف في جداول. تعرف أنها موجودة، لكنها لا تخبرك بشيء حتى تفتحها وتقرأها صفّاً صفّاً.\nبعد اللوحة\nنظرة واحدة تكشف: ما الاتجاه؟ أين المشكلة؟ وهل تحسّنّا عن الشهر الماضي؟\nاللوحة الجيّدة لا تعرض كل البيانات — بل ما يغيّر قرارك\nوكل رقم لا تتصرّف بناءً عليه هو ضجيج يُشتّت عن المهمّ\nوفي نهاية اليوم ستدمج كل ما بنيتَه في الأيام الثلاثة عشر تحت سقف واحد.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n2"
+      },
+      {
+        "slide": 3,
+        "text": "ما ستتقنه\nأهداف الجزء الثاني\n1\nتمييز المؤشّر\nيفرّق بين رقم يغيّر القرار ورقم يملأ الشاشة\n2\nبطاقات حيّة\nيبني مؤشّرات تقرأ من قاعدة بياناته مع مقارنة زمنية\n3\nاختيار الرسم\nيعرف أي رسم يجيب عن أي سؤال — ولا يعكس\n4\nالرسم بالكود\nيرسم أربعة رسوم بـCanvas خالص بلا مكتبات\n5\nدمج المشروع\nيوحّد منتجاته في منصة واحدة بقائمة وهوية مشتركة\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n3"
+      },
+      {
+        "slide": 4,
+        "text": "التمييز الجوهري\nما الذي يجعل الرقم مؤشّراً؟\nاختبار واحد يفصل المؤشّر عن المعلومة: لو تغيّر هذا الرقم، هل سأفعل شيئاً مختلفاً؟\nمؤشّرات — تقود لإجراء\nنسبة الإغلاق خلال ٤٨ ساعة\nعدد الحالات الحرجة المفتوحة الآن\nمتوسط تكلفة الطلب الواحد\nمعدّل تكرار العطل نفسه\nمعلومات — لا تقود لشيء\nالرقم التسلسلي لآخر طلب\nاسم أطول عطل مسجّل\nإجمالي عدد الحقول في الجدول\nتاريخ إنشاء قاعدة البيانات\nخمس بطاقات تُقرأ في ثانية أفضل من عشرين بطاقة تُتجاهَل\nالاختزال ليس كسلاً — بل أصعب قرارات تصميم اللوحة وأهمّها.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n4"
+      },
+      {
+        "slide": 5,
+        "text": "قاعدة أساسية\nالرقم بلا مقارنة لا معنى له\nبطاقة ناقصة\n١٤٢\nطلب هذا الشهر\nأكثير هو أم قليل؟ لا نعرف.\nبطاقة مكتملة\n١٤٢\n▲ ١٢٪ عن الشهر الماضي\nارتفاع في الطلبات — يستدعي مراجعة\nلونه\nالارتفاع يعني\nالمؤشّر\nأخضر\nتحسّن الاستجابة\nنسبة الإغلاق\nأحمر\nتجاوز الميزانية\nالتكلفة الإجمالية\nأحمر\nتدهور الوضع\nالحالات الحرجة\nأخضر\nنجاح الخدمة\nرضا المستفيدين\nليست كل زيادة خبراً جيداً — واللوحة الذكية تعرف الفرق وتلوّن كلاً بلونه.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n5"
+      },
+      {
+        "slide": 6,
+        "text": "قرار بصري\nأي رسم لأي سؤال؟\nالرسم ليس زينة — بل إجابة عن سؤال محدّد. والخطأ في الاختيار يخفي الإجابة.\n📈\nخطّي\nكيف تغيّر الرقم عبر الزمن؟\nالاتجاه صعوداً أو هبوطاً\n📊\nأعمدة\nأي فئة هي الأكثر؟\nمقارنة فئات منفصلة\n🥧\nدائري\nما نسبة كل جزء من الكلّ؟\nأجزاء من مئة — بخمس فئات كحدّ أقصى\n⚉\nمبعثر\nهل يرتبط متغيّران؟\nالعلاقة بين رقمين\nالخطأ الأشهر: دائري بعشر شرائح\nالعين تعجز عن مقارنة زوايا متقاربة — حوّله لأعمدة أفقية مرتّبة.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n6"
+      },
+      {
+        "slide": 7,
+        "text": "التنفيذ\nالرسم بـ Canvas: بلا مكتبات\nالمكتبات الجاهزة سهلة لكنها ثقيلة. وCanvas يعطيك تحكّماً كاملاً بصفحة أخفّ.\nرسم خطّ الاتجاه — جوهر الكود\nconst x = canvas.getContext('2d');\nconst px = i => P.l + i * (w - P.l - P.r) / (rows.length - 1);\nconst py = v => h - P.b - (v / max) * (h - P.t - P.b);\nx.beginPath();\nrows.forEach((r, i) => { const X = px(i), Y = py(r.n);\ni ? x.lineTo(X, Y) : x.moveTo(X, Y); });\nx.strokeStyle = '#0E8A85'; x.lineWidth = 2.4; x.stroke();\nدالتان تحوّلان\npx تحوّل الفهرس لموضع أفقي، وpy تحوّل القيمة لموضع رأسي\nحلقة واحدة\nترسم كل النقاط بـlineTo — والأولى بـmoveTo\nالتعبئة قبل الخطّ\nتدرّج شفّاف تحت الخطّ يعطي عمقاً بصرياً\nترسم اليوم أربعة رسوم بهذا الأسلوب: خطّي وأعمدة ودائري وتكلفة الأقسام.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n7"
+      },
+      {
+        "slide": 8,
+        "text": "ما يفسد اللوحة\nأخطاء التصوّر البصري\nالصواب\nلماذا يضلّل؟\nالخطأ\nابدأ الأعمدة من الصفر دائماً\nيضخّم فرقاً ضئيلاً بصرياً\nمحور لا يبدأ من الصفر\nخمس فئات كحدّ أقصى\nالعين تعجز عن مقارنة الزوايا\nدائري بعشر شرائح\nثبّت دلالة اللون في اللوحة كلّها\nالأحمر للجيّد هنا وللسيّئ هناك\nألوان بلا معنى ثابت\nقارن بفترة سابقة أو بهدف\nلا نعرف أكثير هو أم قليل\nرقم بلا مقارنة\nرسوم مسطّحة — الوضوح قبل الزخرفة\nالعمق يشوّه النسب\nثلاثية الأبعاد للزينة\nالرسم يخدم القارئ لا الراسم\nوأي خدعة بصرية تُكتشف تُفقدك ثقة جمهورك في كل أرقامك — لا في ذلك الرسم وحده.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n8"
+      },
+      {
+        "slide": 9,
+        "text": "مخرج اليوم\nدمج المشروع في منصة واحدة\nبنيتَ تسعة منتجات في أيام متفرّقة. الدمج ربط لا إعادة كتابة.\n1\nقائمة موحّدة\nشريط تنقّل واحد في كل صفحة — ملف واحد لا تكرار\n2\nهوية بصرية واحدة\nنفس الألوان والخطوط والحواف في كل المنتجات\n3\nقاعدة بيانات مشتركة\nجدول مستخدمين واحد يربط كل الأنظمة\n4\nتحقّق مركزي\nتسجيل دخول واحد يخدم كل الصفحات\n5\nصفحة جامعة\nبطاقات تقود لكل منتج بوصف موجز\nكل منتج يبقى كما هو — يُضاف له الرابط والهوية فقط\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n9"
+      },
+      {
+        "slide": 10,
+        "text": "ما ستنتجه\nالنشاط العملي: منتج الجزء الثاني\nلوحة متابعة حيّة\nمؤشّرات ورسوم تقرأ من قاعدة بياناتك مباشرة\nالبيانات\nتسعون يوماً من سجلّات واقعية باسمك\nالمؤشّرات\nخمس بطاقات مع مقارنة بالفترة السابقة\nالرسوم\nأربعة رسوم بـCanvas من بياناتك\nالدمج\nخطة تربط منتجاتك في منصة واحدة\nالأمر المقترح لـ Claude\nابنِ لوحة متابعة لنظامي:\n• خمس بطاقات مؤشّرات\nمع مقارنة بالفترة السابقة\n• رسم خطّي للاتجاه الزمني\n• أعمدة للأنواع الأكثر\n• دائري لتوزيع الأولوية\n• أزرار تصفية: ٧ · ٣٠ · ٩٠ يوماً\n• كل رسم بـCanvas بلا مكتبات\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n10"
+      },
+      {
+        "slide": 11,
+        "text": "ما رسخ معك\nخلاصة اليوم الرابع عشر\n✓\nالمؤشّر يقود لإجراء\nلو تغيّر الرقم ولم يتغيّر قرارك فهو ليس مؤشّراً\n✓\nالرقم بلا مقارنة صامت\nقارن دائماً بفترة سابقة أو بهدف محدّد\n✓\nلكل سؤال رسمه\nخطّي للزمن · أعمدة للفئات · دائري للنسب · مبعثر للعلاقة\n✓\nالوضوح قبل الزخرفة\nابدأ من الصفر · خمس فئات · ألوان ثابتة الدلالة\n✓\nالدمج ربط لا بناء\nقائمة وهوية وقاعدة مشتركة — والمنتجات كما هي\nغداً: اليوم الأخير — التلميع والعرض النهائي أمام لجنة التقييم."
+      },
+      {
+        "slide": 12,
+        "text": "راجع فهمك\nأسئلة للنقاش\n1\nاذكر رقماً في تقارير جهتك يُعرَض دائماً ولا يغيّر أي قرار\n2\nما المؤشّرات الخمسة التي تضعها في لوحة مديرك؟ ولماذا هذه بالذات؟\n3\nرأيتَ رسماً مضلّلاً في تقرير — صفه وكيف كنتَ ستصلحه؟\n4\nلماذا نقارن بفترة سابقة بدل عرض الرقم وحده؟\n5\nما أول خطوتين في دمج منتجاتك التسعة؟ ولماذا هما أولاً؟\nالسؤال الثاني يصلح مشروعاً حقيقياً في جهتهم — شجّعهم على تنفيذه."
+      },
+      {
+        "slide": 13,
+        "text": "للتعمّق\nالمراجع والمصادر\nمراجع أساسية\nMDN — Canvas API\nStorytelling with Data — Knaflic\nThe Visual Display of Quantitative Information\nGoogle Material — Data visualization\nNielsen Norman — Dashboard design\nمقترحات بحث للفيديو\nHTML Canvas chart from scratch\nDashboard design principles\nMisleading graphs explained\nKPI vs metric difference\nData visualization best practices\nتنبيه: تحقّق من كل رابط ومرجع بنفسك قبل الاعتماد عليه — المبدأ نفسه من اليوم الأول ينطبق دائماً.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج2\n13"
+      }
+    ],
+    "id": "dashboards",
+    "title": {
+      "en": "Dashboards",
+      "ar": "لوحات البيانات"
+    },
+    "language": "ar",
+    "textSlides": 13,
+    "slideCount": 13
+  },
+  {
+    "file": "اليوم-14-وكلاء-متقدم.pptx",
+    "sha256": "48dc3b21263c9630e2affa098d0c6a3d118efca6d7140585734c9b288974b23b",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "دورة تدريبية متخصصة\nVibe Coding\nمن الصفر إلى بناء منتجات رقمية بالذكاء الاصطناعي\nاليوم الرابع عشر · الجزء الأول\nبرمجة النظم بالوكلاء\nأنظمة وكلاء متعاونة  ·  متقدّم\n٣ ساعات تدريبية   ·   الأدوار  ·  التسليم  ·  التخطيط  ·  النقد الذاتي"
+      },
+      {
+        "slide": 2,
+        "text": "نقطة الانطلاق\nالجسر: من وكيل واحد إلى نظام وكلاء\nأمس\nوكيل واحد بستّ أدوات يفعل كل شيء: يقرأ ويصنّف ويوجّه ويُشعر — قرار واحد معقّد.\nاليوم\nثلاثة وكلاء متخصّصين: واحد يفرز وآخر يوجّه وثالث يُشعر — كلٌّ بأدواته وتعليماته وحدوده.\nوكيل واحد بعشر أدوات يتشتّت — وثلاثة بثلاث أدوات لكلٍّ يُنجزون أدقّ\nلأن كل وكيل يعرف دوره بالضبط — ولا يختار بين احتمالات كثيرة\nلكن الفصل له ثمن: نداء لكل وكيل — أي تكلفة أعلى. والاختيار حسب حساسية المهمّة.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n2"
+      },
+      {
+        "slide": 3,
+        "text": "ما ستتقنه\nأهداف الجزء الأول\n1\nفصل الأدوار\nيصمّم وكلاء متخصّصين بدل وكيل واحد متشعّب\n2\nأنماط التنسيق\nيميّز التسلسلي والمتوازي والمنسّق ويختار الأنسب\n3\nالتسليم بين الوكلاء\nيبني سلسلة يسلّم فيها كل وكيل خلاصته للتالي\n4\nالتخطيط والنقد\nيفصل التخطيط عن التنفيذ ويضيف حلقة مراجعة\n5\nحوكمة النظام\nيضبط حدود السلسلة ويمنع الحلقات بين الوكلاء\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n3"
+      },
+      {
+        "slide": 4,
+        "text": "منطق التخصّص\nلماذا نفصل المهامّ على وكلاء؟\nثلاثة وكلاء\nوكيل واحد\nالمعيار\nأداتان أو ثلاث\nثماني أدوات\nأدوات لكل قرار\nمحدّدة لكل دور\nعامة ومتشعّبة\nوضوح التعليمات\nسهل — أي وكيل؟\nصعب — أين أخطأ؟\nتتبّع الخطأ\nوكيل واحد فقط\nيمسّ كل شيء\nتعديل جزء\nأعلى — نداء لكلٍّ\nأقلّ — نداء واحد\nالتكلفة\nالفصل يشتري الدقّة والصيانة بثمن تكلفة أعلى\nلاحظ السطر الأخير: التكلفة هي الثمن الوحيد الذي يدفعه التخصّص — وكل ما عداه مكسب.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n4"
+      },
+      {
+        "slide": 5,
+        "text": ""
+      },
+      {
+        "slide": 6,
+        "text": "المعمارية\nأنماط التنسيق الثلاثة\n➡️\nتسلسلي\nكل وكيل يسلّم خلاصته للتالي في ترتيب ثابت\nمتى؟ الخطوات مترابطة\nالثمن: بطيء — مجموع الأزمنة\n⚡\nمتوازٍ\nوكلاء يعملون معاً ثم تُجمع النتائج\nمتى؟ المهامّ مستقلّة\nالثمن: تعقيد في الجمع\n🎯\nمنسّق\nوكيل رئيس يقرّر من يعمل ومتى\nمتى؟ المسار غير معروف سلفاً\nالثمن: الأغلى — والمنسّق قد يخطئ\nالاختيار ليس تقنياً: هل الخطوات مترابطة؟ فالتسلسل. مستقلّة؟ فالتوازي. غامضة؟ فالمنسّق.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n5"
+      },
+      {
+        "slide": 7,
+        "text": "القلب النابض\nالتسليم: ما يمرّ بين الوكلاء\nما يجعل السلسلة نظاماً لا وكلاء متتالية: كل وكيل يتلقّى خلاصة سابقه.\n1\nوكيل الفرز\nclassify_request\nيسلّم: صنّفتُ: سباكة — خطورة حرجة\n↓\n2\nوكيل التوجيه\nroute_request\nيسلّم: وجّهتُ لفريق الطوارئ\n↓\n3\nوكيل الإشعار\nnotify_supervisor\nيسلّم: أشعرتُ المشرف بالحالة الحرجة\nوكيل التوجيه لم يُعد التصنيف — اعتمد ما سلّمه الفرز. وهذا يوفّر نداءً كاملاً.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n6"
+      },
+      {
+        "slide": 8,
+        "text": "نمط متقدّم\nالتخطيط قبل التنفيذ\nبدل أن ينفّذ الوكيل مباشرة، يخطّط أولاً — وأنت تراجع الخطة قبل الموافقة.\nالخطة المولّدة\n{\n\"steps\": [\n{\"n\":1, \"tool\":\"search_requests\"},\n{\"n\":2, \"tool\":\"classify_request\"},\n{\"n\":3, \"tool\":\"route_request\"},\n{\"n\":4, \"tool\":\"get_stats\"}\n]\n}\nلماذا نفصل التخطيط؟\nمراجعة خطة أرخص من تصحيح تنفيذ خاطئ\nترى المسار كاملاً قبل أن يلمس بياناتك\nتوافق أو تعدّل أو ترفض — القرار لك\nالخطة نفسها توثيق لما سيحدث\nالقاعدة: كلما كان الإجراء أخطر، كان فصل التخطيط أوجب\nوكيل يقرأ فقط لا يحتاج خطة مراجَعة. ووكيل يحذف أو يرسل أو يدفع — يحتاجها دائماً.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n7"
+      },
+      {
+        "slide": 9,
+        "text": "حلقة التحسين\nالنقد الذاتي وإعادة المحاولة\nوكيل ناقد يفحص نتيجة المنفّذ — ويقترح تحسيناً قبل التسليم النهائي.\n1\nينفّذ\nالوكيل ينجز المهمّة\n←\n2\nينقد\nالناقد يفحص: هل تحقّق الهدف؟\n←\n3\nيصحّح\nالمنفّذ يعيد المحاولة بالملاحظات\n←\n4\nيسلّم\nبعد اجتياز النقد أو بلوغ حدّ المحاولات\nما يُرجعه الناقد\n{ \"pass\": false, \"score\": 6,\n\"issues\": [\"لم يُشعَر المشرف رغم أن الحالة حرجة\"],\n\"fix\": \"أضف تقدير الخطورة صراحةً ثم أشعِر المشرف\" }\nحدّد عدد المحاولات — وإلا دار النظام بلا نهاية يصحّح نفسه ويستنزف ميزانيتك\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n8"
+      },
+      {
+        "slide": 10,
+        "text": "قرار الأداء\nالتوازي مقابل التسلسل\nالتوازي يوفّر زمناً هائلاً — لكنه مستحيل إن كانت المهامّ مترابطة.\nالتوفير\nمتوازٍ\nتسلسلي\nالحالة\n73%\n8 ثوانٍ\n30 ثانية\n٥ مهامّ مستقلّة × ٦ ثوانٍ\n83%\n10 ثوانٍ\n60 ثانية\n١٠ مهامّ مستقلّة × ٦ ثوانٍ\n—\nمستحيل\n30 ثانية\n٥ مهامّ مترابطة × ٦ ثوانٍ\nالتوازي مناسب حين\nكل مهمّة مستقلّة بذاتها\nتصنيف عشرة طلبات دفعة واحدة\nالزمن أهمّ من بساطة الكود\nالتسلسل إلزامي حين\nكل خطوة تحتاج نتيجة سابقتها\nالتوجيه يحتاج التصنيف أولاً\nترتيب العمليات جزء من الصحّة\nانتبه: التوازي يوفّر الزمن لا التكلفة — عدد النداءات هو نفسه.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n9"
+      },
+      {
+        "slide": 11,
+        "text": "مخاطر تتضاعف\nحوكمة النظام متعدّد الوكلاء\nثلاثة وكلاء تعني ثلاثة أضعاف التكلفة — وأنواع مخاطر جديدة لم تكن في الوكيل الواحد.\nحلقة بين وكيلين\nكلٌّ يستدعي الآخر بلا نهاية\nامنع استدعاء وكيل لمن استدعاه\nتسرّب الخطأ\nخطأ الأول يمرّ كحقيقة للباقي\nأضف وكيل مراجعة في النهاية\nتضاعف التكلفة\nكل وكيل نداء مستقلّ\nحدّ لعدد الوكلاء وسقف للسلسلة\nضياع المسؤولية\nمن أخطأ من الثلاثة؟\nسجّل خطوات كل وكيل منفصلة\nلاحظ العمود الأيسر: لكل مخاطرة علاج محدّد — والحوكمة ليست شعاراً بل إعدادات.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n10"
+      },
+      {
+        "slide": 12,
+        "text": "ما ستنتجه\nالنشاط العملي: منتج الجزء الأول\nنظام وكلاء متعاون\nثلاثة وكلاء يتسلّمون المهمّة واحداً بعد آخر\nالسلسلة\nفرز ← توجيه ← إشعار، بتسليم بين كل وكيل والتالي\nالتخطيط\nتطلب خطة لهدف معقّد وتراجعها قبل الموافقة\nالنقد\nناقد يفحص النتيجة ويقترح تحسيناً محدّداً\nالتصميم\nتصمّم معمارية نظامك لمهمّة من عملك أنت\nأهداف تجرّبها على نظامك\n• افرز الطلبات الجديدة ووجّهها\nوأشعِر المشرف بالحرجة\n• راجع غير المصنّف وصنّفه\nثم وجّهه للفريق المناسب\n• صنّف أخطر طلب ووجّهه\nلفريق الطوارئ\n• أضف وكيل مراجعة في النهاية\nوقارن النتيجة\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n11"
+      },
+      {
+        "slide": 13,
+        "text": "ما رسخ معك\nخلاصة الجزء الأول\n✓\nالتخصّص يوضّح القرار\nقلّة الأدوات تعني قراراً أدقّ — والتكلفة هي الثمن\n✓\nثلاثة أنماط تنسيق\nتسلسلي للمترابط · متوازٍ للمستقلّ · منسّق للغامض\n✓\nالتسليم يصنع النظام\nكل وكيل يتلقّى خلاصة سابقه فلا يبدأ من الصفر\n✓\nخطّط ثم نفّذ\nمراجعة خطة أرخص من تصحيح تنفيذ لمس بياناتك\n✓\nالمخاطر تتضاعف\nحلقة بين وكيلين · تسرّب خطأ · تكلفة مضاعفة"
+      },
+      {
+        "slide": 14,
+        "text": "راجع فهمك\nأسئلة للنقاش\n1\nمهمّة من ثماني خطوات — هل تعطيها وكيلاً واحداً أم تقسّمها؟ ولماذا؟\n2\nأعطِ مثالاً من عملك لمهامّ تصلح للتوازي — وآخر لا يصلح\n3\nما الذي يسلّمه وكيل للتالي؟ ولماذا لا يسلّم كل شيء؟\n4\nمتى يصبح فصل التخطيط عن التنفيذ إلزامياً لا اختيارياً؟\n5\nصمّم نظام وكلاء لمهمّة في جهتك — كم وكيلاً وبأي أدوات؟\nالسؤال الأخير هو مخرج الجزء — احتفظ بتصميمهم لمشروع التخرّج."
+      },
+      {
+        "slide": 15,
+        "text": "للتعمّق\nالمراجع والمصادر\nمراجع أساسية\nAnthropic — Building effective agents\nMulti-agent system design patterns\nGemini API — Function calling\nOWASP Top 10 for LLM Applications\nNIST AI Risk Management Framework\nمقترحات بحث للفيديو\nMulti agent systems explained\nAgent orchestration patterns\nPlanner executor agent pattern\nSelf critique loop in LLM agents\nAgent handoff design\nتنبيه: تحقّق من كل رابط ومرجع بنفسك قبل الاعتماد عليه — المبدأ نفسه من اليوم الأول ينطبق دائماً.\nأكاديمية Vibe Coding  ·  اليوم 14 · ج1\n14"
+      }
+    ],
+    "id": "advanced-agents",
+    "title": {
+      "en": "Advanced agents",
+      "ar": "الوكلاء المتقدمون"
+    },
+    "language": "ar",
+    "textSlides": 14,
+    "slideCount": 15
+  },
+  {
+    "file": "Day-9-Audio-and-Speech-EN.pptx",
+    "sha256": "5b92e1dde7a0eee1456253f8d786533baf74e30d7a3f3c78da90ad17bc7e9382",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "Specialized Training Course\nVibe Coding\nFrom zero to building digital products with AI\nDay Nine\nAudio Media: Applications That Hear and Speak\n5-6 training hours  ·  Completing the machine perception phase\n1\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 2,
+        "text": "The bridge: from sight to hearing\nYesterday — Day Eight\nWe taught the machine to see: decomposed images into pixels, applied filters, and ran a live detection model on the camera.\nThe natural question:\nWhat if the user's hands are busy, or they are in the field and cannot type? Could they speak and have it written?\nThe answer: speech recognition, converting speech into processable text.\nToday — Day Nine\nWe learn how audio is represented digitally, how speech becomes text, and how an app speaks a reply aloud.\nWhat makes today special:\nThe speech interface is built into the browser — you will speak, see your words as text instantly, then make the app talk back.\n2\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 3,
+        "text": "Learning Objectives\n1\nAudio as data\nThe trainee explains the sound wave, sample rate and digital representation\n2\nSpeech to text\nUnderstands the stages of automatic speech recognition and its limits\n3\nMachine speech\nDistinguishes speech-to-text from text-to-speech and knows when to use each\n4\nVoice commands\nDesigns clear commands and handles errors and confirmation\n5\nA working voice assistant\nBuilds an app that takes a spoken report, converts it to text and saves it\n3\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 4,
+        "text": "Why does this matter to you?\nSpeech is the fastest input a human has — and sometimes the only one available in the field.\nFaster input\nDictation is three times faster than typing on a phone\nHands free\nRecording notes during field work without stopping\nWider accessibility\nAccess for those who find writing or reading difficult\nAudible response\nSpoken guidance followed without looking at the screen\nIn the field, speech can be the difference between a report written immediately and one forgotten entirely.\n4\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 5,
+        "text": "How does a computer hear? Sound as a digital wave\nSound is vibration in air. A microphone converts it to an electrical signal, from which successive digital samples are taken.\nFrom a continuous wave to discrete samples\nEach point is one sample — the line between them approximates the original wave\nThe more samples per second, the closer the digital representation is to the original sound.\nSample rate\nMeasurements per second — speech typically needs sixteen thousand\nBit depth\nPrecision of each measurement — sixteen bits suffice for speech\nChannels\nMono suffices for speech; stereo for music and effects\nIn summary\nAudio is ultimately a sequence of numbers, exactly like an image\n5\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 6,
+        "text": "From audio to text: four stages\nSpeech recognition is not one step but a processing chain turning vibration into intelligible words.\n1\nCapture\nThe microphone turns vibration into a digital signal\n◀\n2\nFeature extraction\nAnalysing frequencies and extracting the acoustic fingerprint\n◀\n3\nThe acoustic model\nMatching features to phonetic units, then to candidate words\n◀\n4\nThe language model\nChoosing the likeliest phrasing from sentence context\nThe fourth stage is why the system corrects a misheard word — it favours what fits linguistically, not only acoustically.\n6\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 7,
+        "text": "Two opposite directions: listening and speaking\nSpeech to text\nThe user speaks and the system writes\nUsed for dictation and voice commands\nAffected by noise, accent and speed\nThe output is text ready to process and store\nText to speech\nThe system reads text aloud\nUsed for alerts and guidance\nAffected by synthesis quality and language\nThe output is audio heard without looking at the screen\n7\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 8,
+        "text": "Designing voice commands that actually work\nA good voice command is short, distinctive and clear in intent — poor design makes the system err constantly.\nThe rule\nWhy?\nIn practice\nAcoustically distinct words\nAvoid commands that sound alike, such as record and register\nChoose clearly different words\nShort commands\nLong sentences raise the chance of error somewhere in them\nTwo or three words usually suffice\nConfirm before executing\nA sensitive command such as delete may be misheard\nAsk for spoken confirmation before executing\nAn always-available alternative\nNoise or accent may block recognition\nProvide a manual button for every voice command\n8\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 9,
+        "text": "Limits of speech recognition: what to expect\nAmbient noise\nBackground sound sharply reduces accuracy in open environments\nAccents and terminology\nModels are mostly trained on standard speech and err on regional accents\nProper nouns\nPersonal names and technical terms are frequently wrong\nPunctuation and diacritics\nThe produced text needs human review before official use\nThe rule: show the produced text to the user for review before saving — never write it straight into an official record.\n9\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 10,
+        "text": "From description to code: running speech recognition\nThe same prediction principle from Day One — now applied to the browser's built-in speech interface.\nThe prompt:\nenable speech recognition\ndisplay the text as it is spoken\nand save it when finished\nThe generated code:\n1\nconst rec = new webkitSpeechRecognition();\nrec.lang = \"ar-SA\";\n2\nrec.onresult = (e) => showText(e.results[0][0].transcript);\n3\nrec.onend = () => saveReport(currentText);\nrec.start();\nYou will not write this by hand — but understanding it lets you describe precisely and diagnose faults when recognition fails.\n10\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 11,
+        "text": "Practical activity: today's product\nA voice reporting assistant\nYou dictate your report and it is written and saved\nWhat you will build\nA page that takes a spoken report and displays it as editable text\nHow\nDescribe what you want to Claude using the browser's built-in speech interface\nThe essential condition\nIt shows the text for review before saving and speaks an audible confirmation\nGoing further\nWhoever finished Day Five can connect it to MySQL to store reports permanently\nSuggested prompt for Claude\nWrite a single HTML page for a voice reporting assistant.\nSpecifications:\nA record button that starts speech recognition\nShow interim text while speaking, then the final text\nAn editable text field to review the report\nA save button that speaks an audible confirmation\nA visual indicator showing recording is active\nA clear message if the browser lacks support\nPut everything in a single file.\n11\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 12,
+        "text": "Practical implementation steps\n1\nOpen the project in Chrome\nSpeech interface support is better and more stable there\n2\nDescribe what you want to Claude\nUse the suggested prompt and set the language\n3\nGrant microphone permission\nThe browser asks for it on first run\n4\nTry dictating a short report\nSpeak clearly at a moderate pace and review the text\n5\nTest in a noisy environment\nNotice how accuracy drops and design accordingly\n6\nAdd a manual fallback button\nThe system must never rely on voice alone\n12\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 13,
+        "text": "Common mistakes and how to avoid them\nThe mistake\nWhy it happens\nThe fix\nRelying on voice alone\nThe user is stuck entirely if recognition fails\nProvide a manual alternative for every voice function\nSaving text without review\nRecognition errors enter the official record\nAlways show the text for editing before saving\nIgnoring a denied permission\nThe page appears broken with no explanation\nShow a clear message and an immediate alternative\nLong or similar commands\nA higher execution error rate\nKeep them short and acoustically distinct\n13\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 14,
+        "text": "Day summary\nAudio is a sequence of numbers\nSuccessive samples representing the wave, like an image's pixels\nFour stages of recognition\nCapture, then features, then the acoustic model, then the language model\nTwo complementary directions\nListening for input, speaking for guidance and confirmation\nReal limits\nNoise, accents and names genuinely reduce accuracy\nYou built a voice assistant\nIt takes your spoken report and turns it into reviewable text\nTomorrow: the integrated prototype — from idea to operation with a full engineering method.\n14\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 15,
+        "text": "Discussion and self-assessment questions\nWhat is the difference between speech-to-text and text-to-speech? When do you need each?\nWhy does the system correct a misheard word? What role does the language model play?\nDescribe a field situation in your work where voice input beats typing\nWhy must voice-produced text never be written straight into an official record?\nHow do you design a voice system that does not break when recognition fails?\nThe last question is the heart of practical design — allow enough time for it.\n15\nVibe Coding · Day 9"
+      },
+      {
+        "slide": 16,
+        "text": "References and resources\nCore references\nMDN — Web Speech API — developer.mozilla.org\nW3C — Web Speech API Specification\nJurafsky & Martin — Speech and Language Processing\nMDN — SpeechSynthesis Interface\nW3C — Web Content Accessibility Guidelines\nSuggested video searches\nSearch: Web Speech API tutorial\nSearch: How speech recognition works\nSearch: Text to speech in the browser\nSearch: Speech recognition explained for beginners\nNote: verify every link and reference yourself before relying on it — the same principle from Day One always applies.\n16\nVibe Coding · Day 9"
+      }
+    ],
+    "id": "audio-speech",
+    "title": {
+      "en": "Audio and speech",
+      "ar": "الصوت والكلام"
+    },
+    "language": "en",
+    "textSlides": 16,
+    "slideCount": 16
+  },
+  {
+    "file": "اليوم-7-تطبيق-ويب-تقدمي-PWA (1).pptx",
+    "sha256": "c283bc40ef83eb6227a423c17eb8503d9adb010559a0ab6d21bd90121b9f95c6",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "دورة تدريبية متخصصة\nVibe Coding\nمن الصفر إلى بناء منتجات رقمية بالذكاء الاصطناعي\nاليوم السابع\nالتحويل إلى تطبيق ويب تقدّمي PWA\n[ الشعار ]\n5–6 ساعات تدريبية  ·  ختام مرحلة الخلفية وقواعد البيانات\n1\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 2,
+        "text": "الجسر: من بيانات دائمة إلى تطبيق حاضر دائماً\nأمس — اليوم السادس\nحلّلنا وصمّمنا النظام على الورق: حالات الاستخدام ومخططات UML قبل كتابة أي كود. والآن نبني ما صمّمناه.\nالسؤال الذي بقي مفتوحاً:\nماذا لو انقطعت الشبكة في الميدان تحديداً؟ هل يصبح التطبيق عديم الفائدة تماماً في اللحظة التي تحتاجه فيها أكثر؟\nالإجابة: تطبيق ويب تقدّمي — PWA — يُثبَّت كتطبيق حقيقي، ويعمل حتى دون تغطية شبكة.\nاليوم — اليوم السابع\nنُنهي مرحلة البناء: PHP يعالج، MySQL يحفظ، والتصميم يخطّط، وتطبيق PWA يجعل كل هذا متاحاً في يد المستخدم حتى في أضعف الظروف.\nنهاية مرحلة كاملة:\nهذا آخر أيام مرحلة البناء الأساسي. غداً تبدأ مرحلة جديدة كلياً: الوسائط الإدراكية المرئية.\n2\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 3,
+        "text": "أهداف اليوم التعليمية\n١\nفهم PWA\nيميّز المتدرب بين الموقع التقليدي والتطبيق الأصلي وتطبيق PWA\n٢\nملف البيان\nيفهم كيف يصف manifest.json هوية التطبيق القابل للتثبيت\n٣\nعامل الخدمة\nيشرح دورة حياة Service Worker وكيف يعترض الطلبات\n٤\nاستراتيجيات التخزين\nيختار الاستراتيجية المناسبة لكل نوع محتوى\n٥\nتطبيق يعمل دون إنترنت\nيحوّل تطبيقاً حقيقياً لـ PWA ويختبره فعلياً بلا شبكة\n3\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 4,
+        "text": "لماذا يهمّك هذا؟\nفي أي بيئة ميدانية، الشبكة ليست مضمونة دائماً — والتطبيق الذي يتوقّف عند أول انقطاع عديم الفائدة فعلياً.\nيعمل دون شبكة\nالمحتوى الأساسي متاح حتى في أضعف تغطية أو انعدامها\nيُثبَّت كتطبيق\nأيقونة على الشاشة الرئيسية — لا حاجة لفتح متصفّح والبحث عن رابط\nأسرع بكثير\nالمحتوى المخزَّن يظهر فوراً دون انتظار تحميل من الخادم\nإشعارات وتحديثات\nيبقى متصلاً بأحدث البيانات فور عودة الشبكة تلقائياً\nالتطبيق الذي يعمل فقط حين كل شيء مثالي ليس تطبيقاً موثوقاً.\n4\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 5,
+        "text": "أين تقف PWA بين الموقع والتطبيق؟\nPWA ليست بديلاً كاملاً للتطبيق الأصلي — بل نقطة وسط ذكية تجمع أفضل ما في العالمَين.\nموقع تقليدي\nيحتاج إنترنت دائماً\nلا يُثبَّت على الشاشة\nلا وصول لميزات الجهاز\nPWA\nيعمل دون إنترنت جزئياً\nيُثبَّت كأيقونة حقيقية\nوصول محدود لميزات الجهاز\nتطبيق أصلي — Native\nيعمل دون إنترنت بالكامل\nمن متجر تطبيقات رسمي\nوصول كامل لكل ميزات الجهاز\n5\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 6,
+        "text": "ملف البيان: هوية التطبيق — manifest.json\nملف نصّي بسيط يصف للمتصفّح كيف يجب أن \"يبدو\" تطبيقك عند تثبيته.\n{\n\"name\": \"دليل الطوارئ\",\n\"short_name\": \"الطوارئ\",\n\"start_url\": \"/\",\n\"display\": \"standalone\",\n\"theme_color\": \"#1E40AF\",\n\"background_color\": \"#FFFFFF\",\n\"icons\": [ {...} ]\n}\nname\nالاسم الكامل الظاهر عند التثبيت\ndisplay\nstandalone تُخفي شريط عنوان المتصفّح\ntheme_color\nلون شريط الحالة حول التطبيق\nicons\nالأيقونات بأحجام مختلفة للشاشات\n6\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 7,
+        "text": "عامل الخدمة: دورة الحياة — Service Worker\nبرنامج صغير يعمل في خلفية المتصفّح، منفصلاً تماماً عن صفحتك — وهو قلب عمل PWA دون إنترنت.\n1\nالتسجيل والتثبيت\nالمتصفّح يُنزّل الملف ويجهّزه\n▶\n2\nالتفعيل\nيتولّى التحكّم بالصفحة والتخزين المؤقّت\n▶\n3\nاعتراض الطلبات\nكل طلب شبكة يمرّ عبره أولاً\n▶\n4\nالقرار\nمن الكاش أم من الشبكة؟ هو من يقرّر\n7\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 8,
+        "text": "كيف يقرّر عامل الخدمة: كاش أم شبكة؟\nكل مرّة يطلب المتصفّح ملفاً، يمرّ الطلب عبر Service Worker أولاً — وهو من يقرّر مصدر الإجابة.\nطلب المستخدم لملف\nService Worker يفحص: هل الملف محفوظ في الكاش؟\n✅ موجود في الكاش\nيُرجَع فوراً من التخزين المحلي — بلا حاجة للشبكة إطلاقاً، حتى لو كانت منقطعة تماماً.\n🌐 غير موجود\nيُطلَب من الشبكة، ثم تُحفَظ نسخة في الكاش تلقائياً — ليتوفّر في المرّة القادمة دون اتصال.\n8\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 9,
+        "text": "استراتيجيات التخزين المؤقّت الثلاث\nCache-First\nيبحث في الكاش أولاً دائماً\nللملفات الثابتة: الشعار، الخطوط، التصميم\nNetwork-First\nيحاول الشبكة أولاً، فالكاش عند الفشل\nللبيانات المتغيّرة: الأسعار، الإشعارات\nStale-While-Revalidate\nيُرجع الكاش فوراً، ويحدّثه بصمت\nتوازن بين السرعة والحداثة\n9\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 10,
+        "text": "متطلبات التشغيل الأساسية\n1\nHTTPS إلزامي\nالمتصفّح يرفض تسجيل Service Worker على اتصال غير آمن — Hostinger يوفّر SSL مجاناً\n2\nسلوك واضح عند الانقطاع\nصفحة بديلة مفهومة بدل خطأ \"لا يوجد اتصال\" المخيف\n3\nمزامنة عند العودة\nأي بيانات أُدخلت أثناء الانقطاع تُرسَل تلقائياً فور عودة الشبكة\n4\nتحديث بصمت\nنسخة جديدة من التطبيق تُحمَّل في الخلفية دون مقاطعة المستخدم\n10\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 11,
+        "text": "قياس الجودة بأداة Lighthouse\nأداة مدمجة في Chrome تُقيّم تطبيقك في خمس فئات وتمنحك تقريراً فورياً.\n✓\nالأداء\nسرعة التحميل والاستجابة\n✓\nإمكانية الوصول\nسهولة الاستخدام للجميع\n✓\nأفضل الممارسات\nمعايير الجودة العامة\n✓\nSEO\nفهرسة محركات البحث\n✓\nPWA\nمعايير التثبيت والعمل دون إنترنت\nمعيار التثبيت: manifest صحيح + Service Worker مسجَّل + HTTPS مفعَّل = زرّ \"تثبيت\" يظهر تلقائياً.\n11\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 12,
+        "text": "من الوصف إلى الكود: كيف يتحوّل أمرك إلى ملف بيان؟\nنفس مبدأ التنبّؤ بالكلمة التالية من اليوم الأول — مطبَّقاً الآن على manifest.json.\n📝 الأمر:\nملف بيان\nباسم دليل الطوارئ\nولون أساسي أزرق\n💻 الكود المتولّد:\n1\n{\n2\n\"name\": \"دليل الطوارئ\",\n3\n\"theme_color\": \"#1E40AF\"\n}\nهذا نفس المكوّن التفاعلي الذي جرّبته في المنصة — جرّبه هناك خطوة بخطوة.\n12\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 13,
+        "text": "النشاط العملي: منتج اليوم\nتحويل دليل الطوارئ إلى PWA\nيُثبَّت على الهاتف ويعمل حتى دون إنترنت\nما ستبنيه\nتحويل موقع اليوم الأول — دليل الإجراءات لتطبيق PWA كامل\nكيف\nصف المطلوب لـ Claude — يولّد ملفَّي manifest.json و service-worker معاً\nالشرط الجوهري\nيجب أن يبقى المحتوى الأساسي مقروءاً عند قطع الإنترنت فعلياً\nأين يُختبَر\nثبّته على هاتفك، افصل الشبكة، وتحقّق أنه يعمل حقيقةً\nالأمر المقترح لـ Claude\nحوّل صفحة دليل الإجراءات إلى تطبيق PWA كامل.\nالمواصفات:\n• ملف manifest.json باسم وأيقونة ولون مناسب\n• Service Worker يخزّن الصفحة الرئيسية والتنسيقات\n• استراتيجية Cache-First لأن المحتوى ثابت\n• رسالة واضحة إن حاول تحميل صفحة غير مخزَّنة\n• سجّل الـ Service Worker من الصفحة الرئيسية\nاشرح كل ملف تولّده بإيجاز.\n13\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 14,
+        "text": "خطوات التنفيذ العملي\n١\nصِف التحويل لـ Claude\nاستخدم الأمر المقترح مع الإشارة لمشروع اليوم الأول\n٢\nراجع manifest.json\nتأكّد من الاسم واللون والأيقونات قبل المتابعة\n٣\nارفع الملفّات للخادم\nيجب أن يكون النطاق يعمل بـ HTTPS (Hostinger يوفّره تلقائياً)\n٤\nثبّت التطبيق على هاتفك\nافتح الرابط وابحث عن خيار \"إضافة للشاشة الرئيسية\"\n٥\nفعّل وضع الطيران واختبر\nافصل الإنترنت تماماً وتأكّد أن المحتوى يبقى ظاهراً\n٦\nدقّق بـ Lighthouse\nشغّل الأداة وتأكّد من اجتياز معايير PWA كاملة\n14\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 15,
+        "text": "أخطاء شائعة وكيف تتجنّبها\nالخطأ\nلماذا يحدث؟\nالحل\nنسيان تسجيل Service Worker\nالملف موجود لكن المتصفّح لا يعرف باستدعائه\nأضف كود التسجيل صراحة في الصفحة الرئيسية\nالعمل على HTTP لا HTTPS\nالمتصفّح يرفض Service Worker بصمت أحياناً\nتأكّد من قفل HTTPS في شريط العنوان قبل الاختبار\nتخزين كل شيء بلا تمييز\nكاش ضخم وبيانات قديمة تُعرَض بدل الجديدة\nاختر الاستراتيجية المناسبة لكل نوع محتوى\nعدم اختبار الانقطاع الفعلي\nالافتراض أنه يعمل دون تجربة حقيقية\nفعّل وضع الطيران فعلياً — لا تكتفِ بالتخمين\n15\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 16,
+        "text": "خلاصة اليوم\nPWA وسط بين الموقع والتطبيق\nيُثبَّت كأيقونة، ويعمل جزئياً دون إنترنت\nService Worker يعترض كل طلب\nدورة حياة رباعية تحكم كل تفاعل مع الشبكة\nثلاث استراتيجيات تخزين\nCache-First، Network-First، ثم Stale-While-Revalidate\nLighthouse يقيس الجاهزية\nخمس فئات تحدّد جودة التطبيق وقابليته للتثبيت\nأنجزتَ تطبيقك الأول دون إنترنت\nثلاثية PHP-MySQL-PWA اكتملت — بيانات دائمة وتطبيق حاضر دائماً\nغداً: مرحلة جديدة كلياً — الوسائط الإدراكية، بدءاً من رؤية الكمبيوتر وكيف \"ترى\" الآلة.\n16\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 17,
+        "text": "أسئلة للنقاش والتقييم الذاتي\nما الفرق الجوهري بين تطبيق PWA وتطبيق أصلي من متجر تطبيقات؟\nمتى تختار استراتيجية Cache-First بدل Network-First؟ أعطِ مثالاً\nلماذا يرفض المتصفّح تسجيل Service Worker بلا HTTPS؟\nصف موقفاً ميدانياً في عملك يستفيد من تطبيق يعمل دون إنترنت\nما الذي يحدث فعلياً حين تضغط \"إضافة للشاشة الرئيسية\"؟\nالسؤال الرابع فرصة لربط الدرس بواقع عمل كل متدرب تحديداً.\n17\nVibe Coding · اليوم 7"
+      },
+      {
+        "slide": 18,
+        "text": "المراجع والمصادر\nمراجع أساسية\nMDN — Progressive Web Apps — developer.mozilla.org\nweb.dev — Service Worker API Reference\nGoogle Chrome — Lighthouse Documentation\nW3C — Web App Manifest Specification\nتوثيق Hostinger — شهادات SSL — hostinger.com/tutorials\nمقترحات بحث للفيديو\nمقترح بحث: \"Progressive Web Apps explained\"\nمقترح بحث: \"Service Worker lifecycle tutorial\"\nمقترح بحث: \"PWA offline first strategy\"\nمقترح بحث: \"شرح تطبيقات الويب التقدّمية بالعربية\"\nتنبيه: تحقّق من كل رابط ومرجع بنفسك قبل الاعتماد عليه — المبدأ نفسه من اليوم الأول ينطبق دائماً.\n18\nVibe Coding · اليوم 7"
+      }
+    ],
+    "id": "pwa",
+    "title": {
+      "en": "Progressive web apps",
+      "ar": "تطبيقات الويب التقدمية"
+    },
+    "language": "ar",
+    "textSlides": 18,
+    "slideCount": 18
+  },
+  {
+    "file": "Day-8-Computer-Vision-EN (1).pptx",
+    "sha256": "5386fba9817cb431ebea9da5d4580c371f4b6a785e41ecedfea140e03fc1f032",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "Specialized Training Course\nVibe Coding\nFrom zero to building digital products with AI\nDay Eight\nVisual Perceptual Media: How Machines See\n5-6 training hours  ·  Start of the machine perception phase\n1\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 2,
+        "text": "The bridge: from an app that works to an app that perceives\nYesterday — Day Seven\nWe finished the building phase: an app installed on the phone that works offline. But it still handles only text and numbers.\nThe new question:\nWhat if the app could look at an image and understand it? Verify safety compliance or classify equipment?\nThe answer: computer vision — teaching machines to extract meaning from images.\nToday — Day Eight\nWe learn how an image is represented digitally, how networks extract features, then train a model ourselves and embed it in an app.\nWhat makes today special:\nLike yesterday, vision runs entirely in the browser — you will train a real model and watch it classify live.\n2\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 3,
+        "text": "Learning Objectives\n1\nImages as data\nThe trainee explains how an image is represented as a pixel matrix\n2\nConvolutional networks\nUnderstands how a network extracts features from edges to objects\n3\nClassification and detection\nDistinguishes classifying a whole image from locating an object within it\n4\nTransfer learning\nKnows why we build on a pretrained model instead of training from scratch\n5\nA working visual classifier\nTrains a model on their own images and embeds it in a camera-driven app\n3\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 4,
+        "text": "Why does this matter to you?\nComputer vision turns a camera from a recording device into an automatic inspection and monitoring tool.\nSafety inspection\nAutomatic verification that protective equipment is worn on site\nQuality control\nDetecting product defects faster than manual inspection\nInventory counting\nRecognizing and classifying equipment automatically from images\nEarly warning\nDetecting fires, leaks or violations the moment they occur\nThe difference is not the camera — it is the system's ability to understand what it sees and act on it.\n4\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 5,
+        "text": "How does a machine see? An image as a number matrix\nA machine does not see a picture — it sees a grid of numbers representing colour intensity at each point.\nExample: a 5x5 grayscale square\n10\n30\n60\n30\n10\n30\n90\n180\n90\n30\n60\n180\n255\n180\n60\n30\n90\n180\n90\n30\n10\n30\n60\n30\n10\nEach number is brightness from 0 (black) to 255 (white)\nColour images\nThree matrices — red, green and blue — combined to form the final colour\nResolution\nA 1000x1000 image means a million pixels, and three million numbers in colour\nNormalization\nValues are usually scaled to a range from zero to one so the network handles them easily\nIn summary\nEvery computer vision operation is at heart arithmetic on these numbers\n5\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 6,
+        "text": "Convolutional networks: extracting features layer by layer\nThe network does not view the image at once — it passes small filters over it, detecting increasingly complex patterns.\nThe original image\nA raw pixel matrix\n◀\nFirst layer\nSimple edges and lines\n◀\nMiddle layers\nShapes, corners and curves\n◀\nDeep layers\nDistinctive object parts\n◀\nOutput\nA final classification with a probability\nThis progression is why it is called deep learning — successive layers, each smarter than the last.\n6\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 7,
+        "text": "Classification or detection? Two different questions\nClassification\nAnswers: what kind of image is this?\nOne output for the whole image\nEasier to train and needs less data\nExample: does this image contain a fire?\nDetection\nAnswers: where is the object in the image?\nBounding boxes around each object\nMore complex and needs precisely labelled data\nExample: where is the fire and how many sources?\n7\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 8,
+        "text": "Transfer learning: do not start from scratch\nTraining a network from scratch needs millions of images and weeks of compute. The solution: build on a pretrained model.\nTraining from scratch\nMillions of labelled images\nWeeks of intensive computation\nExpensive specialized hardware\nDeep expertise in model tuning\nTransfer learning\nOnly dozens of images per class\nA few minutes to train\nRuns in an ordinary browser\nNo deep technical expertise needed\nThe idea: the model already learned edges and shapes from millions of images — we keep that knowledge and teach it only our classes.\n8\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 9,
+        "text": "Data quality: a model never exceeds its data\nThe problem\nThe effect\nThe remedy\nToo few examples\nTen images per class cannot generalize reliably\nCollect at least thirty images per class\nUniform angles\nImages all from one angle make the model fail in the field\nVary angles, distances and backgrounds\nLighting differences\nTraining by day and using at night confuses the model\nShoot under several lighting conditions\nClass balance\nA hundred images for one class and ten for another creates bias\nKeep image counts roughly equal across classes\n9\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 10,
+        "text": "Measuring performance: not all errors are equal\nAccuracy alone misleads. What matters is which kind of error occurs, and its cost in your context.\nPredicted: hazard\nPredicted: safe\nActual: hazard\nActual: safe\nTrue positive\nThe hazard was genuinely detected\nFalse negative\nA hazard missed — the most dangerous\nFalse positive\nAn alarm with no cause\nTrue negative\nNo hazard and no alarm\nThe decisive design question\nIn a safety system a false negative is catastrophic — a real hazard missed. So we tune the model to be sensitive, even if it over-alarms.\nIn a mail filter a false positive is worse — an important message marked as spam. So we tune it to be conservative.\nThe rule: decide which error costs more in your context before tuning — do not chase a meaningless general accuracy.\n10\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 11,
+        "text": "From description to code: running a vision model\nThe same prediction principle from Day One — now applied to running a vision model in the browser.\nThe prompt:\nload the trained model\nopen the camera\nand classify each frame\nThe generated code:\n1\nconst model = await tmImage.load(modelURL, metadataURL);\n2\nconst webcam = new tmImage.Webcam(300, 300, true);\n3\nconst prediction = await model.predict(webcam.canvas);\nshowResult(prediction);\nYou will not write this by hand — but understanding it lets you describe precisely and diagnose faults when the model fails.\n11\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 12,
+        "text": "Practical activity: today's product\nA camera-driven visual classifier\nA model you train yourself, running live\nWhat you will build\nA classifier distinguishing three classes of your choice — equipment types or safety states\nHow\nTrain the model on Teachable Machine with your images, then describe the integration to Claude\nThe essential condition\nRuns live on the camera and shows a confidence score for each class\nAn important note\nChoose objects, not people — equipment, tools and signs, out of respect for privacy\nSuggested prompt for Claude\nWrite a single HTML page that runs a Teachable Machine model.\nSpecifications:\nUse the model URL I will provide\nOpen the camera and show the live feed\nClassify each frame and show the score for every class\nColoured progress bars showing the confidence level\nA fallback button to upload an image if the camera fails\nA clean interface, responsive on mobile\nPut everything in a single file.\n12\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 13,
+        "text": "Practical implementation steps\n1\nChoose three clear classes\nPick visually distinct objects — a helmet, gloves, safety goggles\n2\nTake thirty images per class\nVary angles, lighting and backgrounds for better generalization\n3\nTrain on Teachable Machine\nUpload the images and click Train — two minutes\n4\nExport the model and get the URL\nChoose web export and save the generated URL\n5\nDescribe the integration to Claude\nGive it the URL and use the suggested prompt\n6\nDeliberately test hard cases\nTry different lighting, odd angles, and something outside the classes\n13\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 14,
+        "text": "Common mistakes and how to avoid them\nThe mistake\nWhy it happens\nThe fix\nOverly similar images\nThe model memorizes the background, not the object\nVary backgrounds and angles in the training images\nVisually similar classes\nThe model keeps confusing them\nStart with clearly distinct classes, then refine\nOmitting a none class\nIt forces everything into the three classes\nAdd a fourth class for background or none\nBlind trust in the score\nAccepting a fifty percent confidence as certainty\nSet a minimum confidence threshold and reject below it\n14\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 15,
+        "text": "Day summary\nAn image is a number matrix\nEvery vision operation is arithmetic on pixel values\nNetworks extract features gradually\nFrom simple edges to composite objects\nTransfer learning shortens the path\nDozens of images and minutes instead of millions and weeks\nNot all errors are equal\nDecide which error costs more in your context before tuning\nYou built a working visual classifier\nA model you trained yourself, classifying live through the camera\nTomorrow: audio media — we teach the app to hear and speak.\n15\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 16,
+        "text": "Discussion and self-assessment questions\nWhat is the difference between classification and detection? Give a work example of each\nWhy does transfer learning save enormous time and data?\nDescribe a repetitive visual inspection task in your work that could be automated\nIn a safety system, which is more dangerous: a false negative or a false positive? Why?\nWhat ethical considerations arise when using computer vision in a workplace?\nThe last question matters in any workplace — allow enough time for it.\n16\nVibe Coding · Day 8"
+      },
+      {
+        "slide": 17,
+        "text": "References and resources\nCore references\nGoogle Teachable Machine — teachablemachine.withgoogle.com\nTensorFlow.js Documentation — tensorflow.org/js\nGoodfellow, Bengio, Courville — Deep Learning — Chapter 9\nMDN — MediaDevices getUserMedia API\nGoogle — Responsible AI Practices\nSuggested video searches\nSearch: Teachable Machine tutorial\nSearch: How convolutional neural networks work\nSearch: Transfer learning explained simply\nSearch: Computer vision explained for beginners\nNote: verify every link and reference yourself before relying on it — the same principle from Day One always applies.\n17\nVibe Coding · Day 8"
+      }
+    ],
+    "id": "computer-vision",
+    "title": {
+      "en": "Computer vision",
+      "ar": "الرؤية الحاسوبية"
+    },
+    "language": "en",
+    "textSlides": 17,
+    "slideCount": 17
+  },
+  {
+    "file": "Day-4-First-Dynamic-Page-PHP-EN.pptx",
+    "sha256": "ef5fd71bb02d1980bd7d097f44d05f112e52af5b333a02a670c42ad4a6a29001",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "Specialized Training Course\nVibe Coding\nFrom zero to building digital products with AI\nDay Four\nYour First Dynamic Page with PHP\n[ logo ]\n5-6 training hours  ·  Start of Phase Two: backend and databases\n1\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 2,
+        "text": "The bridge: from static description to live response\nYesterday — Day Three\nWe mastered prompting and built a static multi-page site — every visitor sees exactly the same content.\nThe question left open:\nWhat if each visitor wants something different? A form taking their name, a request to process, data to store? A static site cannot do that.\nThe answer: a server that runs code on every visit — PHP, the first step toward live applications.\nToday — Day Four\nWe move from \"static files\" to \"a server that thinks\": it receives user data, validates it, and replies with a personalized message.\nA wholly new phase begins:\nDays 4 to 6 build on each other: today a PHP backend, tomorrow a real MySQL database, then a complete PWA.\n2\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 3,
+        "text": "Learning Objectives\n1\nClient-server architecture\nThe trainee distinguishes what the browser executes from what the server executes\n2\nThe request-response cycle\nExplains HTTP and the difference between GET and POST requests\n3\nPHP fundamentals\nWrites variables, conditions, loops and simple functions with Claude's help\n4\nReceiving form data\nUses $_GET and $_POST to handle user input\n5\nA real request submission system\nBuilds a form that receives and validates data, and publishes it live\n3\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 4,
+        "text": "Why does this matter to you?\nThe difference between a site that \"displays\" and an app that \"works\": the ability to receive each user's data and respond individually.\nReal interaction\nEvery visitor gets a response built from their own data\nValidation and protection\nYou reject wrong or malicious data before processing it\nServer-side processing\nSensitive logic stays hidden from the browser\nYour first real system\nA request form that genuinely works — not merely displaying data\nThis is the foundation for every real system in the rest of the course: agents, dashboards and automation.\n4\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 5,
+        "text": "Client-server architecture\nEvery interactive site is split between two sides: what runs in your browser, and what runs on a remote machine you never see.\nThe Client\nThe browser: Chrome, Safari, etc.\nExecutes HTML, CSS and JavaScript\nThe user sees its result directly\nNever sees PHP code — not once\nThe Server\nA remote machine hosted by Hostinger\nExecutes PHP code and databases\nProduces finished HTML and sends it to the client\nSensitive logic stays protected there\nThe golden rule: whatever you do, no visitor will ever see PHP code — only the final HTML result.\n5\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 6,
+        "text": "The request-response cycle — HTTP\nEvery interaction between browser and server passes through four fixed steps — this is the HTTP protocol.\n1\nThe browser sends a request\nRequest: visiting a page or submitting a form\n▶\n2\nThe server receives it and runs PHP\nIt processes the data and prepares the reply\n▶\n3\nThe server returns a response\nResponse: a finished HTML page\n▶\n4\nThe browser displays the result\nThe user sees the final page\n6\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 7,
+        "text": "GET versus POST: when do we use each?\nGET\nData appears in the address bar\nA maximum length for the data sent\nCan be saved as a bookmark\nSuited to search, filtering and navigation\nPOST\nData is hidden inside the request body\nNo practical limit on data size\nDoes not appear in browser history as a URL\nSuited to passwords and sensitive forms\n7\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 8,
+        "text": "PHP language fundamentals\nVariables\n$name = \"Ahmed\";\nStore a value you can use later\nConditions\nif ($age >= 18) {...}\nRun different code depending on a condition\nLoops\nfor ($i=1; $i<=5; $i++)\nRepeat code several times\nFunctions\nfunction total($a,$b){...}\nReusable code with different inputs\n8\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 9,
+        "text": "Superglobals\nVariables PHP provides automatically carrying request data — you never declare them yourself.\n$_GET\nCarries data sent through a URL — such as ?name=Ahmed\n$_POST\nCarries data sent from a form using POST\n$_SERVER\nInformation about the server and request: the address, the method, etc.\n9\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 10,
+        "text": "Validating and sanitizing input\nWhy do we trust no input?\nAny user can type anything into a form — plain text, or malicious code attempting to manipulate your site.\nAn XSS attack example\nA user types into the name field:\n<script>steal data</script>\nIf displayed unprocessed, the code runs in every visitor's browser.\nThe defence: validation and sanitization\nValidation\nIs the data in the expected form? — a valid email, a number within range\nSanitization\nConverting dangerous characters < > into text safe to display\nNever trust by default\nEvery human input is treated as suspect until proven otherwise\n10\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 11,
+        "text": "Development environment: reading errors\nThe error\nLikely cause\nThe fix\nA completely blank page\nA fatal error hidden because error display is off\nEnable display_errors during development only\nParse error: syntax error\nA missing semicolon ; or bracket\nCheck the exact line named in the message\nUndefined variable\nYou used a variable before assigning it\nConfirm the variable is defined before use\n500 Internal Server Error\nA general fault in server settings or code\nCheck the Error Log in your hosting panel\n11\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 12,
+        "text": "The fast publish loop to Hostinger\n1\nOpen the File Manager\nFrom hPanel, open the File Manager for your domain\n2\nUpload the PHP file\nUpload it directly to public_html or your subdomain folder\n3\nOpen the link and test\nVisit the link and actually try the form with real data\n4\nAn error appeared? Enable display\nAdd ini_set(\"display_errors\",1); temporarily to see the details\n5\nFix and re-upload\nEdit the file locally, replace it on the server and test again\n12\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 13,
+        "text": "Practical activity: today's product\nA request submission system\nA form that receives data, validates it, and replies personally\nWhat you will build\nA form — name, request type, details — processed by PHP on the server\nHow\nDescribe the form and processing logic to Claude — it generates the page and the PHP\nThe essential condition\nIt checks the fields are complete and shows a clear confirmation or warning\nWhere it is published\nUploaded to Hostinger for real — your first PHP running on a live server\nSuggested prompt for Claude\nBuild a \"request submission\" system in two pages:\na form — index.html — and a handler — process.php.\nSpecifications:\n• Fields: name, request type, details\n• Use $_POST to receive the data\n• Verify no field is empty before accepting\n• Show a confirmation message including the submitter's name\n• Enable error display during testing only\nBriefly explain each step as you generate.\n13\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 14,
+        "text": "Practical implementation steps\n1\nDescribe the form and processing\nUse the suggested prompt to generate the form page and the PHP file\n2\nReview the generated PHP\nMake sure you understand how $_POST receives and validates the data\n3\nUpload both files to the server\nUse the Hostinger File Manager to upload both\n4\nTest with real input\nFill in the form, submit it, and check the confirmation message\n5\nDeliberately try an empty field\nConfirm the warning appears instead of accepting incomplete data\n6\nFix any error through dialogue\nEnable error display, copy the message, send it with the code to Claude\n14\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 15,
+        "text": "Common mistakes and how to avoid them\nThe error\nWhy it happens\nThe fix\nUsing $_GET instead of $_POST\nThe form never receives the expected data\nConfirm method=\"post\" on the form matches your code\nTrusting every input as-is\nOpening the door to malicious or incomplete data\nAlways validate before processing or displaying\nForgetting to enable error display\nA blank page with no hint of the problem\nEnable it temporarily during development only, never in production\nTesting only the success case\nErrors surface later with real users\nDeliberately try empty fields and odd data\n15\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 16,
+        "text": "Day summary\nClient and server\nThe browser runs the interface; the server runs PHP invisibly\nThe request-response cycle\nFour fixed steps govern every interaction over HTTP\nGET, POST and the superglobals\n$_GET and $_POST receive user data\nTrust no input\nValidation and sanitization are always the first line of defence\nYou built your first live system\nA form receiving real data and replying to it — published and working\nTomorrow: MySQL databases — from data lost when the page closes to data stored permanently.\n16\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 17,
+        "text": "Discussion and self-assessment questions\nWhy can no visitor see PHP code, whatever they do in their browser?\nWhen would you choose GET over POST in a project? Give an example\nWhat could happen if you displayed user input without validation or sanitization?\nDescribe an error message you met today — how did you read and solve it?\nWhy enable error display only during development, never on the live site?\nThe last question matters for the security of everything you build later — do not rush past it.\n17\nVibe Coding · Day 4"
+      },
+      {
+        "slide": 18,
+        "text": "References and resources\nCore references\nOfficial PHP Manual — php.net/manual\nMDN — HTTP Request Methods — developer.mozilla.org\nOWASP — Cross-Site Scripting (XSS) Prevention\nMDN — Client-Server Overview\nHostinger documentation — PHP Hosting — hostinger.com/tutorials\nSuggested video searches\nSearch: \"PHP for beginners crash course\"\nSearch: \"HTTP request response cycle explained\"\nSearch: \"XSS attack explained simply\"\nSearch: \"PHP explained for absolute beginners\"\nNote: verify every link and reference yourself before relying on it — the same principle from Day One always applies.\n18\nVibe Coding · Day 4"
+      }
+    ],
+    "id": "php",
+    "title": {
+      "en": "PHP dynamic pages",
+      "ar": "الصفحات الديناميكية PHP"
+    },
+    "language": "en",
+    "textSlides": 18,
+    "slideCount": 18
+  },
+  {
+    "file": "Day-5-MySQL-and-CRUD-EN (1).pptx",
+    "sha256": "a2417bfde40a3873224b10a14b3152b05b8d1287418ab74293512d060a86be82",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "Specialized Training Course\nVibe Coding\nFrom zero to building digital products with AI\nDay Five\nMySQL Databases and CRUD Operations\n[ logo ]\n5-6 training hours  ·  Completing Phase Two: backend and databases\n1\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 2,
+        "text": "The bridge: from temporary processing to permanent memory\nYesterday — Day Four\nWe built a form that receives user data and processes it with PHP — but the moment the page closes, all the data vanishes.\nThe question left open:\nHow do we keep each user's data stored so anyone can reach it later — even after the server restarts?\nThe answer: a MySQL database — a permanent, organized, queryable store for everything.\nToday — Day Five\nWe learn how data is organized into tables, and how to add, read, update and delete safely — data becomes a permanent asset.\nA phase ends, another begins:\nThis is the last day of the \"backend and databases\" phase. Tomorrow we add a new interactive layer: PWAs that work even offline.\n2\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 3,
+        "text": "Learning Objectives\n1\nThe relational model\nThe trainee understands tables, rows, columns and keys\n2\nData types\nChooses the right type for each field: text, number, date\n3\nBasic SQL\nMaps the four SQL commands directly to CRUD operations\n4\nSecure connection\nUnderstands why prepared statements prevent SQL injection\n5\nA permanent records system\nBuilds a system connected to a real database and publishes it\n3\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 4,
+        "text": "Why does this matter to you?\nEvery real application you use daily — from online stores to HR systems — rests on a database.\nPermanent memory\nYour data stays stored after both the browser and the server close\nMultiple users\nThousands of people reach the same data at once\nSmart queries\nSearch, sort and filter thousands of records in fractions of a second\nThe base of every system\nFrom e-commerce to human resources and inventory\nWithout a database, every application stays a demo — not a real working tool.\n4\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 5,
+        "text": "Temporary variables or a permanent database?\nTemporary PHP variables\nThey live only while a single request is processed\nThey vanish the instant the page finishes executing\nEach user sees a separate temporary copy\nNo connection whatsoever between one request and another\nA MySQL database\nIt lives permanently on the server\nIt stays stored even after the server restarts\nAll users reach the same data\nEvery new request sees the latest updates\n5\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 6,
+        "text": "The relational model: tables and keys\nData is organized into tables — each a grid of rows (records) and columns (fields).\nid (primary key)\nName\nDepartment\ndept_id\n1\nAhmed\nSales\n2\n2\nSara\nSupport\n1\n3\nKhalid\nSales\n2\n↑ the \"employees\" table\nPrimary Key\nA unique identifier for each row — never repeated — the id column\nForeign Key\nA column pointing to a primary key in another table, linking the two\nExample\n\"dept_id\" in the employees table points to the departments table key — that is a foreign key.\n6\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 7,
+        "text": "Data types in MySQL\nChoosing the right type for each column affects both performance and data integrity.\nINT\nWhole number\nage, quantity, id\nVARCHAR(n)\nShort text with a length limit\nname, email\nTEXT\nLong unlimited text\ndetailed description, notes\nDATE\nA date only\nbirth date, purchase date\nBOOLEAN\nA true/false value only\nis the account active?\n7\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 8,
+        "text": "SQL: querying with SELECT\nSELECT is the \"show me\" command — you state what you want, from where, and under what condition.\nSELECT name, dept FROM employees WHERE dept = \"Sales\" ORDER BY name LIMIT 10;\nSELECT\nThe columns to display\nFROM\nThe source table name\nWHERE\nThe filter condition\nORDER BY\nSorting the results\nLIMIT\nThe maximum number of results\n8\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 9,
+        "text": "The four SQL commands = CRUD operations\nC — Create\nINSERT INTO\nAdding a new row to the table\nR — Read\nSELECT\nDisplaying existing rows\nU — Update\nUPDATE\nModifying values in an existing row\nD — Delete\nDELETE\nRemoving a row from the table\n9\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 10,
+        "text": "Normalization: why not repeat data?\n❌ Before normalization\nOne table repeats the department name in every employee row — if the name changes, you must edit every row containing it.\nAhmed | Sales\nSara | Support\nKhalid | Sales\nMona | Sales\n✅ After normalization\nTwo separate tables: \"departments\" stores the name once, and \"employees\" references it by foreign key only.\nDepartments\n1: Sales\n2: Support\nEmployees\nAhmed → 1\nSara → 2\nKhalid → 1\nMona → 1\n10\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 11,
+        "text": "Secure connection from PHP and preventing SQL injection\n❌ Dangerous: concatenating input directly\n\"SELECT * FROM users WHERE name = '\" . $_POST['name'] . \"'\"\nA malicious user types: ' OR '1'='1 and obtains all the data without a valid password.\n✅ Safe: prepared statements\n$stmt = $pdo->prepare(\n\"SELECT * FROM users WHERE name = ?\"\n);\n$stmt->execute([$_POST['name']]);\nThe ? is a placeholder for a value only — it can never become an SQL command, whatever the user types.\nThe rule: never concatenate user input into SQL text — always use PDO or mysqli with prepared statements.\n11\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 12,
+        "text": "From description to code: how does your prompt become SQL?\nThe same next-word prediction principle from Day One — now applied to SQL queries.\n📝 The prompt:\nCreate\na table named assets\na column for the name\na column for the purchase date\n💻 The generated code:\n1\nCREATE TABLE assets (\n2\nname VARCHAR(100),\n3\npurchase_date DATE\n);\nThis is the same interactive component you tried on the platform — work through it there step by step.\n12\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 13,
+        "text": "Practical activity: today's product\nAn administrative records system\nAdd, view, edit, delete and search — all connected to a real database\nWhat you will build\nAn assets and equipment register: every CRUD operation through a simple interface\nHow\nDescribe the table and operations to Claude — it generates the PHP, SQL and config.php together\nThe essential condition\nUsing prepared statements in every single query\nWhere it is published\nA real MySQL database on Hostinger — genuinely permanent data\nSuggested prompt for Claude\nBuild a records system for managing assets and equipment.\nSpecifications:\n• Table: name, category, purchase date\n• A page displaying all records from the database\n• A form to add a new record\n• An edit button and a delete button for each row\n• A search field that filters the records\n• Use PDO with prepared statements only\nStart with add and view, then add edit and delete.\n13\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 14,
+        "text": "Practical implementation steps\n1\nCreate a MySQL database from hPanel\nFrom the Hostinger panel: database name, a user, and a password\n2\nCreate the table via phpMyAdmin\nOr ask Claude for the SQL to create it automatically\n3\nCreate a separate config.php file\nIt keeps the connection details away from the rest of the code\n4\nBuild add and view first\nTest that data is genuinely stored and read back from the database\n5\nAdd edit and delete\nAs a second batch — not everything at once\n6\nVerify the prepared statements\nReview every SQL query and confirm ? is used instead of direct concatenation\n14\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 15,
+        "text": "Common mistakes and how to avoid them\nThe mistake\nWhy it happens\nThe fix\nConcatenating user input into SQL directly\nIt opens a serious SQL injection vulnerability\nAlways use prepared statements\nNot choosing the correct data type\nThe table may accept illogical data\nChoose the right type: DATE for dates, INT for numbers\nRepeating the same data across multiple tables\nAny change requires updating every copy\nApply normalization principles and think in foreign keys\nPutting connection details inside the code itself\nA security risk if the code is ever exposed\nUse a separate, protected config.php file\n15\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 16,
+        "text": "Day summary\nData is organized into tables\nRows and columns, linked by primary and foreign keys\nSQL = CRUD operations\nFour commands matching create, read, update and delete\nNormalization prevents duplication\nEvery fact is stored once, in its proper place\nPrepared statements are mandatory\nThe only trustworthy defence against SQL injection\nYour data is now permanent\nYour first real records system connected to a genuine database\nTomorrow: PWAs — from a page needing internet to an app that works even offline.\n16\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 17,
+        "text": "Discussion and self-assessment questions\nWhat is the difference between a primary and a foreign key? Give an example from your work\nWhich CRUD operation matches each command: SELECT, INSERT, UPDATE, DELETE?\nWhy is concatenating user input into an SQL query dangerous?\nDescribe data in your work that currently repeats — how would you normalize its table?\nHow does config.php connect system security with ease of maintenance?\nThe third question matters most for security — do not move on before it is understood.\n17\nVibe Coding · Day 5"
+      },
+      {
+        "slide": 18,
+        "text": "References and resources\nCore references\nOfficial MySQL Reference Manual — dev.mysql.com/doc\nPHP Manual — PDO — php.net/manual/en/book.pdo.php\nOWASP — SQL Injection Prevention Cheat Sheet\nCodd, E.F. — A Relational Model of Data — 1970\nHostinger documentation — MySQL Databases — hostinger.com/tutorials\nSuggested video searches\nSearch: \"MySQL basics for beginners\"\nSearch: \"SQL CRUD operations explained\"\nSearch: \"SQL injection attack demo\"\nSearch: \"Databases explained for beginners\"\nNote: verify every link and reference yourself before relying on it — the same principle from Day One always applies.\n18\nVibe Coding · Day 5"
+      }
+    ],
+    "id": "mysql-crud",
+    "title": {
+      "en": "MySQL and CRUD",
+      "ar": "MySQL وCRUD"
+    },
+    "language": "en",
+    "textSlides": 18,
+    "slideCount": 18
+  },
+  {
+    "file": "Day-6-Python-and-Streamlit-EN.pptx",
+    "sha256": "b15bf5d552de4f5f62d5fb44ab10f4781fde14849bfc3d0577188e3f4afb9a1b",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "Specialized Training Course\nVibe Coding\nFrom zero to building digital products with AI\nDay Six\nPython: Real Applications Published to the Cloud\n[ logo ]\n5-6 training hours  ·  A second language, a new deployment platform, the same skill\n1\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 2,
+        "text": "The bridge: same skill, another language\nSo far — Days 1 to 5\nYou built five products with web languages: HTML for structure, PHP for processing, MySQL for data — all on Hostinger.\nThe natural question now:\nIs what you learned tied to PHP specifically? If you needed another language tomorrow, would you start over?\nToday's answer is practical: the same description, an entirely different language, and a live published result.\nToday — Day Six\nWe build real published web apps in Python — no HTML, no server, and nothing installed on your machine.\nThe real test of the skill:\nYou will rebuild the expert system from Day Two — in Python this time. Same logic, different language, different deployment.\n2\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 3,
+        "text": "Learning Objectives\n1\nPython fundamentals\nReads Python code and understands its structure without memorizing rules\n2\nWhy Python?\nKnows when to choose Python and when PHP is preferable\n3\nGitHub and versioning\nCreates a repository, uploads code, and grasps the value of saved versions\n4\nDeploying on Streamlit\nPublishes an interactive Python app with a live link and no server\n5\nAn expert system in Python\nRebuilds the Day Two system in a new language and publishes it\n3\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 4,
+        "text": "Why does this matter to you?\nPython does not replace PHP — it is another tool in your box, each with its own domain.\nThe language of AI\nVision, audio and machine-learning libraries are natively Python\nFast data applications\nDashboards, analytics and prototypes in a few dozen lines\nVersion history\nEvery version of your work is saved — no fear of losing anything\nAutomatic deployment\nEdit the code on GitHub and your app republishes itself\nIn the coming days — vision, audio and agents — Python will be the primary language. Today we lay its foundation.\n4\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 5,
+        "text": "When Python, and when PHP?\nPHP\nTraditional websites and content management systems\nRuns directly on shared hosting\nEmbedded with HTML in the same file\nBest suited to what you built on Days 4 and 5\nPython\nAI, data analysis and automation\nNeeds a dedicated runtime — Streamlit or cloud\nEntirely separate from the interface\nBest suited to the coming vision and audio days\n5\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 6,
+        "text": "Python fundamentals: read, do not memorize\nYou will not write Python by hand — Claude writes it. But understanding its structure sharpens your description and your review.\nVariables\nname = \"Ahmed\"\nNo $ sign and no semicolon\nConditions\nif age >= 18:\nIndentation defines the block, not braces\nLoops\nfor item in items:\nIterates over items directly\nFunctions\ndef total(a, b):\nThe keyword def instead of function\n6\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 7,
+        "text": "Streamlit: a web app without HTML\nA library that turns a simple Python script into a complete interactive web app — without a single line of HTML or CSS.\nimport streamlit as st\nst.title(\"Shift Calculator\")\nstaff = st.number_input(\"Number of staff\", 1, 100)\nshift = st.selectbox(\"Shift\", [\"Morning\",\"Evening\"])\nif st.button(\"Calculate\"):\nst.success(f\"{24//staff} hours per person\")\nst.title()\nPage title\nst.number_input()\nA ready numeric input field\nst.selectbox()\nA dropdown list\nst.button()\nAn interactive button\nst.success()\nA green success message\nTen lines = a complete web app with a professional interface.\n7\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 8,
+        "text": "GitHub: your project's permanent memory\nA repository stores every version of your code — you can return to any earlier moment whenever you wish.\n1\nCreate a repository\nA space for your project on GitHub\n▶\n2\nUpload the files\nStraight from the browser, no commands\n▶\n3\nSave a version — Commit\nEach save documents what changed and why\n▶\n4\nConnect to Streamlit\nThe app deploys and updates automatically\nAll of this from the browser — no Git installation and no terminal commands today.\n8\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 9,
+        "text": "From description to code: Python this time\nThe same principle as Day One — but note: the same style of description produced PHP on Day Four and produces Python today.\nThe prompt:\nan app titled Calculator\na field for the number of staff\nand a button that computes the result\nThe generated code:\n1\nst.title(\"Shift Calculator\")\n2\nstaff = st.number_input(\"Number of staff\", 1, 100)\n3\nif st.button(\"Calculate\"):\nst.success(f\"{24//staff} hours per person\")\nThe skill lies in the description, not the language. Try the interactive component on the platform.\n9\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 10,
+        "text": "Back to the expert system — in Python\nOn Day Two you understood rules and inference conceptually. Today you build it in a real language and publish it.\n# rules as a Python dictionary\nrules = [\n{\"if\": [\"mustanadat\", \"daem\"],\n\"then\": \"muahal_mabdaiyan\"},\n{\"if\": [\"muahal_mabdaiyan\", \"khidma\"],\n\"then\": \"muahal\"},\n]\n# the forward-chaining engine\nfor r in rules:\nif all(f in facts for f in r[\"if\"]):\nfacts.add(r[\"then\"])\nExactly the same logic\nFacts, rules and the inference engine — as you understood them on Day Two\nClearer and shorter\nPython expresses rules closer to natural logic\nPublished with an interface\nStreamlit gives it a ready interactive interface in minutes\nThe real lesson\nWhat you carried over is your grasp of the logic, not one language's syntax\n10\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 11,
+        "text": "The full workflow: from description to a live link\n1\nDescribe to Claude\nRequest a Streamlit app to your specifications\n▶\n2\nCopy the code\nA single file named app.py\n▶\n3\nUpload it to GitHub\nCreate a repository and upload the file\n▶\n4\nConnect Streamlit\nSelect the repository with one click\n▶\n5\nA live link\nYour app is published to the world\nFive steps — all from the browser, with nothing installed.\n11\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 12,
+        "text": "Practical activity: today's two products\nTwo published Python applications\nA small tool first, then the complete expert system\nFirst product\nA small tool: a shift calculator or unit converter — to practise the full workflow\nSecond product\nThe Day Two expert system, rebuilt in Python and published\nEnvironment\nGitHub to store the code and Streamlit Cloud to publish — both free\nThe essential condition\nA live link that works from any device — not a file on your machine alone\nSuggested prompt for Claude\nWrite me a Streamlit app in a single file named app.py.\nSpecifications:\n• Title: Eligibility Assessment System\n• Four yes/no questions as checkboxes\n• Apply 3-5 \"if...then\" rules to the answers\n• Show the decision with an explanation of how it was reached\n• A clear, readable interface\nAdd a requirements.txt file containing streamlit.\n12\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 13,
+        "text": "Practical implementation steps\n1\nCreate a GitHub account\nEntirely free — an email address is all it needs\n2\nCreate a Streamlit Cloud account\nSign in directly with your GitHub account\n3\nDescribe your app to Claude\nStart with the small tool before the expert system\n4\nCreate a repository and upload both files\napp.py and requirements.txt — from the browser\n5\nDeploy through Streamlit\nSelect the repository and click Deploy — one minute\n6\nRepeat with the expert system\nSame steps, a larger app — and compare with Day Two\n13\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 14,
+        "text": "Common mistakes and how to avoid them\nThe mistake\nWhy it happens\nThe fix\nForgetting requirements.txt\nStreamlit does not know the required libraries, so deployment fails\nAdd a file with one line: streamlit\nAn indentation error\nPython treats it as part of the language, not decoration\nCopy the code exactly as Claude generated it, without manual edits\nA filename other than app.py\nStreamlit looks for a specific main file\nKeep the name, or specify it manually when deploying\nA private repository\nThe free tier publishes public repositories\nSet the repository to Public when creating it\n14\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 15,
+        "text": "Day summary\nPython is another language, not a replacement\nEach has its domain: PHP for traditional web, Python for AI and data\nStreamlit removes the need for HTML\nTen lines of Python = a complete interactive web app\nGitHub is your project's memory\nEvery version is stored, and deployment updates automatically\nLogic travels between languages\nThe same expert system in a different language — understanding is what carried over\nTwo published Python applications\nA small tool and an expert system — both with live links\nTomorrow: a Progressive Web App — back to Hostinger to make your apps work even offline.\n15\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 16,
+        "text": "Discussion and self-assessment questions\nWhen would you choose Python over PHP in a real project? Give an example from your work\nWhat is the difference between saving a file on your machine and in a GitHub repository?\nWhy do we need a requirements.txt file at all?\nCompare the expert system you built today with its Day Two counterpart — what actually changed?\nDid your skill at describing what you want change when the language changed? Why?\nThe last two questions are the heart of today — allow enough time for them.\n16\nVibe Coding · Day 6"
+      },
+      {
+        "slide": 17,
+        "text": "References and resources\nCore references\nOfficial Python Documentation — docs.python.org\nStreamlit Documentation — docs.streamlit.io\nGitHub Docs — Getting Started — docs.github.com\nStreamlit Community Cloud — share.streamlit.io\nReal Python — Python Basics — realpython.com\nSuggested video searches\nSearch: \"Streamlit tutorial for beginners\"\nSearch: \"Deploy Streamlit app to cloud\"\nSearch: \"GitHub for beginners no command line\"\nSearch: \"Python explained for absolute beginners\"\nNote: verify every link and reference yourself before relying on it — the same principle from Day One always applies.\n17\nVibe Coding · Day 6"
+      }
+    ],
+    "id": "python-streamlit",
+    "title": {
+      "en": "Python and Streamlit",
+      "ar": "Python وStreamlit"
+    },
+    "language": "en",
+    "textSlides": 17,
+    "slideCount": 17
+  },
+  {
+    "file": "Day-2-Knowledge-Representation-EN.pptx",
+    "sha256": "2baa7181054e517d8a6ac0194ba0853d503b68deb96edebd13e71ba1f4a03f05",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "Specialized Training Course\nVibe Coding\nFrom zero to building digital products with AI\nDay Two\nKnowledge Representation and Rule-Based Systems\n[ logo ]\n5-6 training hours  ·  Builds on Day One\n1\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 2,
+        "text": "The bridge: from \"what\" to \"how\"\nYesterday — Day One\nWe learned what AI is, its layers, and its limits — hallucination, bias and non-determinism.\nThe question left open:\nIf generative models can err confidently, how do we build a system whose decision we trust because we understand its reasoning?\nThe answer: a system built on explicit rules humans understand — not only opaque statistical patterns.\nToday — Day Two\nWe learn how knowledge is represented for a machine, and how an expert system reasons from \"if...then\" rules to a decision it explains itself.\nA thread that returns later:\nOn day twelve we return to this concept when we compare the classical knowledge base with RAG — modern retrieved knowledge.\n2\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 3,
+        "text": "Learning Objectives\n1\nKnowledge representation\nThe trainee explains four methods of knowledge representation with examples\n2\nKnowledge or data\nDistinguishes a database from an inference-capable knowledge base\n3\nExpert system architecture\nLists the five components of an expert system and the function of each\n4\nThe two inference engines\nDifferentiates forward and backward chaining and knows when each applies\n5\nBuilding an expert system\nBuilds a real interactive expert system by instructing Claude and publishes it\n3\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 4,
+        "text": "Why does this matter to you?\nIn any serious workplace, an unexplained decision is an untrusted decision — however accurate it may be.\nTransparency\nEvery decision comes with a clear, auditable reason\nAccountability\nYou can prove why a decision was made before any regulator\nPredictability\nThe same inputs always yield the same decision — unlike generative models\nEase of maintenance\nYou can change a single rule without retraining an entire system\nRule-based systems do not replace generative AI — they partner with it wherever transparency is non-negotiable.\n4\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 5,
+        "text": "Knowledge representation: four methods\nKnowledge representation: formulating knowledge so a machine can reason from it — not merely store it.\nSemantic networks\nLinked nodes and relations: \"cat\" → \"is a kind of\" → \"animal\"\nFrames\nReady templates with default attributes for each concept or entity\nOntologies\nA shared vocabulary formally defining the concepts of a whole domain\nProduction rules\nThe best-known form: \"if this holds, then that\" — today's focus\nApplied example: \"all permanent employees are eligible for health insurance\" — one rule from which facts are derived for any employee.\n5\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 6,
+        "text": "Database or knowledge base?\nDatabase\nStores individual static facts\n\"Ahmed is a sales employee\"\nInfers nothing new\nA query = direct retrieval\nKnowledge base\nStores rules that support inference\n\"All sales employees receive commission\"\nDerives new facts automatically\nA query = logical inference\n6\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 7,
+        "text": "Anatomy of an expert system: five components\nKnowledge base\nThe store of domain rules and stable facts\nWorking memory\nTemporary facts about the case being processed now\nInference engine\nApplies rules to facts and produces new conclusions\nExplanation module\nTells the user why the system reached this decision\nUser interface\nThe intermediary for entering facts and receiving the decision\nWorkflow: the user enters facts → they are added to working memory → the inference engine searches the knowledge base → it produces a decision with its explanation.\n7\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 8,
+        "text": "Inference engine — 1: Forward chaining\nForward Chaining\nWe start from known facts, fire every rule whose conditions hold, add its conclusion as a new fact, and repeat until no rule can fire.\nInitial facts\n▶\nR1 fires\n▶\nR2 fires\n▶\nFinal conclusion\nData-driven: suited to continuous monitoring — \"what can we conclude from everything we know now?\"\nWorked example\nR1: documents complete + permanent employee ⇒ initially eligible\nR2: initially eligible + service > 1 year ⇒ eligible for leave\nR3: eligible for leave + sufficient balance ⇒ ✅ approved\nR4: approved + urgent request ⇒ ⚡ immediate priority\nThis is the engine trainees will build and actually run in the interactive lab shortly.\n8\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 9,
+        "text": "Inference engine — 2: Backward chaining\nBackward Chaining\nWe start from a goal we want to prove and work backwards to the facts that establish it — this is what a system does when it asks you specific questions.\n🎯 Goal: immediate priority?\n▲ requires\nApproved?\nUrgent request? — a fact\n▲ requires\nEligible for leave? + balance?\nGoal-driven: suited to a specific query — \"does this particular case hold?\"\nThe essential difference\nDirection\nforward from facts  ⇔  backward from the goal\nBest use\ncontinuous monitoring  ⇔  a specific query\nComputational efficiency\nmay check unnecessary rules  ⇔  checks only what concerns the goal\nReal example\na monitoring system running continuously  ⇔  an assistant asking targeted questions\n9\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 10,
+        "text": "When rules conflict\nWhat if two rules apply at once with contradictory conclusions? This is rule conflict, and it has three resolution strategies.\nPriority\nPriority\nEach rule carries a preset priority — the highest fires on conflict\nSpecificity\nSpecificity\nThe more specific rule — with more conditions — is preferred over the general one\nOrder\nOrdering\nThe first rule whose conditions hold fires, following list order\n⚖️ Example: a general rule \"all requests are processed within 3 days\" and a more specific one \"urgent requests are processed within an hour\" — the second wins by specificity.\n10\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 11,
+        "text": "Rule-based or machine learning?\nCriterion\nRule-based system\nMachine learning\nTransparency\nVery high — every decision is explained\nLow — often a \"black box\"\nGeneralization\nLimited to the rules written\nHigh — learns patterns never written explicitly\nMaintenance\nEditing a single rule is direct\nUsually requires retraining\nData required\nCodified human expertise\nA large volume of historical data\nBest suited to\nStructured, auditable decisions\nComplex, continuously shifting patterns\n11\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 12,
+        "text": "Limits of rule-based systems\nThe very strength that grants transparency also brings brittleness when a case falls outside expectations.\nBrittleness\nA single case outside the written rules can confuse the system entirely — even one perfectly obvious to any human.\nExample: a leave-approval system with no rule for a part-time contract — it stops working correctly instead of adapting.\nThe knowledge acquisition bottleneck\nEvery new rule needs a human expert to write and maintain it by hand — and that does not scale easily.\nExample: hundreds of rules accumulated over years become so entangled that no individual can trace or safely change them.\n12\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 13,
+        "text": "Practical activity: today's product\nYour own expert system\nIt asks questions, applies rules, and explains its decision\nWhat you will build\nAn interactive expert system in a domain of your choice: eligibility assessment, priority triage, or any rule-based decision\nHow\nYou describe the rules to Claude in plain language and it generates an inference engine that runs in the browser\nThe essential condition\nThe system must explain the reason for its decision — not merely issue it\nWhere it is published\nOn your Hostinger subdomain, like every other course product\nSuggested prompt for Claude\nWrite me an HTML page that is an interactive expert system in the field of [choose a field].\nSpecifications:\n• Present 4-6 questions — facts as Yes/No choices\n• Apply 3-5 rules in \"if...then\" form\n• Show the final decision with a clear explanation of why\n• Modern design, responsive on mobile\nPut everything in a single file.\n13\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 14,
+        "text": "Practical implementation steps\n1\nChoose a domain and its rules\nDefine 3-5 clear \"if...then\" rules from a field you know\n2\nDescribe the system to Claude\nUse the suggested prompt with your domain and rules\n3\nReview the questions and rules\nConfirm the questions are clear and the rules apply logically\n4\nTest with multiple cases\nTry different answers and confirm the explanation changes coherently\n5\nPublish to your domain\nUpload the file via hPanel and open your live link\n6\nCompare with yesterday\nNotice: here the decision is explained, unlike a general chatbot\n14\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 15,
+        "text": "Common mistakes and how to avoid them\nMistake\nWhy it happens\nThe fix\nVaguely worded rules\n\"If the request is good\" — not programmatically applicable\nUse measurable conditions: yes/no, a number, a date\nIgnoring possible conflict\nTwo rules may clash with no resolution strategy\nSet a clear priority or specificity in advance\nA system without explanation\nIt issues the decision without stating the reason\nThis strips the system of its core advantage — transparency\nOverlooking edge cases\nFailing to test unexpected situations\nDeliberately try odd inputs and watch how the system behaves\n15\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 16,
+        "text": "Day summary\nKnowledge is represented in several forms\nSemantic networks, frames, ontologies and production rules\nKnowledge differs from data\nIt supports inference, not merely storage\nTwo inference engines\nForward is data-driven, backward is goal-driven\nEvery strength has its limits\nBrittleness and the knowledge acquisition bottleneck\nYou built a system that explains its decision\nNot merely issues it — this is the essence of transparency\nTomorrow: mastering machine instruction and the multi-page site — from precise description to a complete web application.\n16\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 17,
+        "text": "Discussion and self-assessment questions\nWhat is the essential difference between a database and a knowledge base? Give an example from your work\nWhen would you choose forward chaining over backward chaining? Why?\nDescribe a possible rule conflict in a system you know, and which resolution strategy suits it\nWhy is a rule-based system alone unsuitable for all of an organization's decisions?\nHow does the \"explanation\" in an expert system connect to the hallucination problem we studied yesterday?\nThe last question links days one and two — discuss it thoroughly.\n17\nVibe Coding · Day 2"
+      },
+      {
+        "slide": 18,
+        "text": "References and resources\nCore references\nRussell, S. & Norvig, P. — Artificial Intelligence: A Modern Approach — 4th ed.\nJackson, P. — Introduction to Expert Systems — 3rd ed., Addison-Wesley\nGiarratano & Riley — Expert Systems: Principles and Programming\nBrachman & Levesque — Knowledge Representation and Reasoning\nOfficial Anthropic documentation — docs.claude.com\nSuggested video searches\nSearch: \"Expert Systems explained simply\"\nSearch: \"Forward vs Backward Chaining\"\nSearch: \"Expert systems explained for beginners\"\nSearch: \"Knowledge representation AI basics\"\nNote: verify every link and reference yourself before relying on it — the same principle from Day One always applies.\n18\nVibe Coding · Day 2"
+      }
+    ],
+    "id": "knowledge-representation",
+    "title": {
+      "en": "Knowledge representation",
+      "ar": "تمثيل المعرفة"
+    },
+    "language": "en",
+    "textSlides": 18,
+    "slideCount": 18
+  },
+  {
+    "file": "Day-3-Prompting-and-Multipage-EN.pptx",
+    "sha256": "ea468944ff2804a793efff6f92bb2dadbc7fa558acdebcd3da6576df4ff3af19",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "Specialized Training Course\nVibe Coding\nFrom zero to building digital products with AI\nDay Three\nMastering Machine Instruction and the Multi-Page Site\n[ logo ]\n5-6 training hours  ·  Builds on Days One and Two\n1\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 2,
+        "text": "The bridge: from transparent decisions to precise description\nYesterday — Day Two\nWe learned how explicit rules are built, and how an expert system reasons from facts to a decision that explains itself.\nThe question left open:\nWhen we ask AI to build something itself rather than follow our rules, how do we describe what we want with enough precision?\nThe answer: mastering the prompt — the skill that turns a vague idea into a precise result on the first attempt.\nToday — Day Three\nWe master the craft of prompting, learn iterative building and conversational debugging, then build our first real multi-page site.\nWhy is this pivotal?\nEvery remaining day depends on this very skill — a well-crafted prompt is the difference between one attempt and ten.\n2\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 3,
+        "text": "Learning Objectives\n1\nAnatomy of an effective prompt\nThe trainee lists the six components of a good prompt and applies them\n2\nPrompting techniques\nDifferentiates zero-shot, few-shot and chain-of-thought prompting\n3\nIterative building\nBuilds the application in batches rather than requesting everything at once\n4\nConversational debugging\nResolves errors by giving the model sufficient context instead of starting over\n5\nA multi-page website\nBuilds a complete services directory with navigation and instant search, and publishes it live\n3\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 4,
+        "text": "Why does this matter to you?\nThe difference between a trainee who gets the result on the first try and one who retries ten times is precision of description — not luck or talent.\nFewer attempts\nA precise prompt from the start saves your time and your usage quota\nSmart iteration\nYou build on what worked instead of restarting everything\nFaster debugging\nYou solve errors through precise dialogue instead of random guessing\nA larger, more mature product\nA complete multi-page site — the first real leap in scale\nThis skill is not for today alone — it serves every remaining day of this course.\n4\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 5,
+        "text": "Anatomy of an effective prompt: six components\nA good prompt is not longer — it is more precise. These six components raise the quality of any prompt you write.\nRole\n\"You are a professional interface designer\"\nContext\n\"This is a site for an internal service department\"\nTask\n\"Build a page displaying a list of services\"\nConstraints\n\"No external libraries, a single file only\"\nOutput format\n\"Complete HTML ready to copy directly\"\nExamples\n\"Similar to this attached design\"\n5\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 6,
+        "text": "The three prompting techniques\nZero-shot\nZero-shot\nA direct instruction with no illustrative examples — for simple, clear tasks.\n\"Summarize this text in three sentences\"\nFew-shot\nFew-shot\nYou give a few examples showing the desired pattern before asking for execution.\n\"Here are two sentiment examples: ... now classify the next\"\nChain-of-thought\nChain-of-Thought\nYou ask the model to reason step by step before giving its final answer.\n\"Think step by step before giving your answer\"\n6\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 7,
+        "text": "The skill travels with you between tools\nThe six components and three techniques you just learned belong to no single tool — they work with any language model.\nClaude\nAnthropic\nThis course's tool — strong at long code and structural precision\nChatGPT\nOpenAI\nThe most widely used — a familiar interface for many already\nGemini\nGoogle\nIntegrated with Google services — useful for accompanying research tasks\nWe use Claude in this course because it suits our practical projects — but the precision you mastered today serves you with any tool.\n7\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 8,
+        "text": "Iterative building: why in batches?\nEverything at once\nA long prompt with twenty demands at once\nHard for the model to satisfy every detail together\nAny error requires reviewing everything again\nAn exhausting result where the fault is hard to trace\nBuilding in batches\nBuild the base first: a simple structure that works\nAdd one feature, test it, then the next\nEach small step is easy to review and fix\nA more stable final result with fewer surprises\n8\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 9,
+        "text": "The craft of conversational debugging\nWhen an error appears, do not rewrite the description from scratch — give the model enough context to fix it precisely.\n1\nCopy the error message\n▶\n2\nDescribe the expected behaviour\n▶\n3\nSend the code and the error together\n▶\n4\nTry the fix and test it\nWorked example\n❌ Weak: \"It does not work, fix it\"\n✅ Effective: \"When the search button is clicked this error appears [error text]. Expected: the list filters instantly without reloading. Here is the responsible code: [code]\"\n9\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 10,
+        "text": "Web fundamentals: HTML\nHTML — structure and content\nThe language describing the page's skeleton: where the heading is, the paragraph, the link — with no concern for appearance yet.\n<h1>\nMain heading\n<p>\nText paragraph\n<nav>\nNavigation list\n<a>\nLink\n<img>\nImage\n<div>\nGeneric container\nSemantic elements\nModern HTML elements describe the meaning of content, not only its shape — improving accessibility and search indexing.\n<header>\nPage header\n<main>\nMain content\n<footer>\nPage footer\n<section>\nSelf-contained content section\n10\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 11,
+        "text": "Web fundamentals: CSS\nCSS — appearance and styling\nIt sets colours, fonts, spacing and overall layout — turning a raw skeleton into a readable, attractive design.\ncolor\nText colour\nbackground\nBackground colour\nmargin\nOuter spacing (margin)\npadding\nInner spacing (padding)\ndisplay: flex\nFlexible layout\nThe Box Model\nMargin\nBorder\nPadding\nContent\n11\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 12,
+        "text": "Web fundamentals: JavaScript\nJavaScript — interaction and behaviour\nIt makes the page respond: changing content, reacting to clicks, and updating the screen without reloading.\n// when the button is clicked\nbutton.addEventListener(\"click\", () => {\n// change the displayed text\noutput.textContent = \"Done!\";\n});\nThe DOM tree and event handling\nDOM\nThe tree representation of the page that JavaScript works with\nEvent\nA user action: a click, typing, a hover\nLive update\nChanging content instantly without reloading the page\n12\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 13,
+        "text": "Structure of a multi-page site\nA real site is not one page — it is an organized structure of linked pages sharing common elements.\nNavigation menu\nA consistent link between all pages in one place\nInstant search\nFiltering content live as you type, without reloading\nShared styling\nA unified header and footer giving the site one identity\nContent organization\nEach page with its own topic, logically linked to the rest\nThis is exactly what each trainee builds today: the \"Services and Procedures Directory\" — their first multi-page site.\n13\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 14,
+        "text": "Practical activity: today's product\nServices and Procedures Directory\nA multi-page site with navigation and instant search\nWhat you will build\nA site of at least 3 pages: Home, Services, Contact — with a unified header and footer\nHow\nBy iterative building: describe the structure first, then add navigation, then search\nThe essential condition\nA search field that filters the services list instantly as you type\nWhere it is published\nOn your Hostinger subdomain — a live multi-page link\nSuggested prompt for Claude (first batch)\nBuild a \"Services Directory\" site of 3 linked HTML pages:\nHome, Services, Contact.\nSpecifications:\n• A fixed navigation menu on every page\n• A unified header and footer with the same design\n• The Services page displays a list of cards\n• Clean typography, responsive on mobile\nStart with the structure only — we will add search later.\n14\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 15,
+        "text": "Practical implementation steps\n1\nBuild the basic structure\nUse the suggested prompt to create the three pages with unified navigation\n2\nReview and refine the design\nRequest specific changes: colours, spacing, fonts\n3\nAdd the search field\nIn a new batch: ask for the services list to filter instantly as you type\n4\nTest every page\nConfirm navigation works across all three pages\n5\nFix any error through dialogue\nCopy the error, describe the expected behaviour, send both together\n6\nPublish the complete site\nUpload all files to your domain — your first multi-page site is live!\n15\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 16,
+        "text": "Common mistakes and how to avoid them\nMistake\nWhy it happens\nThe fix\nVague description\n\"Make it professional\" — gives no clear criterion\nSpecify colours, layout and content precisely\nRequesting the whole site at once\nThree pages, search and design in one long prompt\nBuild the structure first, then add one feature at a time\nSaying only \"it does not work\"\nGives the model nothing it needs to fix the problem\nAttach the error message, the expected behaviour and the code\nForgetting to test navigation\nA page works alone but its link is broken\nTest moving between all pages before publishing\n16\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 17,
+        "text": "Day summary\nA good prompt has an anatomy\nSix components that sharpen any prompt you write\nThree prompting techniques\nZero-shot, few-shot, and chain-of-thought\nIteration and dialogue\nBuild in batches, and debug with sufficient context, not guesswork\nThe web trio\nHTML for structure, CSS for appearance, JavaScript for interaction\nYou built your first website\nMulti-page, with navigation and instant search — published and live\nTomorrow: your first dynamic page with PHP — from static sites to applications that receive user data.\n17\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 18,
+        "text": "Discussion and self-assessment questions\nWhich three components matter most in the prompts you personally write? Why those?\nDescribe a situation that would have benefited from few-shot rather than zero-shot prompting\nWhy does iterative building matter more as a project grows?\nIn two sentences, describe how you debug through dialogue rather than guesswork\nIn your own words, what is the practical difference between HTML, CSS and JavaScript?\nThe last question is the foundation for tomorrow — make sure everyone understands it clearly before leaving.\n18\nVibe Coding · Day 3"
+      },
+      {
+        "slide": 19,
+        "text": "References and resources\nCore references\nMDN Web Docs — HTML, CSS, JavaScript — developer.mozilla.org\nOfficial prompt engineering documentation — docs.claude.com/prompt-engineering\nWei, J. et al. — Chain-of-Thought Prompting — 2022\nBrown, T. et al. — Language Models are Few-Shot Learners — 2020\nOfficial Hostinger documentation — hostinger.com/tutorials\nSuggested video searches\nSearch: \"Prompt engineering basics explained\"\nSearch: \"HTML CSS JavaScript for beginners\"\nSearch: \"Web design for absolute beginners\"\nSearch: \"Chain of thought prompting examples\"\nNote: verify every link and reference yourself before relying on it — the same principle from Day One always applies.\n19\nVibe Coding · Day 3"
+      }
+    ],
+    "id": "prompting-web",
+    "title": {
+      "en": "Prompting and multipage websites",
+      "ar": "صياغة الأوامر والمواقع"
+    },
+    "language": "en",
+    "textSlides": 19,
+    "slideCount": 19
+  },
+  {
+    "file": "Day-1-AI-Concepts-EN.pptx",
+    "sha256": "3cb287f99549ea7c8a1f1c1de00b62ff32ba9fc6d136dfd7b31cfd5ac0c0629e",
+    "slides": [
+      {
+        "slide": 1,
+        "text": "Specialized Training Course\nVibe Coding\nFrom zero to building digital products with AI\nDay One\nCore AI Concepts and Applications\n[ logo area ]\n[ logo ]\n5-6 training hours  ·  Level: complete beginner\n1\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 2,
+        "text": "Learning Objectives\n1\nDefining artificial intelligence\nThe trainee explains what AI is and the stages of its historical development\n2\nDistinguishing the layers\nDifferentiates machine learning, deep learning, generative AI and agentic AI\n3\nUnderstanding how it works\nExplains how language models predict the next word without mathematics\n4\nRecognizing the limits\nIdentifies hallucination, bias and the knowledge cutoff, and why review is required\n5\nProducing a first product\nBuilds a web page by instructing AI and publishes it online\n2\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 3,
+        "text": "Why does this matter to you?\nFor the first time in programming history, memorizing a language is no longer a condition for building software.\nSpeed\nWhat took weeks of development is now completed in hours\nWider access\nNon-programmers can now build tools that solve their own problems\nPrecision in describing\nThe new skill is not typing, but describing precisely what you want\nIndependence\nYou need not wait on a technical team for a simple tool you need today\nThe question is no longer: can I program?  It is: what do I want to build?\n3\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 4,
+        "text": "What is artificial intelligence?\nDefinition\nA branch of computer science aiming to build systems capable of tasks that normally require human intelligence: understanding, reasoning, learning from experience, and decision making.\nNot consciousness\nThe system does not understand as we do — it detects statistical patterns in vast data\nNot magic\nEvery output results from calculations over patterns learned from training data\nNot infallible\nIt errs with high confidence — its greatest danger, requiring human review\nSchematic: a neural network\ninputs → hidden layers → outputs\nA helpful analogy: imagine a student who read millions of books without understanding them — memorizing only which words follow which. That is why it is a powerful tool in the hands of someone who knows how to direct and review it.\n4\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 5,
+        "text": "A brief history: how did we get here?\n1950\nThe Turing Test\nAlan Turing asks: can a machine think?\n1956\nDartmouth Conference\nThe term is formally born and the field begins as a discipline\n1974-1993\nAI Winters\nFunding collapsed twice after promises went unmet — the AI Winters\n2012\nThe deep learning revolution\nA leap in image recognition reignited the field\n2022+\nGenerative AI\nLanguage models spread widely and became an everyday tool\nThe lesson: the field passed through two winters after over-promising — so we treat its capabilities realistically.\n5\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 6,
+        "text": "Field map: the hierarchy\nArtificial Intelligence — AI\nMachine Learning — ML\nDeep Learning — DL\nGenerative AI — GenAI\nAgentic AI\nAI\nThe broad umbrella: any system simulating intelligent ability\nML\nLearns from examples instead of being programmed with explicit rules\nDL\nNeural networks with many layers extracting complex patterns\nGenAI\nProduces new content: text, images, code\nAgentic\nPlans, executes steps and uses tools to reach a goal\nEach layer is part of the one before it — not a replacement for it.\n6\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 7,
+        "text": "When do we use each type?\nType\nWhen used?\nPractical examples\nMachine Learning\nPrediction from structured numeric data\nForecasting inventory demand, classifying messages\nDeep Learning\nUnstructured data: images, audio, text\nFace recognition, speech to text\nGenerative AI\nProducing new content\nWriting a report, generating code, summarizing a document\nAgentic AI\nA compound multi-step task\nReceive a request → classify → log → notify\nIn this course we use all four: generative for building code, agentic on day nine, and deep learning for vision and audio.\n7\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 8,
+        "text": "The three learning paradigms\nSupervised learning\nSupervised\nWe give the model examples with correct answers, and it learns the mapping.\nExample: thousands of images labelled \"intact/damaged\" → it learns to distinguish\nUnsupervised learning\nUnsupervised\nWe give it data without answers, and it discovers patterns and clusters itself.\nExample: grouping customers into similar segments without predefined labels\nReinforcement learning\nReinforcement\nIt learns by trial and error, rewarded for correct actions and penalized for errors.\nExample: a robot learning to walk after thousands of attempts\n8\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 9,
+        "text": "How do language models work? — 1 Tokenization\nBefore the model understands text, it splits it into small units called tokens, then converts each token into a number.\nArtificial\n1043\nIntelligence\n1260\nchanges\n1477\nthe way\n1694\nwe work\n1911\nThe text as you see it\nThe numbers as the model sees them\nWhy does this matter to you?\nBecause cost, response speed and length limits are all measured in tokens, not words.\nPractical note\nArabic text consumes more tokens than English for the same meaning — so be concise in your prompts.\n9\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 10,
+        "text": "How do language models work? — 2 Prediction\nThe core of the model is surprisingly simple: it predicts the most likely next token — then repeats that thousands of times.\nInput sentence:\n\"The administrative capital of the country is ...\"\nProbabilities the model computes:\nCity A\n78%\nCity B\n14%\nCity C\n5%\nTwo important consequences\n1. The model does not \"know\" the answer — it selects the statistically most likely one.\n2. Because the choice is probabilistic, the answer may differ each time you ask the same question — this is called non-determinism.\nHerein lies both the secret of its power and of its error.\n10\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 11,
+        "text": "Training versus inference\nTraining phase\nTraining\nHappens once before the model is released\nTakes weeks and costs millions\nUses vast data from the internet and books\nProduces a fixed model that does not change afterwards\nInference phase\nInference\nHappens every time you ask\nTakes seconds and costs fractions of a cent\nThe model uses what it learned previously\nIt does not learn from your question nor remember it later\nPractical takeaway: the model does not remember you between sessions — every conversation starts from zero unless you supply the context yourself.\n11\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 12,
+        "text": "The Context Window\nThe maximum amount of text the model can \"see\" at once — your question and its previous replies all sit inside it.\nContext window\nSystem prompt — instructions\nYour previous messages\nThe model's previous replies\nYour current question\n▲ Anything beyond the window drops — and the model \"forgets\" the start of the conversation\nBe concise\nLong-winded prompts consume the window without benefit\nStart a new conversation\nWhen changing topic, to avoid old context interfering\nRestate periodically\nIn long conversations, summarize what has been agreed\n12\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 13,
+        "text": "Limits of AI: what you must know\nThe most important slide today. A powerful tool without awareness of its limits is a hazard, not a benefit.\nHallucination\nHallucination\nProduces information that looks entirely correct but is fabricated\nBias\nBias\nInherits biases present in its training data\nKnowledge cutoff\nKnowledge Cutoff\nDoes not know what emerged after its training date\nNon-determinism\nNon-determinism\nMay give a different answer to the same question\nThe golden rule: every AI output is a draft awaiting your review — not a final result.\n13\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 14,
+        "text": "Hallucination: why does it err confidently?\nRoot cause\nThe model is built to produce likely text — not to verify truth. When it does not know, it does not stay silent; it generates what \"resembles\" a correct answer.\nInventing references and book titles that do not exist\nProducing links that look valid but do not work\nAttributing a quote to someone who never said it\nHigh confidence in phrasing despite wrong content\nHow do you protect yourself?\n1\nVerify every figure and reference\nEspecially links, statistics and quotations\n2\nAsk it to cite its source\nThen open the source yourself to confirm\n3\nAsk the question two ways\nA differing answer signals uncertainty\n4\nUse it where you can judge the output\nIf you cannot judge the answer, you are at risk\n5\nFor code: run it and test it\nPractical testing is the truest judge\n14\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 15,
+        "text": "Bias: where does it come from?\nTraining data\nInternet text carrying the biases of the societies that produced it\n◀\nData selection\nSome languages and cultures are better represented than others in training sources\n◀\nHuman labelling\nThe opinions of human raters transfer to the model during tuning\n◀\nOutputs\nThe result: unintended preferences and assumptions in the answers\nIts effect in the Arabic context\nMost training data is English, so Arabic answers may be less accurate or carry cultural assumptions unsuited to our context.\nHow do we mitigate it?\nState the context explicitly in your prompt, request multiple perspectives, and review outputs critically before relying on them.\n15\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 16,
+        "text": "AI applications across sectors\nHealthcare\nMedical image analysis, diagnostic support, drug discovery\nEducation\nPersonalized learning, automated assessment, study assistant\nIndustry\nPredictive maintenance, visual quality control, production optimization\nLogistics\nRoute planning, demand forecasting, inventory management\nBusiness\nCustomer service, data analysis, office task automation\nSafety\nVisual violation detection, early warning, risk analysis\n16\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 17,
+        "text": "What is Vibe Coding?\nAn approach to building software where you describe what you want in natural language and AI writes the code — while you focus on the outcome.\n1\nDescribe\nYou explain what you want clearly and precisely\n◀\n2\nGenerate\nAI produces the code\n◀\n3\nTest\nYou run the result and see what happened\n◀\n4\nRefine\nYou request changes and iterate until satisfied\n◀\n5\nPublish\nYou upload it online so it truly works\nYou will repeat this five-step loop on every one of the fifteen course days.\n17\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 18,
+        "text": "The shift: from syntax to precision of description\nTraditional programming\nYou memorize language rules and syntax\nA single misplaced comma breaks the program\nYears to master a single language\nFocus on: how do I write it?\nVibe Coding\nYou describe the goal and desired behaviour in your own words\nErrors are fixed through dialogue, not lengthy searching\nDays to start producing real output\nFocus on: what do I want?\nImportant caveat: this does not mean understanding is optional — understanding now comes from practice rather than prior memorization.\n18\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 19,
+        "text": "Practical activity: today's product\nA digital profile card\nA professional web page in your name, published online\nWhat you will build\nA page showing your name, specialty and a short bio with an elegant design\nHow\nBy instructing Claude in plain language — without writing a single line of code\nWhere it is published\nOn your own subdomain at Hostinger\nThe result\nA live link you can open from any device in the world\nSuggested prompt for Claude\nWrite me one complete HTML page that serves as a personal profile card.\nSpecifications:\n• Name: [your name]\n• Specialty: [your specialty]\n• A short two-line bio\n• Modern design with a dark background and gold accents\n• Clean typography and generous spacing\n• Responsive on mobile screens\nPut everything — HTML and CSS in a single file.\n19\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 20,
+        "text": "Practical implementation steps\n1\nOpen Claude and write the prompt\nUse the suggested prompt with your own details\n2\nReview the result in the preview\nView the page directly and confirm it looks as intended\n3\nRequest improvements\nExample: \"make the font larger\" or \"add contact icons\"\n4\nCopy the code and save it\nSave it in a file named index.html\n5\nSign in to the Hostinger panel\nFrom hPanel open the File Manager\n6\nUpload the file and open your link\nUpload it to your subdomain folder — then open the link!\n🎉 When the link opens you have completed your first digital product — published online on your very first day.\n20\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 21,
+        "text": "Common mistakes and how to avoid them\nMistake\nWhy it happens\nThe fix\nVague description\n\"Make me a nice website\" — yields a poor result\nSpecify content, colours and purpose precisely\nAsking for everything at once\nA long prompt with twenty demands muddles the result\nBuild the base first, then add one feature at a time\nRebuilding from scratch for every change\nA fresh description from zero discards what you achieved\nAsk to modify only the specific part\nBlind trust in the output\nAccepting the result without testing or review\nRun it, test it and verify before relying on it\nThe rule: the more precise your description, the fewer attempts you need — saving both time and usage quota.\n21\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 22,
+        "text": "Day summary\nAI comes in layers\nFrom machine learning to agentic — each layer sits inside the one before it\nModels predict, they do not know\nThey select the statistically likeliest token — the secret of both their power and their errors\nEvery tool has limits\nHallucination, bias and the knowledge cutoff — every output is a draft to review\nThe Vibe Coding loop\nDescribe → Generate → Test → Refine → Publish\nYou completed your first product\nA live page published online under your name — on day one\nTomorrow: knowledge representation and rule-based systems — how does a machine make a decision you can explain?\n22\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 23,
+        "text": "Discussion and self-assessment questions\nWhat is the difference between deep learning and generative AI? Which contains the other?\nWhy might the model give you two different answers to the same question?\nDescribe a situation at work where hallucination could cause real harm — and how would you protect yourself?\nWhich skill matters most in Vibe Coding: memorizing prompts or precision of description? Why?\nIn one sentence, describe a tool you would like to build during this course.\nThe last question matters: keep your answer — it may become your graduation project idea.\n23\nVibe Coding · Day 1"
+      },
+      {
+        "slide": 24,
+        "text": "References and resources\nCore references\nRussell, S. & Norvig, P. — Artificial Intelligence: A Modern Approach — 4th ed.\nTuring, A. — Computing Machinery and Intelligence — Mind, 1950\nGoodfellow, Bengio & Courville — Deep Learning — MIT Press, 2016\nOfficial Anthropic documentation — docs.claude.com\nOfficial Hostinger documentation — hostinger.com/tutorials\nSuggested video searches\nSearch: \"How Large Language Models Work explained\"\nSearch: \"Generative AI explained for beginners\"\nSearch: \"AI hallucination explained simply\"\nSearch: \"Vibe coding tutorial for beginners\"\nNote: verify every link and reference yourself before relying on it — a practical application of today's lesson on hallucination.\n24\nVibe Coding · Day 1"
+      }
+    ],
+    "id": "ai-concepts",
+    "title": {
+      "en": "AI concepts",
+      "ar": "مفاهيم الذكاء الاصطناعي"
+    },
+    "language": "en",
+    "textSlides": 24,
+    "slideCount": 24
+  }
+]

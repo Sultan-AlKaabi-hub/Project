@@ -8,7 +8,7 @@ let chunks;
 function chunkIndex(){
  if(chunks)return chunks;
  chunks=[];
- for(const d of documents){for(const lang of ['en','ar']){const sentences=String(d.body[lang]||'').match(/[^.!؟\n]+[.!؟]?/g)||[];let part='',number=0;const add=()=>{if(part.trim()){const content=part.trim();chunks.push({id:(d.lessonId||d.id||d.title.en)+':'+lang+':'+number++,courseId:d.courseId,moduleId:d.moduleId,lessonId:d.lessonId,conceptId:d.conceptId||conceptFor(d.title.en+' '+content)?.id||null,title:d.title[lang],content,difficulty:d.difficulty,sourceType:d.contentType,view:d.view,url:d.url,lang,vector:embedCourse(content+' '+d.title[lang])});}part='';};for(const sentence of sentences){if(part.length+sentence.length>700)add();part+=sentence+' ';}add();}}
+ for(const d of documents){for(const lang of ['en','ar']){const sentences=String(d.body[lang]||'').match(/[^.!؟\n]+[.!؟]?/g)||[];let part='',number=0;const add=()=>{if(part.trim()){const content=part.trim();chunks.push({id:(d.lessonId||d.id||d.title.en)+':'+lang+':'+number++,courseId:d.courseId,moduleId:d.moduleId,lessonId:d.lessonId,conceptId:d.conceptId||conceptFor(d.title.en+' '+content)?.id||null,title:d.title[lang],content,difficulty:d.difficulty,sourceType:d.contentType,view:d.view,url:d.url,deckId:d.deckId,file:d.file,slides:d.slides,lang,vector:embedCourse(content+' '+d.title[lang])});}part='';};for(const sentence of sentences){if(part.length+sentence.length>700)add();part+=sentence+' ';}add();}}
  return chunks;
 }
 export function rewriteQuery(question,context){
