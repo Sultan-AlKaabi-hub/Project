@@ -35,7 +35,9 @@ export function buildAgentContext(db,user,input,lang){
  return context;
 }
 export function chooseStrategy(question,context,input){
- const c=conceptFor(question)||conceptFor(context.currentLesson?.title||context.sessionTopic||''),m=context.mastery.find(x=>x.conceptId===c?.id);
+ // A remembered topic only applies to vague follow-ups ('give me an example', 'why?'); a clear new question is judged on its own words.
+ const vagueFollowUp=/\b(this|that|it|these|they|again|more|why|example|simpler|simply|understand)\b|هذا|هذه|ذلك|مرة أخرى|ما فهمت|لا أفهم|لم أفهم|مثال|أكثر|لماذا|ببساطة/i.test(question)||tokens(question).length<=2;
+ const c=conceptFor(question)||conceptFor(context.currentLesson?.title||'')||(vagueFollowUp?conceptFor(context.sessionTopic||''):null),m=context.mastery.find(x=>x.conceptId===c?.id);
  const repeated=context.recentInteractions.filter(r=>r.question.toLowerCase()===question.toLowerCase()).length;
  const confused=/confus|don't (?:get|understand)|do not understand|makes no sense|لا أفهم|لم أفهم|ما فهمت|محتار/i.test(question)||m?.status==='needs_practice';
  let strategy=input.mode==='guided'?'SOCRATIC':input.intent==='EXAMPLE'||/example|مثال/i.test(question)?'WORKED_EXAMPLE':/difference|compare|فرق|قارن/i.test(question)?'COMPARE_AND_CONTRAST':/step.by.step|خطوة/i.test(question)?'STEP_BY_STEP':/visual|diagram|رسم|بصري/i.test(question)?'VISUAL_MENTAL_MODEL':/analogy|تشبيه/i.test(question)?'ANALOGY':/guarantee|always correct|يضمن|دائما صحيح/i.test(question)?'MISCONCEPTION_CORRECTION':'DIRECT_EXPLANATION';
