@@ -1,3 +1,4 @@
+import {PRESENTATIONS} from '../../data/knowledge/presentations.js';
 import {adaptiveTeaching} from './context.js';
 import {prepare,INTENTS,tracesForAdmin,deleteTraces,reportDeviceResponse} from './orchestration.js';
 import {adminInsights} from './attendance-insights.js';
@@ -28,7 +29,7 @@ export function installAgents(app,{db,save,requireUser,getArticle=()=>null}){
  app.post('/api/agents/practice/:id/answer',wrap((req,res)=>{const result=gradePractice(db,req.user,req.params.id,req.body.answer);save();res.json(result);}));
  app.post('/api/agents/projects',wrap((req,res)=>{const project=createProject(db,req.user,req.body.type,req.user.lang||'en');save();res.status(201).json({project});}));
  app.post('/api/agents/projects/:id/milestones/:mid',wrap((req,res)=>{const project=updateMilestone(db,req.user,req.params.id,req.params.mid,req.body.submission,req.body.completed);save();res.json({project});}));
- app.get('/api/agents/knowledge',(req,res)=>{const lang=req.user.lang==='ar'?'ar':'en',level=req.user.level||'beginner';res.json({notes:documents.filter(d=>d.contentType==='open-source'||d.contentType==='concept'&&d.difficulty===level).map(d=>({id:d.id,title:d.title[lang],body:d.body[lang],url:d.url||null,provenance:d.provenance||null}))});});
+ app.get('/api/agents/knowledge',(req,res)=>{const lang=req.user.lang==='ar'?'ar':'en',level=req.user.level||'beginner';res.json({presentations:PRESENTATIONS.map(d=>({id:d.id,file:d.file,title:d.title[lang],language:d.language,slideCount:d.slideCount,textSlides:d.textSlides,slides:d.slides})),notes:documents.filter(d=>d.contentType==='open-source'||d.contentType==='concept'&&d.difficulty===level).map(d=>({id:d.id,title:d.title[lang],body:d.body[lang],url:d.url||null,provenance:d.provenance||null}))});});
  app.post('/api/agents/diagnostic/compare',(req,res)=>{
   if(req.user.role!=='admin')return res.status(403).json({error:'admin_required'});
   if(typeof req.body.question!=='string'||!req.body.question.trim()||req.body.question.length>1000)return res.status(400).json({error:'invalid_question'});
@@ -45,6 +46,7 @@ export function installAgents(app,{db,save,requireUser,getArticle=()=>null}){
   const body=req.body;
   if(!body||typeof body!=='object'||Array.isArray(body))return res.status(400).json({error:'invalid_request'});
   if(body.intent&&!INTENTS.includes(body.intent)||body.debug!==undefined&&typeof body.debug!=='boolean'||typeof body.question!=='string'||!body.question.trim()||body.question.length>4000||body.agent&&!['auto',...ACTIVE].includes(body.agent)||body.mode&&!['direct','guided'].includes(body.mode)||body.selection&&(typeof body.selection!=='string'||body.selection.length>1000)||body.lessonId&&!allowedLesson(req.user,body.lessonId))return res.status(400).json({error:'invalid_context'});
+  if(body.conversation!==undefined&&(!Array.isArray(body.conversation)||body.conversation.length>3||body.conversation.some(t=>!t||typeof t.question!=='string'||t.question.length>1000||typeof t.answer!=='string'||t.answer.length>2000)))return res.status(400).json({error:'invalid_conversation'});
   if(active.has(req.user.email))return res.status(429).json({error:'request_in_progress'});
   active.add(req.user.email);const controller=new AbortController();res.on('close',()=>{if(!res.writableEnded)controller.abort();});
   const streaming=req.get('accept')?.includes('text/event-stream');

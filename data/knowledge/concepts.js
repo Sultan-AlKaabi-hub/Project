@@ -1,6 +1,8 @@
+import {PRESENTATION_CONCEPTS} from './presentations.js';
 // Original teaching notes. Reading a note never counts as demonstrated mastery.
 const pair=(en,ar)=>({en,ar});
 export const CONCEPTS=[
+ ...PRESENTATION_CONCEPTS,
  {id:'hallucination',aliases:['hallucination','hallucinations','هلوسة','الهلوسة','انحياز','bias'],title:pair('Hallucination and bias','الهلوسة والانحياز'),lessons:['b6-1'],prerequisites:[],
  foundation:pair('A fluent AI answer can still be false. Hallucination means inventing a claim; bias means a systematic skew in how people or situations are represented. Check evidence rather than confidence.','قد تكون إجابة الذكاء الاصطناعي السلسة خاطئة. الهلوسة اختلاق معلومة، والانحياز ميل منهجي في تمثيل الأشخاص أو المواقف. تحقق من الدليل لا من نبرة الثقة.'),
  application:pair('Separate factual accuracy from fairness: verify citations and numbers against original sources, then test equivalent prompts with different names or dialects. Track each failure separately.','افصل الدقة عن العدالة: تحقق من الاستشهادات والأرقام من مصادرها ثم اختبر أسئلة متكافئة بأسماء أو لهجات مختلفة. سجل كل نوع من الأخطاء على حدة.'),

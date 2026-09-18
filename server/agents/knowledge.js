@@ -1,3 +1,4 @@
+import {PRESENTATION_NOTES} from '../../data/knowledge/presentations.js';
 import {OPEN_SOURCE_NOTES} from '../../data/knowledge/open-source-notes.js';
 import {CONCEPTS} from '../../data/knowledge/concepts.js';
 import {REFERENCE_NOTES} from '../../data/knowledge/reference-notes.js';
@@ -9,8 +10,10 @@ const stop=new Set('the and for with that this from what how when why your are w
 export const normalizeArabic=w=>/[\u0600-\u06ff]/.test(w)?w.replace(/[\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة$/,'').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/^(?:وال|بال|كال|فال|لل|ال|و|ب|ل|ف|س)(?=.{3,})/,'').replace(/(?:ات|ون|ين|ها|هم)$/,(m,o,str)=>str.length-m.length>=3?'':m):w;
 export const tokens=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\u064b-\u065f]/g,'').match(/[\p{L}\p{N}]{2,}/gu)?.map(normalizeArabic).filter(x=>x.length>=2&&!stop.has(x))||[];
 export const documents=LEVELS.flatMap(level=>COURSE[level].modules.flatMap(m=>m.lessons.map(l=>({courseId:'ai',moduleId:m.id,lessonId:l.id,title:l.title,difficulty:level,topic:m.title,contentType:'lesson',body:l.body}))));
+documents.push(...PRESENTATION_NOTES);
+
 documents.push(...[...REFERENCE_NOTES,...LAB_NOTES,...OPEN_SOURCE_NOTES].map(d=>({...d,courseId:"ai",moduleId:"references",lessonId:null})));
-documents.push(...CONCEPTS.flatMap(c=>['beginner','intermediate','expert'].map((difficulty,i)=>({id:c.id+'-'+difficulty,conceptId:c.id,courseId:'ai',moduleId:'concepts',lessonId:null,title:c.title,topic:c.title,difficulty,contentType:'concept',view:'knowledge',body:Object.fromEntries(['en','ar'].map(lang=>[lang,c[['foundation','application','advanced'][i]][lang]+' '+c.example[lang]+' '+c.misconception[lang]]))}))));
+documents.push(...CONCEPTS.flatMap(c=>['beginner','intermediate','expert'].map((difficulty,i)=>({id:c.id+'-'+difficulty,conceptId:c.id,courseId:'ai',moduleId:'concepts',lessonId:null,title:c.title,topic:c.title,difficulty,deckId:c.source?.deckId,file:c.source?.file,slides:c.source?.slides,contentType:'concept',view:'knowledge',body:Object.fromEntries(['en','ar'].map(lang=>[lang,c[['foundation','application','advanced'][i]][lang]+' '+c.example[lang]+' '+c.misconception[lang]]))}))));
 let index;
 // Local latent semantic analysis: bilingual TF-IDF -> truncated SVD -> cosine vectors.
 // Public course text only. No student record or message is embedded in the index.
@@ -30,7 +33,7 @@ export function embedCourse(text){return (index||build()).embed(text);}
 export function allowedLesson(user,id){const hit=lessonById(id);return hit&&levelIndex(hit.module.level)<=levelIndex(user.level||'beginner')?hit:null;}
 export function retrieve(question,user,{lessonId,lang='en',limit=3}={}){
  const idx=index||build(),q=idx.embed(question),terms=new Set(tokens(question));
- return documents.map((d,i)=>{const text=d.title[lang]+' '+d.body[lang],lexical=tokens(text).filter(x=>terms.has(x)).length;const semantic=idx.vectors[i].reduce((n,v,j)=>n+v*q[j],0);return {...d,score:Math.max(0,semantic)+Math.min(.25,lexical*.02)+(d.lessonId===lessonId?.toString()?1:0),lexical};})
+ return documents.map((d,i)=>{const text=d.title[lang]+' '+d.body[lang],lexical=tokens(text).filter(x=>terms.has(x)).length;const heading=new Set(tokens(d.title[lang]+' '+d.topic[lang])),headingScore=[...terms].filter(t=>heading.has(t)).length/Math.max(1,terms.size);const semantic=idx.vectors[i].reduce((n,v,j)=>n+v*q[j],0);return {...d,score:Math.max(0,semantic)+.35*headingScore+Math.min(.25,lexical*.02)+(d.lessonId===lessonId?.toString()?1:0),lexical};})
  .filter(d=>levelIndex(d.difficulty)<=levelIndex(user.level||'beginner')&&(d.lessonId===lessonId||d.score>.22&&d.lexical>0)).sort((a,b)=>b.score-a.score).slice(0,limit);
 }
-export function source(d,lang){if(['lab','concept','open-source'].includes(d.contentType))return {title:d.title[lang],view:d.view,url:d.url,contentType:d.contentType};if(d.contentType==='reference')return {title:d.title[lang]+' · '+d.file+' · '+(lang==='ar'?'صفحة ':'page ')+d.pages.join(', '),view:d.view,contentType:d.contentType};return {lessonId:d.lessonId,moduleId:d.moduleId,courseId:d.courseId,title:d.title[lang],difficulty:d.difficulty,topic:d.topic[lang],contentType:d.contentType};}
+export function source(d,lang){if(d.deckId)return {title:d.title[lang]+' · '+d.file+' · '+(lang==='ar'?'الشرائح ':'slides ')+d.slides.join(', '),view:'knowledge',deckId:d.deckId,slides:d.slides,file:d.file,contentType:d.contentType};if(['lab','concept','open-source'].includes(d.contentType))return {title:d.title[lang],view:d.view,url:d.url,contentType:d.contentType};if(d.contentType==='reference')return {title:d.title[lang]+' · '+d.file+' · '+(lang==='ar'?'صفحة ':'page ')+d.pages.join(', '),view:d.view,contentType:d.contentType};return {lessonId:d.lessonId,moduleId:d.moduleId,courseId:d.courseId,title:d.title[lang],difficulty:d.difficulty,topic:d.topic[lang],contentType:d.contentType};}

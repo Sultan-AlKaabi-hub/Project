@@ -9,4 +9,4 @@ self.onmessage=async({data})=>{try{
  for await(const chunk of stream){text+=chunk.choices[0]?.delta?.content||'';const visible=text.replace(/<think>[\s\S]*?(?:<\/think>|$)/g,'').trim();if(visible.startsWith(sent)){postMessage({type:'delta',text:visible.slice(sent.length)});sent=visible;}}
  postMessage({type:'result',text:text.replace(/<think>[\s\S]*?(?:<\/think>|$)/g,'').trim()});
  }
-}catch(error){postMessage({type:'error',phase:data.type,reason:String(error?.message||'model_error').replace(/https?:\/\/\S+/g,'[model resource]').slice(0,220)});}};
+}catch(error){postMessage({type:'error',phase:data.type,fatal:/device.*lost|out of memory|memory allocation/i.test(String(error?.message||'')),reason:String(error?.message||'model_error').replace(/https?:\/\/\S+/g,'[model resource]').slice(0,220)});}};

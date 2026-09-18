@@ -31,10 +31,11 @@
   controls.querySelector('[data-agent]').value=preference;controls.querySelector('[data-agent]').onchange=e=>preference=e.target.value;
   controls.querySelector('[data-mode]').value=mode;controls.querySelector('[data-mode]').onchange=e=>mode=e.target.value;
   controls.querySelector('[data-profile]').onclick=()=>{window.Faris.hide();window.App.go('coach');window.Faris.show();};
+  const privacy=document.createElement('p');privacy.textContent=L('Conversation stays in this tab. Recent learning exchanges provide reply context; long-term memory is optional.','تبقى المحادثة في هذه الصفحة وتوفر الرسائل التعليمية الأخيرة سياق الرد؛ الذاكرة الممتدة اختيارية.');controls.append(privacy);const fresh=document.createElement('button');fresh.type='button';fresh.className='btn small';fresh.textContent=L('New conversation','محادثة جديدة');fresh.onclick=()=>window.Faris.clear();controls.append(fresh);
   container.querySelector('.ask').before(controls);
   if(!response)return;
   const content=document.createElement('div');content.className='ai-cards';
-  const tag=document.createElement('div');tag.className='ai-agent-tag';tag.textContent=response.route?.intent==='student_progress'?L('Student progress','تقدم الطلاب'):name(response.route?.agent);container.querySelector('.msg').before(tag);
+  const tag=document.createElement('div');tag.className='ai-agent-tag';tag.textContent=response.route?.intent==='student_progress'?L('Student progress','تقدم الطلاب'):name(response.route?.agent);if(response.mode==='generative')tag.textContent+=' · '+(response.model?.startsWith('claude')?'Claude':L('On-device','على الجهاز'));container.querySelector('.msg').before(tag);
   if(response.notice){const p=document.createElement('p');p.className='ai-disclosure';p.textContent=response.notice;content.append(p);}
   for(const c of response.cards||[]){
    if(c.type==='explanation'&&c.text===response.text)continue;
@@ -52,7 +53,7 @@
    if(c.lessonId){const b=document.createElement('button');b.className='btn small';b.textContent=L('Open lesson','افتح الدرس');b.onclick=()=>window.App.openLesson(c.lessonId);section.append(b);}
    content.append(section);
   }
-  if(response.sources?.length){const refs=document.createElement('details');refs.innerHTML=`<summary>${L('Sources','المصادر')} (${response.sources.length})</summary>`;for(const s of response.sources){let link;if(s.view&&!s.url){link=document.createElement('button');link.onclick=()=>window.App.go(s.view);}else if(s.lessonId){link=document.createElement('button');link.onclick=()=>window.App.openLesson(s.lessonId);}else {try{if(!['https:','http:'].includes(new URL(s.url).protocol))continue;}catch{continue;}link=document.createElement('a');link.href=s.url;link.target='_blank';link.rel='noopener noreferrer';}link.textContent=s.title+(s.publisher?' · '+s.publisher+' · '+String(s.publishedAt).slice(0,10):'');refs.append(link);}content.append(refs);}
+  if(response.sources?.length){const refs=document.createElement('details');refs.innerHTML=`<summary>${L('Sources','المصادر')} (${response.sources.length})</summary>`;for(const s of response.sources){let link;if(s.view&&!s.url){link=document.createElement('button');link.onclick=()=>s.deckId&&window.Workshops?.openSource?window.Workshops.openSource(s.deckId,s.slides?.[0]):window.App.go(s.view);}else if(s.lessonId){link=document.createElement('button');link.onclick=()=>window.App.openLesson(s.lessonId);}else {try{if(!['https:','http:'].includes(new URL(s.url).protocol))continue;}catch{continue;}link=document.createElement('a');link.href=s.url;link.target='_blank';link.rel='noopener noreferrer';}link.textContent=s.title+(s.publisher?' · '+s.publisher+' · '+String(s.publishedAt).slice(0,10):'');refs.append(link);}content.append(refs);}
   container.querySelector('.msg').after(content);
  }
  const statusName=s=>({gathering_evidence:L('Gathering evidence','نجمع الأدلة'),demonstrated:L('Demonstrated in practice','أُثبت في التدريب'),needs_practice:L('Needs practice','يحتاج تدريباً'),developing:L('Developing','قيد التطوير')}[s]||s);
