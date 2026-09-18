@@ -11,6 +11,7 @@
 
   const state = { open: false, msg: "", link: null, actions: [], onAsk: null };
   let root, bubble, btn, requestVersion=0, pending;
+  const transcript=[];
   let chatLang=document.documentElement.lang;
   const vl=(en,ar)=>chatLang==='ar'?ar:en;
   function stopVoice(){ window.VoicePanel?.cleanup(); }
@@ -34,6 +35,10 @@
     wireVoice();
     if(window.App?.getContext?.().hasAI !== false||state.response?.route?.intent==="site_guide")window.LearningAI?.enhance(bubble,state.response,chatLang);
     if(window.LearningAI){const message=bubble.querySelector(".msg");message.replaceChildren();window.LearningAI?.textBlock(message,state.msg);}
+    const thread=document.createElement('div');thread.className='chat-thread';thread.setAttribute('role','log');thread.setAttribute('aria-label',vl('Conversation','المحادثة'));
+    for(const turn of transcript){const item=document.createElement('div');item.className='chat-turn '+turn.role;item.dir='auto';const who=document.createElement('strong');who.textContent=turn.role==='user'?vl('You','أنت'):vl('Faris','فارس');item.append(who);const body=document.createElement('div');if(window.LearningAI)window.LearningAI.textBlock(body,turn.text);else body.textContent=turn.text;item.append(body);thread.append(item);}
+    for(const el of [...bubble.querySelectorAll(':scope > .ai-agent-tag,:scope > .msg,:scope > .ai-cards')])thread.append(el);
+    bubble.querySelector('.faris-head').after(thread);thread.scrollTop=thread.scrollHeight;
     bubble.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>{const input=bubble.querySelector('#faris-q');input.value=b.dataset.prompt==='bfs'?vl('Explain BFS and DFS with an example','اشرح البحث بالعرض والعمق مع مثال'):vl('How do I book tuition or a meeting?','كيف أحجز درساً خاصاً أو اجتماعاً؟');input.focus();});
     const actions = bubble.querySelector(".actions");
     if (state.link) {
@@ -49,6 +54,8 @@
       const q = bubble.querySelector("#faris-q").value.trim();
       if (!q) return;
       if (/^\d{6}$/.test(q)) { say(t("farisNoPin")); return; }
+      if(state.response)transcript.push({role:'assistant',text:state.msg});
+      transcript.push({role:'user',text:q});if(transcript.length>24)transcript.splice(0,transcript.length-24);
       const version=++requestVersion;
       pending?.abort();pending=new AbortController();
       stopVoice();
@@ -93,5 +100,5 @@
     document.body.appendChild(root);
   }
 
-  window.Faris = { mount, say, draw, close:()=>{stopVoice();state.open=false;render();}, ask: (question)=>{if(!state.open)chatLang=document.documentElement.lang;state.open=true;render();bubble.querySelector("#faris-q").value=question;bubble.querySelector(".ask").requestSubmit();}, hide: () => { requestVersion++;pending?.abort();pending=null;stopVoice(); state.msg="";state.response=null;state.link=null;state.open=false; if (root) root.hidden = true; }, show: () => { if (root) root.hidden = false; }, isOpen: () => state.open, rerender: render };
+  window.Faris = { mount, say, draw, close:()=>{stopVoice();state.open=false;render();}, ask: (question)=>{if(!state.open)chatLang=document.documentElement.lang;state.open=true;render();bubble.querySelector("#faris-q").value=question;bubble.querySelector(".ask").requestSubmit();}, hide: () => { requestVersion++;pending?.abort();pending=null;stopVoice(); transcript.length=0;state.msg="";state.response=null;state.link=null;state.open=false; if (root) root.hidden = true; }, show: () => { if (root) root.hidden = false; }, isOpen: () => state.open, rerender: render };
 })();
