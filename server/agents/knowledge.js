@@ -4,8 +4,10 @@ import {REFERENCE_NOTES} from '../../data/knowledge/reference-notes.js';
 import {LAB_NOTES} from '../../data/knowledge/lab-notes.js';
 import { Matrix, SingularValueDecomposition } from 'ml-matrix';
 import { COURSE, LEVELS, lessonById, levelIndex } from '../curriculum.js';
-const stop=new Set('the and for with that this from what how when why your are was not have into about does explain give example simply technically في من على إلى عن هذا هذه ماذا كيف التي الذي شرح اشرح مثال'.split(' '));
-export const tokens=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\u064b-\u065f]/g,'').match(/[\p{L}\p{N}]{2,}/gu)?.filter(x=>!stop.has(x))||[];
+const stop=new Set('the and for with that this from what how when why your are was not have into about does explain give example simply technically في من على إلى عن هذا هذه ماذا كيف التي الذي شرح اشرح مثال ما هي هو هل ماهي ماهو'.split(' '));
+// Arabic normalization: unify alef/taa-marbuta/alef-maqsura variants and strip common clitic prefixes (ال، و، ب، ل، ف...) so "الشبكات" and "شبكة" share a stem.
+export const normalizeArabic=w=>/[\u0600-\u06ff]/.test(w)?w.replace(/[\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة$/,'').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/^(?:وال|بال|كال|فال|لل|ال|و|ب|ل|ف|س)(?=.{3,})/,'').replace(/(?:ات|ون|ين|ها|هم)$/,(m,o,str)=>str.length-m.length>=3?'':m):w;
+export const tokens=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\u064b-\u065f]/g,'').match(/[\p{L}\p{N}]{2,}/gu)?.map(normalizeArabic).filter(x=>x.length>=2&&!stop.has(x))||[];
 export const documents=LEVELS.flatMap(level=>COURSE[level].modules.flatMap(m=>m.lessons.map(l=>({courseId:'ai',moduleId:m.id,lessonId:l.id,title:l.title,difficulty:level,topic:m.title,contentType:'lesson',body:l.body}))));
 documents.push(...[...REFERENCE_NOTES,...LAB_NOTES,...OPEN_SOURCE_NOTES].map(d=>({...d,courseId:"ai",moduleId:"references",lessonId:null})));
 documents.push(...CONCEPTS.flatMap(c=>['beginner','intermediate','expert'].map((difficulty,i)=>({id:c.id+'-'+difficulty,conceptId:c.id,courseId:'ai',moduleId:'concepts',lessonId:null,title:c.title,topic:c.title,difficulty,contentType:'concept',view:'knowledge',body:Object.fromEntries(['en','ar'].map(lang=>[lang,c[['foundation','application','advanced'][i]][lang]+' '+c.example[lang]+' '+c.misconception[lang]]))}))));

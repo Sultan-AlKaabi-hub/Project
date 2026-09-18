@@ -117,14 +117,26 @@ export function gradePlacement(u, answers, skipped) {
 
 // Text search over the curriculum for Faris.
 const STOP = new Set("the a an of to in on for and or is are was were be by with as at from that this it its what who how why when where ما هو هي ماذا كيف لماذا من في على عن هل مع إلى أن و أو هذا هذه ذلك التي الذي".split(" "));
-const tokens = (s) => (s || "").toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter((w) => w.length > 2 && !STOP.has(w));
+export const normalizeAr = (w) => /[\u0600-\u06ff]/.test(w) ? w.replace(/[\u064B-\u0652\u0640]/g, "").replace(/[أإآ]/g, "ا").replace(/ة$/, "").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/^(?:وال|بال|كال|فال|لل|ال|و|ب|ل|ف)(?=.{3,})/, "") : w;
+export const tokens = (s) => (s || "").toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).map(normalizeAr).filter((w) => w.length > 2 && !STOP.has(w));
 export function searchCurriculum(question, lang, limit = 3) {
   const q = tokens(question); if (!q.length) return [];
   const scored = [];
   for (const m of allModules) for (const l of m.lessons) {
-    const hay = new Set(tokens(`${m.title.ar} ${m.title.en} ${l.title.ar} ${l.title.en} ${l.body.ar} ${l.body.en} ${m.skills.ar.join(" ")} ${m.skills.en.join(" ")}`));
-    const score = q.reduce((n, w) => n + (hay.has(w) ? 1 : 0), 0);
+    const head = new Set(tokens(`${m.title.ar} ${m.title.en} ${l.title.ar} ${l.title.en} ${m.skills.ar.join(" ")} ${m.skills.en.join(" ")}`));
+    const bodyTok = tokens(`${l.body.ar} ${l.body.en}`); const body = new Set(bodyTok);
+    const score = q.reduce((n, w) => n + (head.has(w) ? 3 : 0) + (body.has(w) ? 1 : 0), 0) / Math.sqrt(1 + bodyTok.length / 200);
     if (score) scored.push({ score, module: m, lesson: l });
   }
   return scored.sort((a, b) => b.score - a.score).slice(0, limit);
+}
+
+// Sentences of a lesson that best match a question (used when no AI key is present).
+export function bestSentences(body, question, n = 2) {
+  const q = new Set(tokens(question));
+  const sents = String(body || "").split(/(?<=[.!؟?])\s+/).filter((s) => s.length > 20);
+  if (!sents.length) return String(body || "").slice(0, 400);
+  const scored = sents.map((s, i) => ({ s, i, sc: tokens(s).reduce((a, w) => a + (q.has(w) ? 1 : 0), 0) }));
+  const top = scored.slice().sort((a, b) => b.sc - a.sc || a.i - b.i).slice(0, n);
+  return (top[0]?.sc ? top.sort((a, b) => a.i - b.i) : scored.slice(0, n)).map((x) => x.s).join(" ");
 }

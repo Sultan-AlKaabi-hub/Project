@@ -1,6 +1,6 @@
 // Faris answers from the AI curriculum (and with Claude when a key is present). Never from the open internet.
 import Anthropic from "@anthropic-ai/sdk";
-import { searchCurriculum } from "./curriculum.js";
+import { searchCurriculum, bestSentences } from "./curriculum.js";
 import { aiAvailable } from "./pipeline/generate.js";
 
 export async function answer(question, { lang = "ar", article = null } = {}) {
@@ -37,6 +37,6 @@ export async function answer(question, { lang = "ar", article = null } = {}) {
       if (msg.stop_reason !== "refusal") { const text = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim(); if (text) return { text, lessonId: best.lesson.id, lessonTitle: best.lesson.title[lang] }; }
     } catch (e) { console.warn(`[faris] Claude failed: ${e.message}`); }
   }
-  const first = best.lesson.body[lang].split(/(?<=[.!؟?])\s/).slice(0, 2).join(" ");
+  const first = bestSentences(best.lesson.body[lang], question, 2);
   return { text: first, lessonId: best.lesson.id, lessonTitle: best.lesson.title[lang] };
 }

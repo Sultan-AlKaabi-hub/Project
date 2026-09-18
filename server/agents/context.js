@@ -1,5 +1,5 @@
 import {documents,allowedLesson,embedCourse,tokens} from './knowledge.js';
-import {summary,history,initialize,masteryView} from './memory.js';
+import {summary,history,initialize,masteryView,sessionTopic} from './memory.js';
 import {conceptFor,conceptById,CONCEPTS} from '../../data/knowledge/concepts.js';
 import {projectFor} from './projects.js';
 export const redact=text=>String(text||'').replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g,'[email]').replace(/(?:api[_ -]?key|password|secret|token)\s*[:=]\s*["']?[^\s"']+/gi,'[credential]').slice(0,5000);
@@ -30,12 +30,14 @@ export function buildAgentContext(db,user,input,lang){
  const s=summary(db,user,lang),hit=input.lessonId?allowedLesson(user,input.lessonId):null,a=initialize(db),recent=history(db,user);
  const conceptMastery=CONCEPTS.map(c=>{const entries=[a.mastery[user.email]?.[c.id],...c.lessons.map(id=>a.mastery[user.email]?.[id])].filter(Boolean);const evidence=entries.flatMap(m=>m.evidence||[]).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)).slice(-20);return {conceptId:c.id,...masteryView({evidence,updatedAt:evidence.at(-1)?.at})};});
  const active=projectFor(db,user,input.projectId)||s.projects.find(p=>p.milestones.some(m=>!m.completed));
- const context={language:lang,currentCourse:{id:'ai',title:'AI learning'},currentModule:hit?{id:hit.module.id,title:hit.module.title[lang]}:null,currentLesson:hit?{id:hit.lesson.id,title:hit.lesson.title[lang],summary:hit.lesson.body[lang].slice(0,500),learningObjectives:[hit.lesson.title[lang]]}:null,view:input.view||null,learner:{skillLevel:user.level||'beginner',goals:[redact(s.profile.goals)].filter(Boolean),preferredExplanationStyle:s.profile.style,completedLessons:s.completedLessons,weakConcepts:conceptMastery.filter(m=>m.status==='needs_practice').map(m=>m.conceptId),strongConcepts:conceptMastery.filter(m=>m.status==='demonstrated'&&m.confidence>=.3).map(m=>m.conceptId)},mastery:conceptMastery,activeProject:active?{id:active.id,title:active.title,currentMilestone:active.milestones.find(m=>!m.completed)?.id,completedMilestones:active.milestones.filter(m=>m.completed).map(m=>m.id)}:null,recentInteractions:recent.slice(-3).map(r=>({question:redact(r.question),answer:redact(r.answer).slice(0,700)})),sessionTopic:conceptById(input.conceptId)?.title[lang]||(recent.length?conceptFor(recent.at(-1).question)?.title[lang]:null),retrievedKnowledge:[]};
+ const context={language:lang,currentCourse:{id:'ai',title:'AI learning'},currentModule:hit?{id:hit.module.id,title:hit.module.title[lang]}:null,currentLesson:hit?{id:hit.lesson.id,title:hit.lesson.title[lang],summary:hit.lesson.body[lang].slice(0,500),learningObjectives:[hit.lesson.title[lang]]}:null,view:input.view||null,learner:{skillLevel:user.level||'beginner',goals:[redact(s.profile.goals)].filter(Boolean),preferredExplanationStyle:s.profile.style,completedLessons:s.completedLessons,weakConcepts:conceptMastery.filter(m=>m.status==='needs_practice').map(m=>m.conceptId),strongConcepts:conceptMastery.filter(m=>m.status==='demonstrated'&&m.confidence>=.3).map(m=>m.conceptId)},mastery:conceptMastery,activeProject:active?{id:active.id,title:active.title,currentMilestone:active.milestones.find(m=>!m.completed)?.id,completedMilestones:active.milestones.filter(m=>m.completed).map(m=>m.id)}:null,recentInteractions:recent.slice(-3).map(r=>({question:redact(r.question),answer:redact(r.answer).slice(0,700)})),sessionTopic:conceptById(input.conceptId)?.title[lang]||(recent.length?conceptFor(recent.at(-1).question)?.title[lang]:null)||(sessionTopic(user)?(conceptById(sessionTopic(user).conceptId)?.title[lang]||sessionTopic(user).title):null),question:redact(input.question||'').slice(0,500),retrievedKnowledge:[]};
  if(hit&&typeof input.selection==='string'&&hit.lesson.body[lang].includes(input.selection))context.selectedText=input.selection.slice(0,1000);
  return context;
 }
 export function chooseStrategy(question,context,input){
- const c=conceptFor(question)||conceptFor(context.currentLesson?.title||context.sessionTopic||''),m=context.mastery.find(x=>x.conceptId===c?.id);
+ // A remembered topic only applies to vague follow-ups ('give me an example', 'why?'); a clear new question is judged on its own words.
+ const vagueFollowUp=/\b(this|that|it|these|they|again|more|why|example|simpler|simply|understand)\b|هذا|هذه|ذلك|مرة أخرى|ما فهمت|لا أفهم|لم أفهم|مثال|أكثر|لماذا|ببساطة/i.test(question)||tokens(question).length<=2;
+ const c=conceptFor(question)||conceptFor(context.currentLesson?.title||'')||(vagueFollowUp?conceptFor(context.sessionTopic||''):null),m=context.mastery.find(x=>x.conceptId===c?.id);
  const repeated=context.recentInteractions.filter(r=>r.question.toLowerCase()===question.toLowerCase()).length;
  const confused=/confus|don't (?:get|understand)|do not understand|makes no sense|لا أفهم|لم أفهم|ما فهمت|محتار/i.test(question)||m?.status==='needs_practice';
  let strategy=input.mode==='guided'?'SOCRATIC':input.intent==='EXAMPLE'||/example|مثال/i.test(question)?'WORKED_EXAMPLE':/difference|compare|فرق|قارن/i.test(question)?'COMPARE_AND_CONTRAST':/step.by.step|خطوة/i.test(question)?'STEP_BY_STEP':/visual|diagram|رسم|بصري/i.test(question)?'VISUAL_MENTAL_MODEL':/analogy|تشبيه/i.test(question)?'ANALOGY':/guarantee|always correct|يضمن|دائما صحيح/i.test(question)?'MISCONCEPTION_CORRECTION':'DIRECT_EXPLANATION';
@@ -46,10 +48,19 @@ export function chooseStrategy(question,context,input){
  const depth=input.intent==='SIMPLIFY'?'foundation':input.intent==='CHALLENGE'?'advanced':mastery!==null?(mastery<.3?'foundation':mastery>.7?'advanced':'application'):context.learner.skillLevel==='beginner'?'foundation':context.learner.skillLevel==='intermediate'?'application':'advanced';
  return {strategy,depth,conceptId:c?.id||null,confused,repeated,weakPrerequisite:weakPrerequisite?.conceptId||null,masteryUsed:mastery};
 }
+// The sentences that share the most terms with the question, kept in original order; falls back to the opening sentences.
+export function focusedExcerpt(text,question,n=3){
+ const q=new Set(tokens(question));
+ const sents=String(text||'').match(/[^.!؟\n]+[.!؟]?/g)?.map(s=>s.trim()).filter(s=>s.length>20)||[];
+ if(!sents.length)return String(text||'').slice(0,400);
+ const scored=sents.map((s,i)=>({s,i,sc:tokens(s).reduce((a,w)=>a+(q.has(w)?1:0),0)}));
+ const top=scored.slice().sort((a,b)=>b.sc-a.sc||a.i-b.i).slice(0,n);
+ return (top[0]?.sc?top.sort((a,b)=>a.i-b.i):scored.slice(0,n)).map(x=>x.s).join(' ');
+}
 export function adaptiveTeaching(context,plan){
  const c=conceptById(plan.conceptId),lang=context.language,ar=lang==='ar',card=(type,title,text)=>({type,title,text});
  if(!context.retrievedKnowledge.length)return {text:ar?'لم أجد مقاطع موثوقة تدعم هذا السؤال في المعرفة المتاحة. افتح درساً مرتبطاً أو حدد المفهوم.':'I could not find supporting passages in the available knowledge. Open a related lesson or name the concept.',cards:[],supported:false};
- if(!c){const best=context.retrievedKnowledge[0];const excerpt=best.content.split(/(?<=[.!؟])\s/).slice(0,3).join(' ');return {text:excerpt,cards:[card('explanation',best.title,excerpt),card('next',ar?'جرّب التطبيق':'Try applying it',ar?'ما الذي سيتغير إذا تغير أحد مدخلات هذا المثال؟':'What would change if one input in this example changed?')],supported:true};}
+ if(!c){const best=context.retrievedKnowledge[0];const excerpt=focusedExcerpt(context.retrievedKnowledge.slice(0,2).map(k=>k.content).join(' '),context.question||'',3);return {text:excerpt,cards:[card('explanation',best.title,excerpt),card('next',ar?'جرّب التطبيق':'Try applying it',ar?'ما الذي سيتغير إذا تغير أحد مدخلات هذا المثال؟':'What would change if one input in this example changed?')],supported:true};}
  const known=context.learner.strongConcepts.filter(id=>c.prerequisites.includes(id)).map(id=>conceptById(id)?.title[lang]);
  let text=c[plan.depth][lang],cards=[];
  if(known.length&&plan.depth!=='foundation')text=(ar?'بناءً على أدلة تدريبك في ':'Building on your practice evidence in ')+known.join(', ')+': '+text;

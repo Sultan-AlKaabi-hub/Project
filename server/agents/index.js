@@ -38,7 +38,7 @@ export function installAgents(app,{db,save,requireUser,getArticle=()=>null}){
  });
  app.get('/api/agents/traces',(req,res)=>{if(req.user.role!=='admin')return res.status(403).json({error:'admin_required'});res.set('Cache-Control','no-store').json({traces:tracesForAdmin(db),retentionHours:24});});
  app.post('/api/agents/traces/:id/device',(req,res)=>{if(typeof req.body.text!=='string'||req.body.text.length>8000)return res.status(400).json({error:'invalid_response'});if(!reportDeviceResponse(db,req.user,req.params.id,req.body.text))return res.status(404).json({error:'trace_not_found'});save();res.json({ok:true});});
- app.get('/api/agents/metrics',(req,res)=>{if(req.user.role!=='admin')return res.status(403).json({error:'admin_required'});res.json({events:initialize(db).telemetry});});
+ app.get('/api/agents/metrics',(req,res)=>{if(req.user.role!=='admin')return res.status(403).json({error:'admin_required'});res.json({events:initialize(db).telemetry,unanswered:initialize(db).unanswered||[]});});
  app.get('/api/agents/insights',(req,res)=>{if(req.user.role!=='admin')return res.status(403).json({error:'admin_required'});res.json({...adminInsights(db,req.user,req.user.lang||'en'),classes:(db.classes||[]).filter(c=>c.status!=='cancelled'&&c.start<Date.now()).slice(-100).map(c=>({id:c.id,title:c.title,host:c.host,start:c.start}))});});
  installAgentLab(app,{db,save});
  app.post('/api/agents/chat',async(req,res)=>{
